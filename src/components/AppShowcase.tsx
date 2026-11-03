@@ -19,28 +19,28 @@ const APP_SCREENS = [
     id: "dispatch",
     label: "Live Chauffeur GPS",
     badge: "Arriving in 4 mins",
-    title: "Julian Kensington · 4.99 ★",
-    subtitle: "Mercedes-Maybach S680 · Plate LB 01 MAY",
+    title: "Liam MacLeod · 4.99 ★",
+    subtitle: "Mercedes-Maybach S680 AWD · Plate ON LB 88",
     detail:
-      "Waiting outside Claridge's Brook Street Entrance. Cabin pre-cooled to 20.5°C with chilled Sparkling Perrier.",
+      "Waiting outside Fairmont Royal York (100 Front St W, Toronto). Cabin pre-warmed to 22°C with Sparkling Perrier.",
   },
   {
     id: "flight",
-    label: "Flight Telemetry",
-    badge: "Auto-Adjusted +42m",
-    title: "Flight BA 117 · LHR → JFK",
-    subtitle: "New Landing 18:12 · Gate B22",
+    label: "YYZ / YVR Flight Sync",
+    badge: "Auto-Adjusted +38m",
+    title: "Air Canada AC 857 · LHR → YYZ",
+    subtitle: "Terminal 1 Landing 18:12 · Gate E74",
     detail:
-      "Your chauffeur's arrival has been automatically synchronized to your updated touchdown. 60m complimentary wait active.",
+      "Your chauffeur's arrival at Toronto Pearson has been synchronized to your updated touchdown. 60m free wait active.",
   },
   {
     id: "concierge",
-    label: "24/7 VIP Concierge",
-    badge: "Instant Priority Desk",
+    label: "24/7 Canada Concierge",
+    badge: "Bilingual EN / FR Desk",
     title: "Obsidian Concierge Live Chat",
-    subtitle: "Multilingual Support · < 30s Response",
+    subtitle: "Canadian Support · < 30s Response",
     detail:
-      "“Certainly Mr. Sterling — we have added an intermediate stop at Sotheby's New Bond Street before Heathrow Terminal 5.”",
+      "“Certainly Mr. MacLeod — we have added an intermediate stop on Bay Street before heading up to Yorkville.”",
   },
 ];
 
@@ -49,26 +49,24 @@ export default function AppShowcase() {
   const [qrToast, setQrToast] = useState(false);
 
   return (
-    <section className="py-24 sm:py-32 bg-obsidian-900 border-y border-white/10 relative overflow-hidden">
-      <div className="absolute -left-32 top-1/3 w-96 h-96 rounded-full bg-champagne-500/10 blur-3xl pointer-events-none" />
-
+    <section className="py-24 sm:py-32 bg-surface border-y border-line/10 relative overflow-hidden">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
           {/* Left Copy */}
           <div className="lg:col-span-6 space-y-6">
-            <span className="inline-flex items-center gap-2 text-xs uppercase tracking-[0.28em] text-champagne-400 font-semibold">
+            <span className="inline-flex items-center gap-2 text-xs uppercase tracking-[0.26em] text-accent font-semibold">
               <Smartphone className="w-3.5 h-3.5" />
-              We Move With You
+              We Move Across Canada With You
             </span>
-            <h2 className="font-serif text-4xl sm:text-5xl lg:text-6xl text-ivory-50 leading-[1.08]">
-              Every Global Journey in the{" "}
-              <span className="italic text-champagne-300">Palm of Your Hand.</span>
+            <h2 className="font-serif text-4xl sm:text-5xl lg:text-6xl text-ink leading-[1.08]">
+              Every Canadian Journey in the{" "}
+              <span className="italic text-accent">Palm of Your Hand.</span>
             </h2>
-            <p className="text-sm sm:text-base text-white/65 leading-relaxed max-w-xl">
-              Book in 20 seconds, watch your chauffeur glide toward your terminal
-              in real time, adjust cabin temperature en route, and download
-              instant corporate VAT invoices from the Limo Black iOS & Android
-              application.
+            <p className="text-sm sm:text-base text-muted leading-relaxed max-w-xl">
+              Book in 20 seconds across Toronto, Vancouver, Montréal, Calgary,
+              and Ottawa. Watch your chauffeur approach your terminal live,
+              pre-warm your cabin, and download instant GST/HST corporate
+              receipts.
             </p>
 
             {/* Screen Selector Buttons */}
@@ -81,7 +79,7 @@ export default function AppShowcase() {
                   className={`px-4 py-2.5 rounded-xl text-xs font-semibold transition-all ${
                     activeScreen.id === s.id
                       ? "bg-gold-gradient text-obsidian-950 shadow-gold-glow"
-                      : "bg-obsidian-950 text-white/70 hover:text-white border border-white/12"
+                      : "bg-card text-muted hover:text-ink border border-line/12"
                   }`}
                 >
                   {s.label}
@@ -89,19 +87,18 @@ export default function AppShowcase() {
               ))}
             </div>
 
-            {/* App Store & Play Badges + QR */}
             <div className="pt-4 flex flex-wrap items-center gap-4">
               <button
                 type="button"
                 onClick={() => setQrToast(true)}
-                className="px-5 py-3 rounded-2xl bg-obsidian-950 hover:bg-white/[0.06] border border-white/15 flex items-center gap-3 transition-colors"
+                className="px-5 py-3 rounded-2xl bg-card hover:bg-line/[0.05] border border-line/15 flex items-center gap-3 transition-colors"
               >
                 <div className="text-left">
-                  <div className="text-[10px] uppercase tracking-wider text-white/50">
+                  <div className="text-[10px] uppercase tracking-wider text-subtle">
                     Download on the
                   </div>
-                  <div className="text-sm font-semibold text-ivory-50">
-                    App Store · iOS
+                  <div className="text-sm font-semibold text-ink">
+                    App Store · Canada
                   </div>
                 </div>
               </button>
@@ -109,67 +106,63 @@ export default function AppShowcase() {
               <button
                 type="button"
                 onClick={() => setQrToast(true)}
-                className="px-5 py-3 rounded-2xl bg-obsidian-950 hover:bg-white/[0.06] border border-white/15 flex items-center gap-3 transition-colors"
+                className="px-5 py-3 rounded-2xl bg-card hover:bg-line/[0.05] border border-line/15 flex items-center gap-3 transition-colors"
               >
                 <div className="text-left">
-                  <div className="text-[10px] uppercase tracking-wider text-white/50">
+                  <div className="text-[10px] uppercase tracking-wider text-subtle">
                     Get it on
                   </div>
-                  <div className="text-sm font-semibold text-ivory-50">
+                  <div className="text-sm font-semibold text-ink">
                     Google Play
                   </div>
                 </div>
               </button>
 
-              <div className="flex items-center gap-2.5 px-4 py-2.5 rounded-2xl bg-champagne-500/10 border border-champagne-400/25">
-                <QrCode className="w-6 h-6 text-champagne-400" />
+              <div className="flex items-center gap-2.5 px-4 py-2.5 rounded-2xl bg-champagne-500/15 border border-champagne-500/30">
+                <QrCode className="w-6 h-6 text-accent" />
                 <div className="text-xs">
-                  <div className="font-semibold text-champagne-300">
-                    4.9 ★ App Rating
+                  <div className="font-semibold text-accent">
+                    4.9 ★ Canada App
                   </div>
-                  <div className="text-[11px] text-white/50">
-                    iOS & Android Companion
+                  <div className="text-[11px] text-muted">
+                    EN & FR Companion
                   </div>
                 </div>
               </div>
             </div>
 
             {qrToast && (
-              <p className="text-xs text-champagne-300 bg-champagne-500/10 border border-champagne-400/30 rounded-xl px-4 py-2.5 inline-block">
-                Tip: Our full mobile-responsive Web App & Manage Rides portal works
-                instantly in your mobile browser with zero install required!
+              <p className="text-xs text-accent bg-champagne-500/15 border border-champagne-500/30 rounded-xl px-4 py-2.5 inline-block font-medium">
+                Tip: Our responsive Web App & My Rides tracker works directly in
+                your mobile browser across iOS & Android with zero install!
               </p>
             )}
           </div>
 
-          {/* Right Interactive Titanium Phone Mockup */}
+          {/* Right Interactive Titanium Phone Mockup (intentional dark OLED phone bezel) */}
           <div className="lg:col-span-6 flex justify-center">
             <div className="relative w-full max-w-[360px] rounded-[44px] bg-gradient-to-b from-zinc-700 via-zinc-900 to-black p-[10px] shadow-luxury border border-white/15">
-              <div className="rounded-[35px] bg-obsidian-950 overflow-hidden border border-white/10">
-                {/* Dynamic Island */}
+              <div className="rounded-[35px] bg-obsidian-950 overflow-hidden border border-white/10 text-ivory-50">
                 <div className="pt-3 pb-2 px-6 flex items-center justify-between text-[11px] text-white/60">
-                  <span>18:26</span>
+                  <span>18:26 EST</span>
                   <div className="w-24 h-5 rounded-full bg-black border border-white/10 flex items-center justify-center gap-1.5">
                     <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
                     <span className="text-[9px] text-champagne-300">LIVE</span>
                   </div>
-                  <span>5G</span>
+                  <span>5G+</span>
                 </div>
 
-                {/* Animated Map Trajectory Canvas */}
                 <div className="relative h-48 bg-obsidian-900 overflow-hidden border-y border-white/10">
                   <svg
                     viewBox="0 0 360 190"
                     className="w-full h-full opacity-80"
                     fill="none"
                   >
-                    {/* Subtle Street Grid */}
                     <path
                       d="M0 40 H360 M0 95 H360 M0 150 H360 M70 0 V190 M180 0 V190 M290 0 V190"
                       stroke="rgba(255,255,255,0.05)"
                       strokeWidth="1"
                     />
-                    {/* Animated Gold Route Curve */}
                     <motion.path
                       d="M 48 148 C 120 140, 165 55, 305 48"
                       stroke="#D6B982"
@@ -200,7 +193,6 @@ export default function AppShowcase() {
                   </div>
                 </div>
 
-                {/* Active Screen Card */}
                 <motion.div
                   key={activeScreen.id}
                   initial={{ opacity: 0, y: 10 }}
@@ -228,24 +220,24 @@ export default function AppShowcase() {
                     </div>
                   </div>
 
-                  <p className="text-xs text-white/65 leading-relaxed bg-white/[0.03] border border-white/10 rounded-2xl p-3.5">
+                  <p className="text-xs text-white/70 leading-relaxed bg-white/[0.04] border border-white/10 rounded-2xl p-3.5">
                     {activeScreen.detail}
                   </p>
 
                   <div className="grid grid-cols-2 gap-2 pt-1">
                     <div className="px-3 py-2 rounded-xl bg-white/[0.04] text-[11px] text-white/75 flex items-center gap-1.5">
                       <Shield className="w-3.5 h-3.5 text-champagne-400" />
-                      NDA Protected
+                      HST Included
                     </div>
                     <div className="px-3 py-2 rounded-xl bg-white/[0.04] text-[11px] text-white/75 flex items-center gap-1.5">
                       <BellRing className="w-3.5 h-3.5 text-champagne-400" />
-                      SMS Alerts Active
+                      SMS Dispatch
                     </div>
                   </div>
 
                   <div className="pt-1 flex items-center justify-between text-[11px] text-emerald-300">
                     <span className="flex items-center gap-1.5">
-                      <CheckCircle2 className="w-3.5 h-3.5" /> All-Inclusive Paid
+                      <CheckCircle2 className="w-3.5 h-3.5" /> Paid in CAD
                     </span>
                     <span className="text-white/45">Ref #LB-904812</span>
                   </div>

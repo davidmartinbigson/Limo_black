@@ -8,6 +8,8 @@ import {
   FLEET_CLASSES,
 } from "@/data/limoData";
 
+export type ThemeMode = "dark" | "light";
+
 export interface CabinPreferences {
   temperature: "19°C Cool" | "21°C Balanced" | "23°C Warm";
   conversation: "Discreet Silence" | "Warm & Conversational";
@@ -20,6 +22,8 @@ export interface BookingDraft {
   rideType: "oneway" | "hourly";
   pickup: string;
   dropoff: string;
+  pickupCoords: { lat: number; lng: number } | null;
+  dropoffCoords: { lat: number; lng: number } | null;
   durationHours: number;
   date: string;
   time: string;
@@ -47,7 +51,7 @@ export type DispatchStage =
 export interface ConfirmedBooking extends BookingDraft {
   reference: string;
   createdAt: string;
-  totalUsd: number;
+  totalUsd: number; // stored in base CAD
   distanceKm: number;
   durationMin: number;
   status: DispatchStage;
@@ -64,20 +68,23 @@ export interface ConfirmedBooking extends BookingDraft {
 export interface UserProfile {
   name: string;
   email: string;
-  tier: "Obsidian VIP" | "Corporate Executive";
+  tier: "Obsidian VIP Canada" | "Corporate Executive";
   memberSince: string;
 }
 
 interface BookingContextValue {
+  theme: ThemeMode;
+  toggleTheme: () => void;
+  setThemeMode: (m: ThemeMode) => void;
   currency: CurrencyCode;
   setCurrency: (c: CurrencyCode) => void;
-  formatPrice: (usd: number) => string;
+  formatPrice: (baseCad: number) => string;
   draft: BookingDraft;
   updateDraft: (patch: Partial<BookingDraft>) => void;
   updateCabin: (patch: Partial<CabinPreferences>) => void;
   bookings: ConfirmedBooking[];
   confirmCurrentBooking: (
-    totalUsd: number,
+    totalCad: number,
     distanceKm: number,
     durationMin: number
   ) => ConfirmedBooking;
@@ -101,81 +108,86 @@ function getTomorrowIso(): string {
 
 const DEFAULT_DRAFT: BookingDraft = {
   rideType: "oneway",
-  pickup: "John F. Kennedy International Airport (JFK)",
-  dropoff: "Aman New York, Fifth Avenue",
+  pickup: "Toronto Pearson International Airport (YYZ)",
+  dropoff: "Fairmont Royal York Hotel, 100 Front St W, Toronto, ON",
+  pickupCoords: { lat: 43.6777, lng: -79.6248 },
+  dropoffCoords: { lat: 43.6456, lng: -79.3814 },
   durationHours: 4,
   date: "2026-11-05",
   time: "18:30",
   selectedClassId: "first",
   bookingFor: "myself",
   guestTitle: "Mr.",
-  firstName: "Alexander",
-  lastName: "Sterling",
-  email: "a.sterling@sterlingcapital.com",
-  phone: "+1 (212) 555-0194",
-  flightNumber: "BA 117",
-  pickupSign: "MR. ALEXANDER STERLING",
+  firstName: "David",
+  lastName: "MacLeod",
+  email: "d.macleod@baystreetcapital.ca",
+  phone: "+1 (416) 555-0194",
+  flightNumber: "AC 857",
+  pickupSign: "MR. DAVID MACLEOD",
   cabin: {
     temperature: "21°C Balanced",
     conversation: "Discreet Silence",
     refreshment: "Sparkling Perrier",
     childSeat: "None",
-    notes: "Please text upon arrival outside Terminal 8 VIP customs exit.",
+    notes: "Please text upon arrival outside Terminal 1 Domestic/Intl Arrivals.",
   },
   promoCode: "",
 };
 
 const SEED_BOOKING: ConfirmedBooking = {
   ...DEFAULT_DRAFT,
-  selectedClassId: "limousine",
-  pickup: "London Heathrow Airport (LHR)",
-  dropoff: "Claridge's Mayfair",
-  flightNumber: "BA 001",
-  pickupSign: "STERLING EXECUTIVE PARTY",
+  selectedClassId: "suv",
+  pickup: "Vancouver International Airport (YVR)",
+  dropoff: "Four Seasons Resort & Residences Whistler, BC",
+  pickupCoords: { lat: 49.1967, lng: -123.1815 },
+  dropoffCoords: { lat: 50.1163, lng: -122.9486 },
+  flightNumber: "AC 215",
+  pickupSign: "MACLEOD EXECUTIVE PARTY",
   reference: "LB-904812",
   createdAt: "2026-11-03T09:15:00Z",
-  totalUsd: 410,
-  distanceKm: 28,
-  durationMin: 46,
+  totalUsd: 495,
+  distanceKm: 136,
+  durationMin: 115,
   status: "Chauffeur Assigned",
   chauffeur: {
-    name: "Julian Kensington",
+    name: "Liam MacLeod",
     rating: "4.99",
     languages: "English, French",
-    phone: "+44 20 7946 0821",
-    vehicleModel: "Mercedes-Maybach S680 Pullman",
-    plate: "LB 01 MAY",
+    phone: "+1 (604) 555-0821",
+    vehicleModel: "Cadillac Escalade ESV 4WD",
+    plate: "BC 88 VIP",
   },
 };
 
 const CHAUFFEUR_ROSTER = [
   {
-    name: "Marcus Vance",
+    name: "Liam Vance",
     rating: "4.99",
-    languages: "English, German",
-    phone: "+1 (212) 555-0842",
-    plate: "LB 88 VIP",
+    languages: "English",
+    phone: "+1 (416) 555-0842",
+    plate: "ON LB 88",
   },
   {
-    name: "Henri Delacroix",
+    name: "Jean-Luc Tremblay",
     rating: "5.00",
-    languages: "English, French, Italian",
-    phone: "+33 1 86 95 44 10",
-    plate: "LB 07 PAR",
+    languages: "English, Français",
+    phone: "+1 (514) 555-4410",
+    plate: "QC LB 07",
   },
   {
-    name: "Tariq Al-Harbi",
+    name: "Devon Gill",
     rating: "4.99",
-    languages: "English, Arabic",
-    phone: "+971 4 555 9102",
-    plate: "DXB 11 LB",
+    languages: "English, Punjabi",
+    phone: "+1 (604) 555-9102",
+    plate: "BC 11 LB",
   },
 ];
 
 const BookingContext = createContext<BookingContextValue | null>(null);
 
 export function BookingProvider({ children }: { children: React.ReactNode }) {
-  const [currency, setCurrency] = useState<CurrencyCode>("USD");
+  const [theme, setTheme] = useState<ThemeMode>("dark");
+  const [currency, setCurrency] = useState<CurrencyCode>("CAD");
   const [draft, setDraft] = useState<BookingDraft>(() => ({
     ...DEFAULT_DRAFT,
     date: getTomorrowIso(),
@@ -186,7 +198,17 @@ export function BookingProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     try {
-      const savedBookings = localStorage.getItem("limoblack_bookings_v1");
+      const savedTheme = localStorage.getItem(
+        "limoblack_theme_v1"
+      ) as ThemeMode | null;
+      if (savedTheme === "light" || savedTheme === "dark") {
+        setTheme(savedTheme);
+        document.documentElement.classList.toggle("dark", savedTheme === "dark");
+      } else {
+        document.documentElement.classList.add("dark");
+      }
+
+      const savedBookings = localStorage.getItem("limoblack_ca_bookings_v2");
       if (savedBookings) {
         const parsed = JSON.parse(savedBookings);
         if (Array.isArray(parsed) && parsed.length > 0) {
@@ -194,12 +216,12 @@ export function BookingProvider({ children }: { children: React.ReactNode }) {
         }
       }
       const savedCurrency = localStorage.getItem(
-        "limoblack_currency_v1"
+        "limoblack_ca_currency_v2"
       ) as CurrencyCode | null;
       if (savedCurrency && CURRENCIES[savedCurrency]) {
         setCurrency(savedCurrency);
       }
-      const savedUser = localStorage.getItem("limoblack_user_v1");
+      const savedUser = localStorage.getItem("limoblack_ca_user_v2");
       if (savedUser) {
         setUser(JSON.parse(savedUser));
       }
@@ -208,17 +230,31 @@ export function BookingProvider({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
-  const handleSetCurrency = (c: CurrencyCode) => {
-    setCurrency(c);
+  const setThemeMode = (nextTheme: ThemeMode) => {
+    setTheme(nextTheme);
+    if (typeof document !== "undefined") {
+      document.documentElement.classList.toggle("dark", nextTheme === "dark");
+    }
     try {
-      localStorage.setItem("limoblack_currency_v1", c);
+      localStorage.setItem("limoblack_theme_v1", nextTheme);
     } catch {}
   };
 
-  const formatPrice = (usd: number): string => {
+  const toggleTheme = () => {
+    setThemeMode(theme === "dark" ? "light" : "dark");
+  };
+
+  const handleSetCurrency = (c: CurrencyCode) => {
+    setCurrency(c);
+    try {
+      localStorage.setItem("limoblack_ca_currency_v2", c);
+    } catch {}
+  };
+
+  const formatPrice = (baseCad: number): string => {
     const info = CURRENCIES[currency];
-    const converted = Math.round(usd * info.rate);
-    return `${info.symbol}${converted.toLocaleString("en-US")}`;
+    const converted = Math.round(baseCad * info.rate);
+    return `${info.symbol}${converted.toLocaleString("en-CA")}`;
   };
 
   const updateDraft = (patch: Partial<BookingDraft>) => {
@@ -235,12 +271,12 @@ export function BookingProvider({ children }: { children: React.ReactNode }) {
   const persistBookings = (next: ConfirmedBooking[]) => {
     setBookings(next);
     try {
-      localStorage.setItem("limoblack_bookings_v1", JSON.stringify(next));
+      localStorage.setItem("limoblack_ca_bookings_v2", JSON.stringify(next));
     } catch {}
   };
 
   const confirmCurrentBooking = (
-    totalUsd: number,
+    totalCad: number,
     distanceKm: number,
     durationMin: number
   ): ConfirmedBooking => {
@@ -256,7 +292,7 @@ export function BookingProvider({ children }: { children: React.ReactNode }) {
       ...draft,
       reference,
       createdAt: new Date().toISOString(),
-      totalUsd,
+      totalUsd: totalCad,
       distanceKm,
       durationMin,
       status: "Chauffeur Assigned",
@@ -305,26 +341,29 @@ export function BookingProvider({ children }: { children: React.ReactNode }) {
     const profile: UserProfile = {
       name,
       email,
-      tier: "Obsidian VIP",
+      tier: "Obsidian VIP Canada",
       memberSince: "2024",
     };
     setUser(profile);
     setAuthModalOpen(false);
     try {
-      localStorage.setItem("limoblack_user_v1", JSON.stringify(profile));
+      localStorage.setItem("limoblack_ca_user_v2", JSON.stringify(profile));
     } catch {}
   };
 
   const signOut = () => {
     setUser(null);
     try {
-      localStorage.removeItem("limoblack_user_v1");
+      localStorage.removeItem("limoblack_ca_user_v2");
     } catch {}
   };
 
   return (
     <BookingContext.Provider
       value={{
+        theme,
+        toggleTheme,
+        setThemeMode,
         currency,
         setCurrency: handleSetCurrency,
         formatPrice,

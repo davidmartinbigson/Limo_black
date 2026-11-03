@@ -38,8 +38,8 @@ import {
   ConfirmedBooking as ConfirmedBookingType,
   useBooking,
 } from "@/context/BookingContext";
+import CanadianAddressInput from "@/components/CanadianAddressInput";
 
-// Re-check import: ConfirmedBooking is in BookingContext, let's use ConfirmedBookingType cleanly!
 const STEPS = [
   { num: 1, label: "Service Class" },
   { num: 2, label: "Pickup & Cabin" },
@@ -59,12 +59,11 @@ export default function BookPage() {
   const [step, setStep] = useState<1 | 2 | 3 | 4>(1);
   const [editingRoute, setEditingRoute] = useState(false);
 
-  // Payment fields for Step 3
   const [payMethod, setPayMethod] = useState<"card" | "invoice" | "express">(
     "card"
   );
   const [cardHolder, setCardHolder] = useState(
-    `${draft.firstName} ${draft.lastName}`.trim() || "ALEXANDER STERLING"
+    `${draft.firstName} ${draft.lastName}`.trim() || "DAVID MACLEOD"
   );
   const [cardNumber, setCardNumber] = useState("4532 •••• •••• 8840");
   const [cardExpiry, setCardExpiry] = useState("09/29");
@@ -72,7 +71,7 @@ export default function BookPage() {
   const [promoInput, setPromoInput] = useState(draft.promoCode || "");
   const [promoApplied, setPromoApplied] = useState(
     draft.promoCode.toUpperCase() === "LIMOBLACK15" ||
-      draft.promoCode.toUpperCase() === "VIP15"
+      draft.promoCode.toUpperCase() === "CANADA15"
   );
   const [promoFeedback, setPromoFeedback] = useState("");
   const [isProcessing, setIsProcessing] = useState(false);
@@ -80,8 +79,14 @@ export default function BookPage() {
     useState<ConfirmedBookingType | null>(null);
 
   const metrics = useMemo(
-    () => estimateRouteMetrics(draft.pickup, draft.dropoff),
-    [draft.pickup, draft.dropoff]
+    () =>
+      estimateRouteMetrics(
+        draft.pickup,
+        draft.dropoff,
+        draft.pickupCoords,
+        draft.dropoffCoords
+      ),
+    [draft.pickup, draft.dropoff, draft.pickupCoords, draft.dropoffCoords]
   );
 
   const selectedFleet = useMemo(
@@ -91,7 +96,7 @@ export default function BookPage() {
     [draft.selectedClassId]
   );
 
-  const subtotalUsd = useMemo(
+  const subtotalCad = useMemo(
     () =>
       calculateClassPriceUsd(
         selectedFleet,
@@ -102,15 +107,19 @@ export default function BookPage() {
     [selectedFleet, draft.rideType, metrics.distanceKm, draft.durationHours]
   );
 
-  const discountUsd = promoApplied ? Math.round(subtotalUsd * 0.15) : 0;
-  const finalTotalUsd = subtotalUsd - discountUsd;
+  const discountCad = promoApplied ? Math.round(subtotalCad * 0.15) : 0;
+  const finalTotalCad = subtotalCad - discountCad;
 
   const handleApplyPromo = () => {
     const code = promoInput.trim().toUpperCase();
-    if (code === "LIMOBLACK15" || code === "VIP15" || code === "FIRSTCLASS") {
+    if (
+      code === "LIMOBLACK15" ||
+      code === "CANADA15" ||
+      code === "FIRSTCLASS"
+    ) {
       setPromoApplied(true);
       updateDraft({ promoCode: code });
-      setPromoFeedback("15% Obsidian Privilege applied to your reservation.");
+      setPromoFeedback("15% Canadian VIP Privilege applied to your booking.");
     } else {
       setPromoApplied(false);
       setPromoFeedback("Try privilege code LIMOBLACK15 for 15% off.");
@@ -126,7 +135,7 @@ export default function BookPage() {
     setIsProcessing(true);
     setTimeout(() => {
       const created = confirmCurrentBooking(
-        finalTotalUsd,
+        finalTotalCad,
         metrics.distanceKm,
         metrics.durationMin
       );
@@ -134,7 +143,7 @@ export default function BookPage() {
       setIsProcessing(false);
       setStep(4);
       window.scrollTo({ top: 0, behavior: "smooth" });
-    }, 850);
+    }, 800);
   };
 
   const handleBookReturn = () => {
@@ -143,6 +152,8 @@ export default function BookPage() {
       rideType: "oneway",
       pickup: confirmedRide.dropoff,
       dropoff: confirmedRide.pickup,
+      pickupCoords: confirmedRide.dropoffCoords,
+      dropoffCoords: confirmedRide.pickupCoords,
     });
     setConfirmedRide(null);
     setStep(1);
@@ -150,7 +161,7 @@ export default function BookPage() {
   };
 
   return (
-    <div className="min-h-screen bg-obsidian-950 pt-28 pb-24">
+    <div className="min-h-screen bg-canvas pt-28 pb-24">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Progress Stepper */}
         <div className="mb-10">
@@ -173,21 +184,21 @@ export default function BookPage() {
                     <div
                       className={`w-9 h-9 rounded-full flex items-center justify-center text-xs font-bold transition-all ${
                         done
-                          ? "bg-emerald-500/20 text-emerald-300 border border-emerald-400/40"
+                          ? "bg-emerald-500/20 text-emerald-600 dark:text-emerald-300 border border-emerald-500/40"
                           : active
                           ? "bg-gold-gradient text-obsidian-950 shadow-gold-glow"
-                          : "bg-white/[0.05] text-white/45 border border-white/10"
+                          : "bg-card text-subtle border border-line/12"
                       }`}
                     >
                       {done ? <Check className="w-4 h-4" /> : s.num}
                     </div>
                     <span
-                      className={`hidden sm:inline text-xs uppercase tracking-[0.16em] font-semibold ${
+                      className={`hidden sm:inline text-xs uppercase tracking-[0.14em] font-semibold ${
                         active
-                          ? "text-champagne-300"
+                          ? "text-accent"
                           : done
-                          ? "text-ivory-100"
-                          : "text-white/40"
+                          ? "text-ink"
+                          : "text-subtle"
                       }`}
                     >
                       {s.label}
@@ -196,7 +207,7 @@ export default function BookPage() {
                   {idx < STEPS.length - 1 && (
                     <div
                       className={`flex-1 h-[1px] mx-3 ${
-                        step > s.num ? "bg-champagne-400/60" : "bg-white/10"
+                        step > s.num ? "bg-champagne-500/60" : "bg-line/12"
                       }`}
                     />
                   )}
@@ -206,43 +217,43 @@ export default function BookPage() {
           </div>
         </div>
 
-        {/* Route Summary & Quick Edit Bar (Steps 1-3) */}
+        {/* Route Summary & Live Canadian Address Quick-Edit Bar */}
         {step < 4 && (
-          <div className="rounded-3xl bg-obsidian-900/90 border border-white/12 p-5 sm:p-6 mb-8 shadow-luxury">
+          <div className="rounded-3xl bg-card border border-line/12 p-5 sm:p-6 mb-8 shadow-luxury">
             <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
               <div className="flex flex-wrap items-center gap-3 sm:gap-5">
-                <span className="px-3 py-1 rounded-full text-[11px] uppercase tracking-[0.16em] font-semibold bg-champagne-500/15 text-champagne-300 border border-champagne-400/30">
+                <span className="px-3 py-1 rounded-full text-[11px] uppercase tracking-[0.16em] font-semibold bg-champagne-500/15 text-accent border border-champagne-500/30">
                   {draft.rideType === "oneway"
-                    ? "One-Way Transfer"
+                    ? "One-Way Canada Transfer"
                     : `${draft.durationHours}h Chauffeur Standby`}
                 </span>
-                <div className="flex items-center gap-2 text-sm text-ivory-50 font-medium">
-                  <MapPin className="w-4 h-4 text-champagne-400 shrink-0" />
+                <div className="flex flex-wrap items-center gap-2 text-sm text-ink font-semibold">
+                  <MapPin className="w-4 h-4 text-accent shrink-0" />
                   <span>{draft.pickup}</span>
                   {draft.rideType === "oneway" && (
                     <>
-                      <ArrowRight className="w-4 h-4 text-champagne-400 shrink-0" />
+                      <ArrowRight className="w-4 h-4 text-accent shrink-0" />
                       <span>{draft.dropoff}</span>
                     </>
                   )}
                 </div>
               </div>
 
-              <div className="flex flex-wrap items-center gap-4 text-xs text-white/65">
+              <div className="flex flex-wrap items-center gap-4 text-xs text-muted">
                 <span className="flex items-center gap-1.5">
-                  <Calendar className="w-3.5 h-3.5 text-champagne-400" />
+                  <Calendar className="w-3.5 h-3.5 text-accent" />
                   {draft.date}
                 </span>
                 <span className="flex items-center gap-1.5">
-                  <Clock className="w-3.5 h-3.5 text-champagne-400" />
+                  <Clock className="w-3.5 h-3.5 text-accent" />
                   {draft.time}
                 </span>
                 <button
                   type="button"
                   onClick={() => setEditingRoute((v) => !v)}
-                  className="px-3.5 py-1.5 rounded-xl bg-white/[0.06] hover:bg-white/[0.12] border border-white/10 text-champagne-300 font-semibold transition-colors"
+                  className="px-3.5 py-1.5 rounded-xl bg-field hover:bg-line/[0.08] border border-line/12 text-accent font-semibold transition-colors"
                 >
-                  {editingRoute ? "Done Editing" : "Modify Route"}
+                  {editingRoute ? "Done Editing" : "Change Canadian Address"}
                 </button>
               </div>
             </div>
@@ -250,100 +261,106 @@ export default function BookPage() {
             <AnimatePresence>
               {editingRoute && (
                 <motion.div
-                  initial={{ height: 0, opacity: 0 }}
-                  animate={{ height: "auto", opacity: 1 }}
-                  exit={{ height: 0, opacity: 0 }}
-                  className="overflow-hidden"
+                  initial={{ opacity: 0, y: -6 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -6 }}
+                  className="pt-5 mt-5 border-t border-line/10 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-3 items-end"
                 >
-                  <div className="pt-5 mt-5 border-t border-white/10 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
-                    <div>
-                      <label className="block text-[11px] text-white/50 mb-1">
-                        Journey Type
-                      </label>
-                      <select
-                        value={draft.rideType}
-                        onChange={(e) =>
+                  <div className="lg:col-span-2">
+                    <label className="block text-[11px] uppercase tracking-[0.16em] text-muted font-semibold mb-1.5">
+                      Type
+                    </label>
+                    <select
+                      value={draft.rideType}
+                      onChange={(e) =>
+                        updateDraft({
+                          rideType: e.target.value as "oneway" | "hourly",
+                        })
+                      }
+                      className="w-full px-3 py-2.5 rounded-2xl bg-field border border-line/15 text-xs text-ink"
+                    >
+                      <option value="oneway">One Way</option>
+                      <option value="hourly">By the Hour</option>
+                    </select>
+                  </div>
+
+                  <div className="lg:col-span-3">
+                    <CanadianAddressInput
+                      label="Pickup Address"
+                      compact
+                      value={draft.pickup}
+                      onChange={(val, coords) =>
+                        updateDraft({
+                          pickup: val,
+                          ...(coords !== undefined
+                            ? { pickupCoords: coords }
+                            : {}),
+                        })
+                      }
+                    />
+                  </div>
+
+                  {draft.rideType === "oneway" ? (
+                    <div className="lg:col-span-3">
+                      <CanadianAddressInput
+                        label="Drop-off Address"
+                        compact
+                        value={draft.dropoff}
+                        onChange={(val, coords) =>
                           updateDraft({
-                            rideType: e.target.value as "oneway" | "hourly",
+                            dropoff: val,
+                            ...(coords !== undefined
+                              ? { dropoffCoords: coords }
+                              : {}),
                           })
                         }
-                        className="w-full px-3.5 py-2.5 rounded-xl bg-obsidian-950 border border-white/15 text-xs text-ivory-50"
-                      >
-                        <option value="oneway">One Way</option>
-                        <option value="hourly">By the Hour</option>
-                      </select>
+                      />
                     </div>
-                    <div>
-                      <label className="block text-[11px] text-white/50 mb-1">
-                        Pickup Location
+                  ) : (
+                    <div className="lg:col-span-3">
+                      <label className="block text-[11px] uppercase tracking-[0.16em] text-muted font-semibold mb-1.5">
+                        Standby Hours (2–24h)
                       </label>
                       <input
-                        type="text"
-                        value={draft.pickup}
+                        type="number"
+                        min={2}
+                        max={24}
+                        value={draft.durationHours}
                         onChange={(e) =>
-                          updateDraft({ pickup: e.target.value })
+                          updateDraft({
+                            durationHours: Math.max(
+                              2,
+                              Math.min(24, Number(e.target.value))
+                            ),
+                          })
                         }
-                        className="w-full px-3.5 py-2.5 rounded-xl bg-obsidian-950 border border-white/15 text-xs text-ivory-50"
+                        className="w-full px-3.5 py-2.5 rounded-2xl bg-field border border-line/15 text-xs text-ink"
                       />
                     </div>
-                    {draft.rideType === "oneway" ? (
-                      <div>
-                        <label className="block text-[11px] text-white/50 mb-1">
-                          Drop-off Location
-                        </label>
-                        <input
-                          type="text"
-                          value={draft.dropoff}
-                          onChange={(e) =>
-                            updateDraft({ dropoff: e.target.value })
-                          }
-                          className="w-full px-3.5 py-2.5 rounded-xl bg-obsidian-950 border border-white/15 text-xs text-ivory-50"
-                        />
-                      </div>
-                    ) : (
-                      <div>
-                        <label className="block text-[11px] text-white/50 mb-1">
-                          Hours (2–24h)
-                        </label>
-                        <input
-                          type="number"
-                          min={2}
-                          max={24}
-                          value={draft.durationHours}
-                          onChange={(e) =>
-                            updateDraft({
-                              durationHours: Math.max(
-                                2,
-                                Math.min(24, Number(e.target.value))
-                              ),
-                            })
-                          }
-                          className="w-full px-3.5 py-2.5 rounded-xl bg-obsidian-950 border border-white/15 text-xs text-ivory-50"
-                        />
-                      </div>
-                    )}
-                    <div>
-                      <label className="block text-[11px] text-white/50 mb-1">
-                        Date
-                      </label>
-                      <input
-                        type="date"
-                        value={draft.date}
-                        onChange={(e) => updateDraft({ date: e.target.value })}
-                        className="w-full px-3.5 py-2.5 rounded-xl bg-obsidian-950 border border-white/15 text-xs text-ivory-50 [color-scheme:dark]"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-[11px] text-white/50 mb-1">
-                        Time
-                      </label>
-                      <input
-                        type="time"
-                        value={draft.time}
-                        onChange={(e) => updateDraft({ time: e.target.value })}
-                        className="w-full px-3.5 py-2.5 rounded-xl bg-obsidian-950 border border-white/15 text-xs text-ivory-50 [color-scheme:dark]"
-                      />
-                    </div>
+                  )}
+
+                  <div className="lg:col-span-2">
+                    <label className="block text-[11px] uppercase tracking-[0.16em] text-muted font-semibold mb-1.5">
+                      Date
+                    </label>
+                    <input
+                      type="date"
+                      value={draft.date}
+                      onChange={(e) => updateDraft({ date: e.target.value })}
+                      className="w-full px-3 py-2.5 rounded-2xl bg-field border border-line/15 text-xs text-ink [color-scheme:light] dark:[color-scheme:dark]"
+                    />
+                  </div>
+
+                  <div className="lg:col-span-2">
+                    <label className="block text-[11px] uppercase tracking-[0.16em] text-muted font-semibold mb-1.5">
+                      Time
+                    </label>
+                    <input
+                      type="time"
+                      value={draft.time}
+                      onChange={(e) => updateDraft({ time: e.target.value })}
+                      className="w-full px-3 py-2.5 rounded-2xl bg-field border border-line/15 text-xs text-ink [color-scheme:light] dark:[color-scheme:dark]"
+                    />
                   </div>
                 </motion.div>
               )}
@@ -356,20 +373,21 @@ export default function BookPage() {
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
             <div className="lg:col-span-8 space-y-4">
               <div className="mb-2">
-                <h1 className="font-serif text-3xl sm:text-4xl text-ivory-50">
-                  Select Your Service Class
+                <h1 className="font-serif text-3xl sm:text-4xl text-ink font-semibold">
+                  Select Your Canadian Service Class
                 </h1>
-                <p className="text-sm text-white/60 mt-1">
-                  All fares include taxes, tolls, gratuity, and{" "}
+                <p className="text-sm text-muted mt-1">
+                  All fares include GST/HST, 407 ETR / highway tolls, chauffeur
+                  gratuity, and{" "}
                   {metrics.isAirport
-                    ? "60 minutes of complimentary airport wait time."
+                    ? "60 minutes of complimentary airport arrival wait time."
                     : "15 minutes of complimentary wait time."}
                 </p>
               </div>
 
               {FLEET_CLASSES.map((fleet) => {
                 const isSelected = draft.selectedClassId === fleet.id;
-                const priceUsd = calculateClassPriceUsd(
+                const priceCad = calculateClassPriceUsd(
                   fleet,
                   draft.rideType,
                   metrics.distanceKm,
@@ -381,15 +399,14 @@ export default function BookPage() {
                     key={fleet.id}
                     whileHover={{ y: -2 }}
                     onClick={() => handleSelectClass(fleet.id)}
-                    className={`cursor-pointer rounded-3xl p-5 sm:p-6 border transition-all duration-300 ${
+                    className={`cursor-pointer rounded-3xl p-5 sm:p-6 border transition-all duration-300 shadow-luxury ${
                       isSelected
-                        ? "bg-obsidian-900 border-champagne-400 shadow-gold-glow"
-                        : "bg-obsidian-900/65 border-white/10 hover:border-white/25"
+                        ? "bg-card border-champagne-500 shadow-gold-glow"
+                        : "bg-card/85 border-line/12 hover:border-line/25"
                     }`}
                   >
                     <div className="grid grid-cols-1 sm:grid-cols-12 gap-5 items-center">
-                      {/* Vehicle Photo */}
-                      <div className="sm:col-span-4 relative aspect-[16/10] rounded-2xl overflow-hidden bg-obsidian-950 border border-white/10">
+                      <div className="sm:col-span-4 relative aspect-[16/10] rounded-2xl overflow-hidden bg-obsidian-950 border border-line/10">
                         <img
                           src={fleet.image}
                           alt={fleet.name}
@@ -402,56 +419,54 @@ export default function BookPage() {
                         )}
                         {fleet.zeroEmission && (
                           <span className="absolute top-2.5 left-2.5 px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-950/90 text-emerald-300 border border-emerald-400/30 flex items-center gap-1">
-                            <Leaf className="w-3 h-3" /> Electric
+                            <Leaf className="w-3 h-3" /> Electric AWD
                           </span>
                         )}
                       </div>
 
-                      {/* Details */}
                       <div className="sm:col-span-5 space-y-2.5">
                         <div className="flex items-center gap-2">
-                          <h3 className="font-serif text-2xl text-ivory-50">
+                          <h3 className="font-serif text-2xl text-ink font-semibold">
                             {fleet.name}
                           </h3>
                           {isSelected && (
-                            <CheckCircle2 className="w-4 h-4 text-champagne-400" />
+                            <CheckCircle2 className="w-4 h-4 text-accent" />
                           )}
                         </div>
-                        <p className="text-xs text-champagne-300/90">
+                        <p className="text-xs text-accent font-medium">
                           {fleet.vehicles}
                         </p>
 
-                        <div className="flex flex-wrap items-center gap-3 text-xs text-white/65 pt-1">
+                        <div className="flex flex-wrap items-center gap-3 text-xs text-muted pt-1">
                           <span className="flex items-center gap-1">
-                            <Users className="w-3.5 h-3.5 text-champagne-400" />
+                            <Users className="w-3.5 h-3.5 text-accent" />
                             Max {fleet.maxPassengers}
                           </span>
                           <span className="flex items-center gap-1">
-                            <Luggage className="w-3.5 h-3.5 text-champagne-400" />
+                            <Luggage className="w-3.5 h-3.5 text-accent" />
                             {fleet.maxCheckIn} bags
                           </span>
                           <span className="flex items-center gap-1">
-                            <Briefcase className="w-3.5 h-3.5 text-champagne-400" />
+                            <Briefcase className="w-3.5 h-3.5 text-accent" />
                             {fleet.maxCarryOn} cabin
                           </span>
                         </div>
 
-                        <p className="text-[11px] text-white/50 line-clamp-2">
+                        <p className="text-[11px] text-subtle line-clamp-2">
                           {fleet.highlights[0]} · {fleet.highlights[1]}
                         </p>
                       </div>
 
-                      {/* Price & Select */}
-                      <div className="sm:col-span-3 sm:text-right flex sm:flex-col items-center sm:items-end justify-between gap-2 pt-3 sm:pt-0 border-t sm:border-t-0 border-white/10">
+                      <div className="sm:col-span-3 sm:text-right flex sm:flex-col items-center sm:items-end justify-between gap-2 pt-3 sm:pt-0 border-t sm:border-t-0 border-line/10">
                         <div>
-                          <div className="text-[10px] uppercase tracking-wider text-white/45">
+                          <div className="text-[10px] uppercase tracking-wider text-subtle">
                             All-Inclusive Total
                           </div>
-                          <div className="font-serif text-3xl text-ivory-50 font-semibold">
-                            {formatPrice(priceUsd)}
+                          <div className="font-serif text-3xl text-ink font-bold">
+                            {formatPrice(priceCad)}
                           </div>
-                          <div className="text-[11px] text-emerald-300">
-                            Includes taxes & tip
+                          <div className="text-[11px] text-emerald-600 dark:text-emerald-300 font-medium">
+                            HST/GST & tip included
                           </div>
                         </div>
 
@@ -466,7 +481,7 @@ export default function BookPage() {
                           className={`px-4 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider transition-all ${
                             isSelected
                               ? "bg-gold-gradient text-obsidian-950 shadow-gold-glow"
-                              : "bg-white/[0.08] hover:bg-white/[0.15] text-ivory-50"
+                              : "bg-field hover:bg-line/[0.08] text-ink border border-line/12"
                           }`}
                         >
                           Select Class
@@ -478,26 +493,25 @@ export default function BookPage() {
               })}
             </div>
 
-            {/* Right Sidebar: Visual Route Telemetry & Guarantees */}
+            {/* Right Sidebar: Visual Route Telemetry */}
             <div className="lg:col-span-4 space-y-6">
-              <div className="rounded-3xl bg-obsidian-900 border border-white/12 p-6 shadow-luxury sticky top-28">
+              <div className="rounded-3xl bg-card border border-line/12 p-6 shadow-luxury sticky top-28">
                 <div className="flex items-center justify-between mb-4">
-                  <span className="text-xs uppercase tracking-[0.2em] text-champagne-400 font-semibold">
-                    Journey Telemetry
+                  <span className="text-xs uppercase tracking-[0.2em] text-accent font-semibold">
+                    Canadian Route Telemetry
                   </span>
-                  <span className="text-xs text-white/50">
+                  <span className="text-xs text-muted">
                     {draft.rideType === "oneway"
                       ? `~${metrics.distanceKm} km · ${metrics.durationMin} min`
                       : `${draft.durationHours * 40} km allowance`}
                   </span>
                 </div>
 
-                {/* Animated SVG Trajectory Map */}
-                <div className="rounded-2xl bg-obsidian-950 border border-white/10 p-4 mb-5">
+                <div className="rounded-2xl bg-obsidian-950 border border-line/10 p-4 mb-5 text-ivory-50">
                   <svg viewBox="0 0 320 120" className="w-full h-28" fill="none">
                     <path
                       d="M0 30 H320 M0 60 H320 M0 90 H320 M80 0 V120 M160 0 V120 M240 0 V120"
-                      stroke="rgba(255,255,255,0.04)"
+                      stroke="rgba(255,255,255,0.06)"
                     />
                     <motion.path
                       d="M 30 92 Q 150 18, 290 34"
@@ -511,7 +525,7 @@ export default function BookPage() {
                     <circle cx="30" cy="92" r="5" fill="#C6A364" />
                     <circle cx="290" cy="34" r="6" fill="#FAF8F5" />
                   </svg>
-                  <div className="flex items-center justify-between text-[11px] text-white/65 mt-2">
+                  <div className="flex items-center justify-between text-[11px] text-white/75 mt-2">
                     <span className="truncate max-w-[45%]">{draft.pickup}</span>
                     <span className="text-champagne-400">→</span>
                     <span className="truncate max-w-[45%] text-right">
@@ -522,29 +536,31 @@ export default function BookPage() {
                   </div>
                 </div>
 
-                <div className="space-y-3 pb-5 border-b border-white/10 text-xs text-white/70">
+                <div className="space-y-3 pb-5 border-b border-line/10 text-xs text-muted">
                   <div className="flex items-center justify-between">
                     <span>Selected Class</span>
-                    <span className="font-semibold text-ivory-50">
+                    <span className="font-semibold text-ink">
                       {selectedFleet.name}
                     </span>
                   </div>
                   <div className="flex items-center justify-between">
-                    <span>Chauffeur Gratuity & Taxes</span>
-                    <span className="text-emerald-300">Included</span>
+                    <span>GST/HST, Tolls & Tip</span>
+                    <span className="text-emerald-600 dark:text-emerald-300 font-semibold">
+                      Included
+                    </span>
                   </div>
                   <div className="flex items-center justify-between">
                     <span>Free Cancellation</span>
-                    <span className="text-ivory-50">Until 1h prior</span>
+                    <span className="text-ink font-medium">Until 1h prior</span>
                   </div>
                 </div>
 
                 <div className="py-4 flex items-end justify-between">
-                  <span className="text-xs uppercase tracking-wider text-white/50">
+                  <span className="text-xs uppercase tracking-wider text-subtle">
                     Guaranteed Fare
                   </span>
-                  <span className="font-serif text-3xl text-champagne-300 font-semibold">
-                    {formatPrice(subtotalUsd)}
+                  <span className="font-serif text-3xl text-accent font-bold">
+                    {formatPrice(subtotalCad)}
                   </span>
                 </div>
 
@@ -568,27 +584,25 @@ export default function BookPage() {
         {step === 2 && (
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
             <div className="lg:col-span-8 space-y-6">
-              <div className="rounded-3xl bg-obsidian-900 border border-white/12 p-6 sm:p-8 space-y-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h2 className="font-serif text-3xl text-ivory-50">
-                      Pickup Protocol & Flight Telemetry
-                    </h2>
-                    <p className="text-xs sm:text-sm text-white/60 mt-1">
-                      Personalize how your chauffeur greets you upon arrival.
-                    </p>
-                  </div>
+              <div className="rounded-3xl bg-card border border-line/12 p-6 sm:p-8 space-y-6 shadow-luxury">
+                <div>
+                  <h2 className="font-serif text-3xl text-ink font-semibold">
+                    Canadian Pickup Protocol & Flight Telemetry
+                  </h2>
+                  <p className="text-xs sm:text-sm text-muted mt-1">
+                    Personalize how your chauffeur greets you at the terminal or
+                    doorstep.
+                  </p>
                 </div>
 
-                {/* Booking For Toggle */}
-                <div className="grid grid-cols-2 p-1 rounded-2xl bg-obsidian-950 border border-white/10 max-w-md">
+                <div className="grid grid-cols-2 p-1 rounded-2xl bg-field border border-line/10 max-w-md">
                   <button
                     type="button"
                     onClick={() => updateDraft({ bookingFor: "myself" })}
                     className={`py-2.5 rounded-xl text-xs font-semibold transition-all ${
                       draft.bookingFor === "myself"
                         ? "bg-champagne-500 text-obsidian-950"
-                        : "text-white/65 hover:text-white"
+                        : "text-muted hover:text-ink"
                     }`}
                   >
                     Booking for Myself
@@ -599,42 +613,41 @@ export default function BookPage() {
                     className={`py-2.5 rounded-xl text-xs font-semibold transition-all ${
                       draft.bookingFor === "guest"
                         ? "bg-champagne-500 text-obsidian-950"
-                        : "text-white/65 hover:text-white"
+                        : "text-muted hover:text-ink"
                     }`}
                   >
                     Booking for VIP Guest
                   </button>
                 </div>
 
-                {/* Flight Number & Pickup Sign */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                   <div>
-                    <label className="block text-xs text-white/65 mb-1.5">
-                      Flight Number or Private Tail Code (Optional)
+                    <label className="block text-xs text-muted mb-1.5">
+                      Flight Number (Air Canada, WestJet, Porter, Intl)
                     </label>
                     <div className="relative">
-                      <Plane className="w-4 h-4 text-champagne-400 absolute left-4 top-1/2 -translate-y-1/2" />
+                      <Plane className="w-4 h-4 text-accent absolute left-4 top-1/2 -translate-y-1/2" />
                       <input
                         type="text"
                         value={draft.flightNumber}
                         onChange={(e) =>
                           updateDraft({ flightNumber: e.target.value })
                         }
-                        placeholder="e.g. BA 117, EK 201, N650GS"
-                        className="w-full pl-11 pr-4 py-3 rounded-xl bg-obsidian-950 border border-white/15 text-sm text-ivory-50 focus:outline-none focus:border-champagne-400"
+                        placeholder="e.g. AC 857, WS 652, PD 115"
+                        className="w-full pl-11 pr-4 py-3 rounded-xl bg-field border border-line/15 text-sm text-ink focus:outline-none focus:border-champagne-500"
                       />
                     </div>
                     {draft.flightNumber.trim() && (
-                      <p className="text-[11px] text-emerald-300 mt-1.5 flex items-center gap-1">
+                      <p className="text-[11px] text-emerald-600 dark:text-emerald-300 font-medium mt-1.5 flex items-center gap-1">
                         <CheckCircle2 className="w-3.5 h-3.5" />
-                        Live satellite tracking active for{" "}
+                        Live Canadian airport telemetry active for{" "}
                         {draft.flightNumber.toUpperCase()}
                       </p>
                     )}
                   </div>
 
                   <div>
-                    <label className="block text-xs text-white/65 mb-1.5">
+                    <label className="block text-xs text-muted mb-1.5">
                       Meet & Greet Digital Nameboard Sign
                     </label>
                     <input
@@ -644,16 +657,16 @@ export default function BookPage() {
                         updateDraft({ pickupSign: e.target.value })
                       }
                       placeholder="Name or company on chauffeur tablet"
-                      className="w-full px-4 py-3 rounded-xl bg-obsidian-950 border border-white/15 text-sm text-ivory-50 focus:outline-none focus:border-champagne-400"
+                      className="w-full px-4 py-3 rounded-xl bg-field border border-line/15 text-sm text-ink focus:outline-none focus:border-champagne-500"
                     />
                   </div>
                 </div>
 
-                {/* Live Illuminated Digital Tablet Preview */}
-                <div className="rounded-2xl bg-gradient-to-br from-zinc-800 via-obsidian-950 to-black p-[2px] border border-champagne-400/30">
+                {/* Illuminated Digital Tablet Preview */}
+                <div className="rounded-2xl bg-gradient-to-br from-zinc-800 via-obsidian-950 to-black p-[2px] border border-champagne-500/35">
                   <div className="rounded-[14px] bg-obsidian-950 px-6 py-5 text-center relative overflow-hidden">
-                    <div className="text-[9px] uppercase tracking-[0.35em] text-champagne-400 mb-1.5">
-                      LIMO BLACK · ARRIVALS MEET & GREET TABLET PREVIEW
+                    <div className="text-[9px] uppercase tracking-[0.32em] text-champagne-400 mb-1.5">
+                      LIMO BLACK CANADA · ARRIVALS MEET & GREET TABLET
                     </div>
                     <div className="font-serif text-2xl sm:text-3xl tracking-[0.14em] text-ivory-50 uppercase">
                       {draft.pickupSign.trim() || "EXECUTIVE GUEST"}
@@ -662,22 +675,20 @@ export default function BookPage() {
                 </div>
               </div>
 
-              {/* Cabin Staging Preferences ("You Set the Tone") */}
-              <div className="rounded-3xl bg-obsidian-900 border border-white/12 p-6 sm:p-8 space-y-6">
+              <div className="rounded-3xl bg-card border border-line/12 p-6 sm:p-8 space-y-6 shadow-luxury">
                 <div>
-                  <span className="text-[11px] uppercase tracking-[0.22em] text-champagne-400 font-semibold">
+                  <span className="text-[11px] uppercase tracking-[0.22em] text-accent font-semibold">
                     Complimentary Bespoke Staging
                   </span>
-                  <h3 className="font-serif text-2xl sm:text-3xl text-ivory-50 mt-1">
+                  <h3 className="font-serif text-2xl sm:text-3xl text-ink font-semibold mt-1">
                     You Set the Cabin Tone
                   </h3>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                  {/* Temperature */}
                   <div>
-                    <label className="flex items-center gap-1.5 text-xs text-white/65 mb-2">
-                      <Thermometer className="w-3.5 h-3.5 text-champagne-400" />
+                    <label className="flex items-center gap-1.5 text-xs text-muted mb-2">
+                      <Thermometer className="w-3.5 h-3.5 text-accent" />
                       Cabin Climate
                     </label>
                     <select
@@ -688,18 +699,19 @@ export default function BookPage() {
                             .value as CabinPreferences["temperature"],
                         })
                       }
-                      className="w-full px-3.5 py-3 rounded-xl bg-obsidian-950 border border-white/15 text-xs sm:text-sm text-ivory-50 focus:outline-none focus:border-champagne-400"
+                      className="w-full px-3.5 py-3 rounded-xl bg-field border border-line/15 text-xs sm:text-sm text-ink focus:outline-none focus:border-champagne-500"
                     >
                       <option value="19°C Cool">19°C Crisp & Cool</option>
                       <option value="21°C Balanced">21°C Balanced</option>
-                      <option value="23°C Warm">23°C Warm Sanctuary</option>
+                      <option value="23°C Warm">
+                        23°C Pre-Warmed + Heated Seats
+                      </option>
                     </select>
                   </div>
 
-                  {/* Conversation */}
                   <div>
-                    <label className="flex items-center gap-1.5 text-xs text-white/65 mb-2">
-                      <VolumeX className="w-3.5 h-3.5 text-champagne-400" />
+                    <label className="flex items-center gap-1.5 text-xs text-muted mb-2">
+                      <VolumeX className="w-3.5 h-3.5 text-accent" />
                       Chauffeur Etiquette
                     </label>
                     <select
@@ -710,21 +722,20 @@ export default function BookPage() {
                             .value as CabinPreferences["conversation"],
                         })
                       }
-                      className="w-full px-3.5 py-3 rounded-xl bg-obsidian-950 border border-white/15 text-xs sm:text-sm text-ivory-50 focus:outline-none focus:border-champagne-400"
+                      className="w-full px-3.5 py-3 rounded-xl bg-field border border-line/15 text-xs sm:text-sm text-ink focus:outline-none focus:border-champagne-500"
                     >
                       <option value="Discreet Silence">
                         Discreet Quiet Ride
                       </option>
                       <option value="Warm & Conversational">
-                        Local City Insights
+                        Local Canadian Insights
                       </option>
                     </select>
                   </div>
 
-                  {/* Refreshment */}
                   <div>
-                    <label className="flex items-center gap-1.5 text-xs text-white/65 mb-2">
-                      <Wine className="w-3.5 h-3.5 text-champagne-400" />
+                    <label className="flex items-center gap-1.5 text-xs text-muted mb-2">
+                      <Wine className="w-3.5 h-3.5 text-accent" />
                       Door Refreshment
                     </label>
                     <select
@@ -735,10 +746,10 @@ export default function BookPage() {
                             .value as CabinPreferences["refreshment"],
                         })
                       }
-                      className="w-full px-3.5 py-3 rounded-xl bg-obsidian-950 border border-white/15 text-xs sm:text-sm text-ivory-50 focus:outline-none focus:border-champagne-400"
+                      className="w-full px-3.5 py-3 rounded-xl bg-field border border-line/15 text-xs sm:text-sm text-ink focus:outline-none focus:border-champagne-500"
                     >
                       <option value="Still Artisan Water">
-                        Still Artisan Water
+                        Canadian Spring Water
                       </option>
                       <option value="Sparkling Perrier">
                         Chilled Sparkling Perrier
@@ -752,8 +763,8 @@ export default function BookPage() {
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-xs text-white/65 mb-1.5">
-                      Complimentary Child Seat
+                    <label className="block text-xs text-muted mb-1.5">
+                      Transport Canada Certified Child Seat
                     </label>
                     <select
                       value={draft.cabin.childSeat}
@@ -763,7 +774,7 @@ export default function BookPage() {
                             .value as CabinPreferences["childSeat"],
                         })
                       }
-                      className="w-full px-3.5 py-3 rounded-xl bg-obsidian-950 border border-white/15 text-xs sm:text-sm text-ivory-50"
+                      className="w-full px-3.5 py-3 rounded-xl bg-field border border-line/15 text-xs sm:text-sm text-ink"
                     >
                       <option value="None">No Child Seat Needed</option>
                       <option value="Infant Carrier">
@@ -775,24 +786,24 @@ export default function BookPage() {
                   </div>
 
                   <div>
-                    <label className="block text-xs text-white/65 mb-1.5">
-                      Special Notes for Chauffeur
+                    <label className="block text-xs text-muted mb-1.5">
+                      Special Notes (Ski Bags, French Chauffeur, Buzzer...)
                     </label>
                     <input
                       type="text"
                       value={draft.cabin.notes}
                       onChange={(e) => updateCabin({ notes: e.target.value })}
-                      placeholder="Gate code, extra ski bags, security instructions..."
-                      className="w-full px-3.5 py-3 rounded-xl bg-obsidian-950 border border-white/15 text-xs sm:text-sm text-ivory-50"
+                      placeholder="Condo concierge code, ski equipment, bilingual driver..."
+                      className="w-full px-3.5 py-3 rounded-xl bg-field border border-line/15 text-xs sm:text-sm text-ink"
                     />
                   </div>
                 </div>
 
-                <div className="flex items-center justify-between pt-4 border-t border-white/10">
+                <div className="flex items-center justify-between pt-4 border-t border-line/10">
                   <button
                     type="button"
                     onClick={() => setStep(1)}
-                    className="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-white/[0.06] hover:bg-white/[0.12] text-xs font-semibold text-ivory-50 transition-colors"
+                    className="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-field hover:bg-line/[0.08] border border-line/12 text-xs font-semibold text-ink transition-colors"
                   >
                     <ArrowLeft className="w-4 h-4" /> Back to Fleet
                   </button>
@@ -811,10 +822,9 @@ export default function BookPage() {
               </div>
             </div>
 
-            {/* Summary Sidebar */}
             <div className="lg:col-span-4">
-              <div className="rounded-3xl bg-obsidian-900 border border-white/12 p-6 shadow-luxury sticky top-28 space-y-4">
-                <div className="aspect-[16/10] rounded-2xl overflow-hidden border border-white/10">
+              <div className="rounded-3xl bg-card border border-line/12 p-6 shadow-luxury sticky top-28 space-y-4">
+                <div className="aspect-[16/10] rounded-2xl overflow-hidden border border-line/10">
                   <img
                     src={selectedFleet.image}
                     alt={selectedFleet.name}
@@ -822,32 +832,32 @@ export default function BookPage() {
                   />
                 </div>
                 <div>
-                  <span className="text-[10px] uppercase tracking-[0.2em] text-champagne-400 font-semibold">
+                  <span className="text-[10px] uppercase tracking-[0.2em] text-accent font-semibold">
                     {selectedFleet.badge}
                   </span>
-                  <h3 className="font-serif text-2xl text-ivory-50">
+                  <h3 className="font-serif text-2xl text-ink font-semibold">
                     {selectedFleet.name}
                   </h3>
-                  <p className="text-xs text-white/55">{selectedFleet.vehicles}</p>
+                  <p className="text-xs text-muted">{selectedFleet.vehicles}</p>
                 </div>
-                <div className="pt-3 border-t border-white/10 space-y-2 text-xs text-white/70">
+                <div className="pt-3 border-t border-line/10 space-y-2 text-xs text-muted">
                   <div className="flex justify-between">
                     <span>Cabin Climate</span>
-                    <span className="text-champagne-300">
+                    <span className="text-accent font-semibold">
                       {draft.cabin.temperature}
                     </span>
                   </div>
                   <div className="flex justify-between">
                     <span>Refreshment</span>
-                    <span className="text-champagne-300">
+                    <span className="text-accent font-semibold">
                       {draft.cabin.refreshment}
                     </span>
                   </div>
                 </div>
-                <div className="pt-3 border-t border-white/10 flex items-end justify-between">
-                  <span className="text-xs text-white/50">Total Fare</span>
-                  <span className="font-serif text-3xl text-champagne-300 font-semibold">
-                    {formatPrice(finalTotalUsd)}
+                <div className="pt-3 border-t border-line/10 flex items-end justify-between">
+                  <span className="text-xs text-subtle">Total Fare</span>
+                  <span className="font-serif text-3xl text-accent font-bold">
+                    {formatPrice(finalTotalCad)}
                   </span>
                 </div>
               </div>
@@ -862,21 +872,20 @@ export default function BookPage() {
             className="grid grid-cols-1 lg:grid-cols-12 gap-8"
           >
             <div className="lg:col-span-8 space-y-6">
-              {/* Passenger Details */}
-              <div className="rounded-3xl bg-obsidian-900 border border-white/12 p-6 sm:p-8 space-y-5">
-                <h2 className="font-serif text-3xl text-ivory-50">
+              <div className="rounded-3xl bg-card border border-line/12 p-6 sm:p-8 space-y-5 shadow-luxury">
+                <h2 className="font-serif text-3xl text-ink font-semibold">
                   {draft.bookingFor === "myself"
                     ? "Your Contact Details"
                     : "VIP Passenger Contact Details"}
                 </h2>
-                <p className="text-xs text-white/55">
-                  Chauffeur name, mobile number, and registration plate will be
-                  sent via SMS & email 60 minutes prior to pickup.
+                <p className="text-xs text-muted">
+                  Chauffeur name, direct Canadian mobile number, and license
+                  plate will be sent via SMS & email 60 minutes prior to pickup.
                 </p>
 
                 <div className="grid grid-cols-1 sm:grid-cols-12 gap-4">
                   <div className="sm:col-span-3">
-                    <label className="block text-xs text-white/65 mb-1.5">
+                    <label className="block text-xs text-muted mb-1.5">
                       Honorific
                     </label>
                     <select
@@ -884,18 +893,17 @@ export default function BookPage() {
                       onChange={(e) =>
                         updateDraft({ guestTitle: e.target.value })
                       }
-                      className="w-full px-3.5 py-3 rounded-xl bg-obsidian-950 border border-white/15 text-sm text-ivory-50"
+                      className="w-full px-3.5 py-3 rounded-xl bg-field border border-line/15 text-sm text-ink"
                     >
                       <option value="Mr.">Mr.</option>
                       <option value="Ms.">Ms.</option>
                       <option value="Mrs.">Mrs.</option>
                       <option value="Dr.">Dr.</option>
-                      <option value="Lord">Lord</option>
-                      <option value="Amb.">Amb.</option>
+                      <option value="Hon.">Hon.</option>
                     </select>
                   </div>
                   <div className="sm:col-span-4">
-                    <label className="block text-xs text-white/65 mb-1.5">
+                    <label className="block text-xs text-muted mb-1.5">
                       First Name
                     </label>
                     <input
@@ -905,11 +913,11 @@ export default function BookPage() {
                       onChange={(e) =>
                         updateDraft({ firstName: e.target.value })
                       }
-                      className="w-full px-4 py-3 rounded-xl bg-obsidian-950 border border-white/15 text-sm text-ivory-50"
+                      className="w-full px-4 py-3 rounded-xl bg-field border border-line/15 text-sm text-ink"
                     />
                   </div>
                   <div className="sm:col-span-5">
-                    <label className="block text-xs text-white/65 mb-1.5">
+                    <label className="block text-xs text-muted mb-1.5">
                       Last Name
                     </label>
                     <input
@@ -919,55 +927,54 @@ export default function BookPage() {
                       onChange={(e) =>
                         updateDraft({ lastName: e.target.value })
                       }
-                      className="w-full px-4 py-3 rounded-xl bg-obsidian-950 border border-white/15 text-sm text-ivory-50"
+                      className="w-full px-4 py-3 rounded-xl bg-field border border-line/15 text-sm text-ink"
                     />
                   </div>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-xs text-white/65 mb-1.5">
-                      Email for Itinerary & VAT Receipt
+                    <label className="block text-xs text-muted mb-1.5">
+                      Email for Itinerary & GST/HST Receipt
                     </label>
                     <input
                       type="email"
                       required
                       value={draft.email}
                       onChange={(e) => updateDraft({ email: e.target.value })}
-                      className="w-full px-4 py-3 rounded-xl bg-obsidian-950 border border-white/15 text-sm text-ivory-50"
+                      className="w-full px-4 py-3 rounded-xl bg-field border border-line/15 text-sm text-ink"
                     />
                   </div>
                   <div>
-                    <label className="block text-xs text-white/65 mb-1.5">
-                      Mobile Number (For SMS Dispatch Updates)
+                    <label className="block text-xs text-muted mb-1.5">
+                      Canadian Mobile Number (SMS Updates)
                     </label>
                     <input
                       type="tel"
                       required
                       value={draft.phone}
                       onChange={(e) => updateDraft({ phone: e.target.value })}
-                      className="w-full px-4 py-3 rounded-xl bg-obsidian-950 border border-white/15 text-sm text-ivory-50"
+                      className="w-full px-4 py-3 rounded-xl bg-field border border-line/15 text-sm text-ink"
                     />
                   </div>
                 </div>
               </div>
 
-              {/* Payment Method */}
-              <div className="rounded-3xl bg-obsidian-900 border border-white/12 p-6 sm:p-8 space-y-6">
+              <div className="rounded-3xl bg-card border border-line/12 p-6 sm:p-8 space-y-6 shadow-luxury">
                 <div className="flex items-center justify-between">
-                  <h3 className="font-serif text-3xl text-ivory-50">
+                  <h3 className="font-serif text-3xl text-ink font-semibold">
                     Guaranteed Reservation Payment
                   </h3>
-                  <span className="flex items-center gap-1.5 text-xs text-emerald-300">
+                  <span className="flex items-center gap-1.5 text-xs text-emerald-600 dark:text-emerald-300 font-semibold">
                     <Lock className="w-3.5 h-3.5" /> 256-Bit Encrypted
                   </span>
                 </div>
 
                 <div className="grid grid-cols-3 gap-2.5">
                   {[
-                    { id: "card", label: "Executive Card" },
-                    { id: "invoice", label: "Corporate Invoice" },
-                    { id: "express", label: "VIP Express Pay" },
+                    { id: "card", label: "Credit / Debit Card" },
+                    { id: "invoice", label: "Corporate HST Invoice" },
+                    { id: "express", label: "Apple / Interac Express" },
                   ].map((m) => (
                     <button
                       key={m.id}
@@ -977,8 +984,8 @@ export default function BookPage() {
                       }
                       className={`py-3 px-3 rounded-xl text-xs font-semibold border transition-all ${
                         payMethod === m.id
-                          ? "bg-champagne-500/20 border-champagne-400 text-champagne-300"
-                          : "bg-obsidian-950 border-white/10 text-white/65 hover:text-white"
+                          ? "bg-champagne-500/20 border-champagne-500 text-accent"
+                          : "bg-field border-line/12 text-muted hover:text-ink"
                       }`}
                     >
                       {m.label}
@@ -988,13 +995,12 @@ export default function BookPage() {
 
                 {payMethod === "card" && (
                   <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-center">
-                    {/* Obsidian Metal Card Preview */}
                     <div className="md:col-span-5">
                       <div className="aspect-[1.58/1] rounded-2xl p-5 bg-gradient-to-br from-zinc-800 via-obsidian-950 to-black border border-champagne-400/35 shadow-luxury flex flex-col justify-between relative overflow-hidden">
                         <div className="absolute -right-10 -top-10 w-32 h-32 rounded-full bg-champagne-500/15 blur-2xl" />
                         <div className="flex items-center justify-between">
-                          <span className="font-serif text-sm tracking-[0.22em] text-champagne-300">
-                            LIMO BLACK
+                          <span className="font-serif text-sm tracking-[0.2em] text-champagne-300">
+                            LIMO BLACK CA
                           </span>
                           <Crown className="w-4 h-4 text-champagne-400" />
                         </div>
@@ -1024,7 +1030,7 @@ export default function BookPage() {
 
                     <div className="md:col-span-7 space-y-3.5">
                       <div>
-                        <label className="block text-xs text-white/65 mb-1">
+                        <label className="block text-xs text-muted mb-1">
                           Name on Card
                         </label>
                         <input
@@ -1032,27 +1038,27 @@ export default function BookPage() {
                           required
                           value={cardHolder}
                           onChange={(e) => setCardHolder(e.target.value)}
-                          className="w-full px-3.5 py-2.5 rounded-xl bg-obsidian-950 border border-white/15 text-sm text-ivory-50"
+                          className="w-full px-3.5 py-2.5 rounded-xl bg-field border border-line/15 text-sm text-ink"
                         />
                       </div>
                       <div>
-                        <label className="block text-xs text-white/65 mb-1">
+                        <label className="block text-xs text-muted mb-1">
                           Card Number
                         </label>
                         <div className="relative">
-                          <CreditCard className="w-4 h-4 text-champagne-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                          <CreditCard className="w-4 h-4 text-accent absolute left-3.5 top-1/2 -translate-y-1/2" />
                           <input
                             type="text"
                             required
                             value={cardNumber}
                             onChange={(e) => setCardNumber(e.target.value)}
-                            className="w-full pl-10 pr-3.5 py-2.5 rounded-xl bg-obsidian-950 border border-white/15 text-sm text-ivory-50"
+                            className="w-full pl-10 pr-3.5 py-2.5 rounded-xl bg-field border border-line/15 text-sm text-ink"
                           />
                         </div>
                       </div>
                       <div className="grid grid-cols-2 gap-3">
                         <div>
-                          <label className="block text-xs text-white/65 mb-1">
+                          <label className="block text-xs text-muted mb-1">
                             Expiry
                           </label>
                           <input
@@ -1060,11 +1066,11 @@ export default function BookPage() {
                             required
                             value={cardExpiry}
                             onChange={(e) => setCardExpiry(e.target.value)}
-                            className="w-full px-3.5 py-2.5 rounded-xl bg-obsidian-950 border border-white/15 text-sm text-ivory-50"
+                            className="w-full px-3.5 py-2.5 rounded-xl bg-field border border-line/15 text-sm text-ink"
                           />
                         </div>
                         <div>
-                          <label className="block text-xs text-white/65 mb-1">
+                          <label className="block text-xs text-muted mb-1">
                             Security Code
                           </label>
                           <input
@@ -1072,7 +1078,7 @@ export default function BookPage() {
                             required
                             value={cardCvc}
                             onChange={(e) => setCardCvc(e.target.value)}
-                            className="w-full px-3.5 py-2.5 rounded-xl bg-obsidian-950 border border-white/15 text-sm text-ivory-50"
+                            className="w-full px-3.5 py-2.5 rounded-xl bg-field border border-line/15 text-sm text-ink"
                           />
                         </div>
                       </div>
@@ -1081,31 +1087,31 @@ export default function BookPage() {
                 )}
 
                 {payMethod === "invoice" && (
-                  <div className="p-4 rounded-2xl bg-obsidian-950 border border-white/10 text-xs text-white/70 space-y-2">
-                    <p className="text-ivory-50 font-semibold">
-                      Consolidated 30-Day Corporate Billing Enabled
+                  <div className="p-4 rounded-2xl bg-field border border-line/12 text-xs text-muted space-y-2">
+                    <p className="text-ink font-semibold">
+                      Consolidated 30-Day Canadian Corporate Billing Enabled
                     </p>
                     <p>
-                      This reservation will be billed to your executive cost
-                      center with automated VAT breakdown and carbon-offset
-                      certificate.
+                      This reservation will be billed to your corporate cost
+                      center with itemized GST/HST registration numbers and
+                      carbon-offset verification.
                     </p>
                   </div>
                 )}
 
                 {payMethod === "express" && (
-                  <div className="p-4 rounded-2xl bg-obsidian-950 border border-white/10 text-xs text-white/70">
+                  <div className="p-4 rounded-2xl bg-field border border-line/12 text-xs text-muted">
                     One-tap biometric authorization ready. Your card is only
-                    charged once your ride is completed; free cancellation
-                    applies up until 1 hour prior to pickup.
+                    settled upon ride completion; free cancellation applies up
+                    until 1 hour prior to pickup.
                   </div>
                 )}
 
-                <div className="flex items-center justify-between pt-4 border-t border-white/10">
+                <div className="flex items-center justify-between pt-4 border-t border-line/10">
                   <button
                     type="button"
                     onClick={() => setStep(2)}
-                    className="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-white/[0.06] hover:bg-white/[0.12] text-xs font-semibold text-ivory-50"
+                    className="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-field hover:bg-line/[0.08] border border-line/12 text-xs font-semibold text-ink"
                   >
                     <ArrowLeft className="w-4 h-4" /> Back
                   </button>
@@ -1117,47 +1123,47 @@ export default function BookPage() {
                   >
                     {isProcessing
                       ? "Dispatching Chauffeur..."
-                      : `Confirm Limousine · ${formatPrice(finalTotalUsd)}`}
+                      : `Confirm Limousine · ${formatPrice(finalTotalCad)}`}
                     <Sparkles className="w-4 h-4" />
                   </button>
                 </div>
               </div>
             </div>
 
-            {/* Step 3 Fare Breakdown & Promo Sidebar */}
             <div className="lg:col-span-4">
-              <div className="rounded-3xl bg-obsidian-900 border border-white/12 p-6 shadow-luxury sticky top-28 space-y-5">
-                <h3 className="font-serif text-2xl text-ivory-50">
+              <div className="rounded-3xl bg-card border border-line/12 p-6 shadow-luxury sticky top-28 space-y-5">
+                <h3 className="font-serif text-2xl text-ink font-semibold">
                   Reservation Summary
                 </h3>
 
-                <div className="space-y-2.5 text-xs text-white/70 pb-4 border-b border-white/10">
+                <div className="space-y-2.5 text-xs text-muted pb-4 border-b border-line/10">
                   <div className="flex justify-between">
                     <span>Service Class</span>
-                    <span className="text-ivory-50 font-semibold">
+                    <span className="text-ink font-semibold">
                       {selectedFleet.name}
                     </span>
                   </div>
                   <div className="flex justify-between">
                     <span>Base & Distance All-Inclusive</span>
-                    <span>{formatPrice(subtotalUsd)}</span>
+                    <span>{formatPrice(subtotalCad)}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span>Taxes, Tolls & Chauffeur Tip</span>
-                    <span className="text-emerald-300">Included</span>
+                    <span>GST/HST, 407 Tolls & Tip</span>
+                    <span className="text-emerald-600 dark:text-emerald-300 font-semibold">
+                      Included
+                    </span>
                   </div>
                   {promoApplied && (
-                    <div className="flex justify-between text-champagne-300 font-semibold">
+                    <div className="flex justify-between text-accent font-semibold">
                       <span>Privilege Code (15% Off)</span>
-                      <span>-{formatPrice(discountUsd)}</span>
+                      <span>-{formatPrice(discountCad)}</span>
                     </div>
                   )}
                 </div>
 
-                {/* Promo Input */}
                 <div>
-                  <label className="flex items-center gap-1.5 text-xs text-white/60 mb-1.5">
-                    <Tag className="w-3.5 h-3.5 text-champagne-400" />
+                  <label className="flex items-center gap-1.5 text-xs text-muted mb-1.5">
+                    <Tag className="w-3.5 h-3.5 text-accent" />
                     Privilege Code (Try LIMOBLACK15)
                   </label>
                   <div className="flex gap-2">
@@ -1166,42 +1172,42 @@ export default function BookPage() {
                       value={promoInput}
                       onChange={(e) => setPromoInput(e.target.value)}
                       placeholder="LIMOBLACK15"
-                      className="flex-1 px-3.5 py-2.5 rounded-xl bg-obsidian-950 border border-white/15 text-xs text-ivory-50 uppercase"
+                      className="flex-1 px-3.5 py-2.5 rounded-xl bg-field border border-line/15 text-xs text-ink uppercase"
                     />
                     <button
                       type="button"
                       onClick={handleApplyPromo}
-                      className="px-4 py-2.5 rounded-xl bg-white/10 hover:bg-white/15 text-xs font-semibold text-champagne-300"
+                      className="px-4 py-2.5 rounded-xl bg-field hover:bg-line/[0.08] border border-line/15 text-xs font-semibold text-accent"
                     >
                       Apply
                     </button>
                   </div>
                   {promoFeedback && (
-                    <p className="text-[11px] text-champagne-300 mt-1.5">
+                    <p className="text-[11px] text-accent font-medium mt-1.5">
                       {promoFeedback}
                     </p>
                   )}
                 </div>
 
-                <div className="pt-3 border-t border-white/10 flex items-end justify-between">
+                <div className="pt-3 border-t border-line/10 flex items-end justify-between">
                   <div>
-                    <div className="text-[11px] uppercase tracking-wider text-white/45">
+                    <div className="text-[11px] uppercase tracking-wider text-subtle">
                       Final Guaranteed Total
                     </div>
-                    <div className="text-[11px] text-emerald-300 mt-0.5">
+                    <div className="text-[11px] text-emerald-600 dark:text-emerald-300 font-medium mt-0.5">
                       Zero hidden fees
                     </div>
                   </div>
-                  <div className="font-serif text-4xl text-champagne-300 font-semibold">
-                    {formatPrice(finalTotalUsd)}
+                  <div className="font-serif text-4xl text-accent font-bold">
+                    {formatPrice(finalTotalCad)}
                   </div>
                 </div>
 
-                <div className="p-3.5 rounded-2xl bg-obsidian-950 border border-white/10 flex items-start gap-2.5 text-[11px] text-white/60">
-                  <ShieldCheck className="w-4 h-4 text-champagne-400 shrink-0 mt-0.5" />
+                <div className="p-3.5 rounded-2xl bg-field border border-line/10 flex items-start gap-2.5 text-[11px] text-muted">
+                  <ShieldCheck className="w-4 h-4 text-accent shrink-0 mt-0.5" />
                   <span>
                     Cancel or modify free of charge up until 1 hour before your
-                    scheduled pickup.
+                    scheduled Canadian pickup.
                   </span>
                 </div>
               </div>
@@ -1209,23 +1215,23 @@ export default function BookPage() {
           </form>
         )}
 
-        {/* STEP 4: INSTANT CONFIRMATION & CHAUFFEUR ASSIGNMENT */}
+        {/* STEP 4: INSTANT CONFIRMATION */}
         {step === 4 && confirmedRide && (
           <motion.div
             initial={{ opacity: 0, scale: 0.98 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="max-w-4xl mx-auto rounded-3xl bg-obsidian-900 border border-champagne-400/40 p-7 sm:p-12 shadow-luxury space-y-8"
+            className="max-w-4xl mx-auto rounded-3xl bg-card border border-champagne-500/45 p-7 sm:p-12 shadow-luxury space-y-8"
           >
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-white/10">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-line/10">
               <div className="flex items-center gap-4">
-                <div className="w-14 h-14 rounded-2xl bg-emerald-500/15 border border-emerald-400/35 flex items-center justify-center">
-                  <CheckCircle2 className="w-7 h-7 text-emerald-400" />
+                <div className="w-14 h-14 rounded-2xl bg-emerald-500/15 border border-emerald-500/35 flex items-center justify-center">
+                  <CheckCircle2 className="w-7 h-7 text-emerald-500" />
                 </div>
                 <div>
-                  <span className="text-xs uppercase tracking-[0.24em] text-champagne-400 font-semibold">
-                    Reservation Confirmed · {confirmedRide.reference}
+                  <span className="text-xs uppercase tracking-[0.22em] text-accent font-semibold">
+                    Canadian Reservation Confirmed · {confirmedRide.reference}
                   </span>
-                  <h1 className="font-serif text-3xl sm:text-4xl text-ivory-50 mt-1">
+                  <h1 className="font-serif text-3xl sm:text-4xl text-ink font-semibold mt-1">
                     Your Chauffeur Has Been Assigned.
                   </h1>
                 </div>
@@ -1234,51 +1240,50 @@ export default function BookPage() {
               <button
                 type="button"
                 onClick={() => window.print()}
-                className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white/[0.06] hover:bg-white/[0.12] border border-white/15 text-xs font-semibold text-ivory-50"
+                className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-field hover:bg-line/[0.08] border border-line/15 text-xs font-semibold text-ink"
               >
-                <Printer className="w-4 h-4 text-champagne-400" />
-                Print Itinerary
+                <Printer className="w-4 h-4 text-accent" />
+                Print GST/HST Receipt
               </button>
             </div>
 
-            {/* Chauffeur & Vehicle Dispatch Card */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="p-6 rounded-2xl bg-obsidian-950 border border-white/10 space-y-3">
-                <div className="text-[11px] uppercase tracking-[0.2em] text-champagne-400 font-semibold">
-                  Assigned Senior Chauffeur
+              <div className="p-6 rounded-2xl bg-field border border-line/12 space-y-3">
+                <div className="text-[11px] uppercase tracking-[0.2em] text-accent font-semibold">
+                  Assigned Canadian Chauffeur
                 </div>
-                <div className="font-serif text-2xl text-ivory-50">
+                <div className="font-serif text-2xl text-ink font-semibold">
                   {confirmedRide.chauffeur.name} ·{" "}
-                  <span className="text-champagne-300">
+                  <span className="text-accent">
                     {confirmedRide.chauffeur.rating} ★
                   </span>
                 </div>
-                <p className="text-xs text-white/60">
+                <p className="text-xs text-muted">
                   Vehicle: {confirmedRide.chauffeur.vehicleModel} · Plate{" "}
-                  <span className="text-ivory-50 font-mono font-semibold">
+                  <span className="text-ink font-mono font-bold">
                     {confirmedRide.chauffeur.plate}
                   </span>
                 </p>
-                <p className="text-xs text-white/60">
+                <p className="text-xs text-muted">
                   Direct Concierge Line: {confirmedRide.chauffeur.phone} ·
                   Languages: {confirmedRide.chauffeur.languages}
                 </p>
               </div>
 
-              <div className="p-6 rounded-2xl bg-obsidian-950 border border-white/10 space-y-3">
-                <div className="text-[11px] uppercase tracking-[0.2em] text-champagne-400 font-semibold">
+              <div className="p-6 rounded-2xl bg-field border border-line/12 space-y-3">
+                <div className="text-[11px] uppercase tracking-[0.2em] text-accent font-semibold">
                   Itinerary & Cabin Staging
                 </div>
-                <div className="text-sm text-ivory-50 font-medium">
+                <div className="text-sm text-ink font-semibold">
                   {confirmedRide.pickup} → {confirmedRide.dropoff}
                 </div>
-                <div className="text-xs text-white/60">
+                <div className="text-xs text-muted">
                   {confirmedRide.date} at {confirmedRide.time} · Tablet Sign:{" "}
-                  <span className="text-champagne-300">
+                  <span className="text-accent font-semibold">
                     {confirmedRide.pickupSign}
                   </span>
                 </div>
-                <div className="text-xs text-white/60">
+                <div className="text-xs text-muted">
                   Staging: {confirmedRide.cabin.temperature} ·{" "}
                   {confirmedRide.cabin.conversation} ·{" "}
                   {confirmedRide.cabin.refreshment}
@@ -1286,16 +1291,16 @@ export default function BookPage() {
               </div>
             </div>
 
-            <div className="p-5 rounded-2xl bg-champagne-500/10 border border-champagne-400/30 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="p-5 rounded-2xl bg-champagne-500/15 border border-champagne-500/35 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div>
-                <div className="text-xs uppercase tracking-wider text-champagne-300 font-semibold">
-                  All-Inclusive Guaranteed Fare
+                <div className="text-xs uppercase tracking-wider text-accent font-bold">
+                  All-Inclusive Guaranteed Fare (GST/HST Included)
                 </div>
-                <div className="text-xs text-white/65 mt-0.5">
-                  Confirmation sent to {confirmedRide.email}
+                <div className="text-xs text-muted mt-0.5">
+                  Confirmation & tax receipt sent to {confirmedRide.email}
                 </div>
               </div>
-              <div className="font-serif text-3xl text-ivory-50 font-semibold">
+              <div className="font-serif text-3xl text-ink font-bold">
                 {formatPrice(confirmedRide.totalUsd)}
               </div>
             </div>
@@ -1304,7 +1309,7 @@ export default function BookPage() {
               <button
                 type="button"
                 onClick={handleBookReturn}
-                className="px-6 py-3.5 rounded-xl bg-white/[0.06] hover:bg-white/[0.12] border border-white/15 text-xs font-semibold uppercase tracking-wider text-ivory-50 transition-colors"
+                className="px-6 py-3.5 rounded-xl bg-field hover:bg-line/[0.08] border border-line/15 text-xs font-semibold uppercase tracking-wider text-ink transition-colors"
               >
                 Book Return Journey
               </button>

@@ -20,13 +20,13 @@ import FleetShowcase from "@/components/FleetShowcase";
 import FaqAccordion from "@/components/FaqAccordion";
 
 const FLIGHT_STEPS = [
-  "Taxi to departure airport (45m)",
-  "Check-in & baggage drop (35m)",
-  "Security screening queues (40m)",
-  "Gate boarding wait (45m)",
-  "Short-haul flight sector (65m)",
-  "Deplaning & luggage carousel (35m)",
-  "Hail transfer to final hotel (45m)",
+  "Ride to Pearson / Trudeau / YVR airport (45m)",
+  "Bag drop & airline check-in desk (35m)",
+  "CATSA security screening queues (40m)",
+  "Gate boarding & de-icing wait (45m)",
+  "Short-haul regional flight sector (60m)",
+  "Deplaning & baggage carousel wait (35m)",
+  "Hail transfer to downtown hotel (40m)",
 ];
 
 export default function ServiceDetailPage() {
@@ -36,7 +36,7 @@ export default function ServiceDetailPage() {
   const service = SERVICES_DATA[slug] || SERVICES_DATA["airport-transfers"];
 
   return (
-    <div className="bg-obsidian-950 min-h-screen">
+    <div className="bg-canvas min-h-screen">
       {/* Service Hero */}
       <section className="relative pt-32 pb-20 sm:pt-36 sm:pb-24 overflow-hidden">
         <div className="absolute inset-0 z-0">
@@ -45,7 +45,7 @@ export default function ServiceDetailPage() {
             alt={service.title}
             className="w-full h-full object-cover"
           />
-          <div className="absolute inset-0 bg-gradient-to-r from-obsidian-950 via-obsidian-950/85 to-obsidian-950/45" />
+          <div className="absolute inset-0 bg-gradient-to-r from-obsidian-950/95 via-obsidian-950/80 to-obsidian-950/45" />
           <div className="absolute inset-0 bg-gradient-to-t from-obsidian-950 via-obsidian-950/30 to-obsidian-950/60" />
         </div>
 
@@ -55,7 +55,7 @@ export default function ServiceDetailPage() {
             animate={{ opacity: 1, y: 0 }}
             className="max-w-3xl mb-10"
           >
-            <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-obsidian-950/80 backdrop-blur-md border border-champagne-400/35 text-[11px] uppercase tracking-[0.24em] text-champagne-300 font-semibold mb-5">
+            <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-obsidian-950/80 backdrop-blur-md border border-champagne-400/35 text-[11px] uppercase tracking-[0.22em] text-champagne-300 font-semibold mb-5">
               <Crown className="w-3.5 h-3.5 text-champagne-400" />
               {service.eyebrow}
             </span>
@@ -63,21 +63,20 @@ export default function ServiceDetailPage() {
             <h1 className="font-serif text-5xl sm:text-6xl text-ivory-50 leading-[1.06]">
               {service.headline}
             </h1>
-            <p className="text-base sm:text-lg text-ivory-100/80 mt-4 leading-relaxed max-w-2xl">
+            <p className="text-base sm:text-lg text-ivory-100/85 mt-4 leading-relaxed max-w-2xl">
               {service.subtitle}
             </p>
           </motion.div>
 
           <BookingWidget defaultTab={service.defaultTab} />
 
-          {/* Service Metrics */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-5 mt-10 pt-6 border-t border-white/10">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-5 mt-10 pt-6 border-t border-white/15">
             {service.stats.map((st) => (
               <div key={st.label}>
                 <div className="font-serif text-3xl text-champagne-300 font-semibold">
                   {st.value}
                 </div>
-                <div className="text-xs text-white/60 mt-0.5">{st.label}</div>
+                <div className="text-xs text-white/70 mt-0.5">{st.label}</div>
               </div>
             ))}
           </div>
@@ -85,15 +84,15 @@ export default function ServiceDetailPage() {
       </section>
 
       {/* Core Value Pillars */}
-      <section className="py-24 bg-obsidian-900 border-y border-white/10">
+      <section className="py-24 bg-surface border-y border-line/10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="mb-14 max-w-2xl">
-            <span className="text-xs uppercase tracking-[0.26em] text-champagne-400 font-semibold">
-              The Limo Black Advantage
+            <span className="text-xs uppercase tracking-[0.24em] text-accent font-semibold">
+              The Limo Black Canada Advantage
             </span>
-            <h2 className="font-serif text-4xl sm:text-5xl text-ivory-50 mt-2">
+            <h2 className="font-serif text-4xl sm:text-5xl text-ink font-semibold mt-2">
               Engineered Around{" "}
-              <span className="italic text-champagne-300">Your Schedule.</span>
+              <span className="italic text-accent">Your Schedule.</span>
             </h2>
           </div>
 
@@ -105,13 +104,15 @@ export default function ServiceDetailPage() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: idx * 0.1 }}
-                className="p-7 sm:p-8 rounded-3xl bg-obsidian-950 border border-white/10 space-y-3"
+                className="p-7 sm:p-8 rounded-3xl bg-card border border-line/12 shadow-luxury space-y-3"
               >
-                <div className="w-11 h-11 rounded-2xl bg-champagne-500/15 border border-champagne-400/30 flex items-center justify-center">
-                  <ShieldCheck className="w-5 h-5 text-champagne-400" />
+                <div className="w-11 h-11 rounded-2xl bg-champagne-500/15 border border-champagne-500/30 flex items-center justify-center">
+                  <ShieldCheck className="w-5 h-5 text-accent" />
                 </div>
-                <h3 className="font-serif text-2xl text-ivory-50">{p.title}</h3>
-                <p className="text-sm text-white/65 leading-relaxed">
+                <h3 className="font-serif text-2xl text-ink font-semibold">
+                  {p.title}
+                </h3>
+                <p className="text-sm text-muted leading-relaxed">
                   {p.description}
                 </p>
               </motion.div>
@@ -122,37 +123,36 @@ export default function ServiceDetailPage() {
 
       {/* Special Interactive Diagram on City-to-City: 1 Step vs 7 Flight Steps */}
       {service.slug === "city-to-city" && (
-        <section className="py-24 bg-obsidian-950 border-b border-white/10">
+        <section className="py-24 bg-canvas border-b border-line/10">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center max-w-3xl mx-auto mb-14">
-              <span className="text-xs uppercase tracking-[0.26em] text-champagne-400 font-semibold">
-                Door-to-Door Efficiency Comparison
+              <span className="text-xs uppercase tracking-[0.24em] text-accent font-semibold">
+                Canadian Corridor Comparison
               </span>
-              <h2 className="font-serif text-4xl sm:text-5xl text-ivory-50 mt-2">
-                Why Regional Flights Lose to{" "}
-                <span className="italic text-champagne-300">Limo Black.</span>
+              <h2 className="font-serif text-4xl sm:text-5xl text-ink font-semibold mt-2">
+                Why Short-Haul Flights Lose to{" "}
+                <span className="italic text-accent">Limo Black Canada.</span>
               </h2>
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-stretch">
-              {/* Short-Haul Flight 7 Steps */}
-              <div className="rounded-3xl bg-obsidian-900/60 border border-white/10 p-7 sm:p-8 space-y-5">
+              <div className="rounded-3xl bg-card border border-line/12 p-7 sm:p-8 space-y-5 shadow-luxury">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs uppercase tracking-wider text-white/50 font-semibold flex items-center gap-2">
-                    <Plane className="w-4 h-4 text-rose-400" /> Short-Haul
-                    Commercial Flight
+                  <span className="text-xs uppercase tracking-wider text-muted font-semibold flex items-center gap-2">
+                    <Plane className="w-4 h-4 text-rose-500" /> Short-Haul
+                    Regional Flight
                   </span>
-                  <span className="text-xs font-semibold text-rose-300">
-                    ~5h 10m Total · 7 Transitions
+                  <span className="text-xs font-semibold text-rose-600 dark:text-rose-300">
+                    ~5h 00m Total · 7 Transitions
                   </span>
                 </div>
                 <div className="space-y-2.5">
                   {FLIGHT_STEPS.map((st, i) => (
                     <div
                       key={st}
-                      className="flex items-center gap-3 p-3 rounded-xl bg-obsidian-950/75 border border-white/5 text-xs text-white/60"
+                      className="flex items-center gap-3 p-3 rounded-xl bg-field border border-line/10 text-xs text-muted"
                     >
-                      <XCircle className="w-4 h-4 text-rose-400/80 shrink-0" />
+                      <XCircle className="w-4 h-4 text-rose-500 shrink-0" />
                       <span>
                         Step {i + 1}: {st}
                       </span>
@@ -161,46 +161,46 @@ export default function ServiceDetailPage() {
                 </div>
               </div>
 
-              {/* Limo Black 1 Seamless Step */}
-              <div className="rounded-3xl bg-gradient-to-br from-obsidian-900 via-obsidian-950 to-obsidian-900 border border-champagne-400/45 p-7 sm:p-8 flex flex-col justify-between shadow-gold-glow">
+              <div className="rounded-3xl bg-card border border-champagne-500/50 p-7 sm:p-8 flex flex-col justify-between shadow-gold-glow">
                 <div className="space-y-5">
                   <div className="flex items-center justify-between">
-                    <span className="text-xs uppercase tracking-wider text-champagne-300 font-semibold flex items-center gap-2">
-                      <Sparkles className="w-4 h-4 text-champagne-400" /> Limo
-                      Black City-to-City
+                    <span className="text-xs uppercase tracking-wider text-accent font-bold flex items-center gap-2">
+                      <Sparkles className="w-4 h-4 text-accent" /> Limo Black
+                      City-to-City Canada
                     </span>
-                    <span className="text-xs font-semibold text-emerald-300">
-                      ~2h 15m Total · 1 Seamless Step
+                    <span className="text-xs font-bold text-emerald-600 dark:text-emerald-300">
+                      ~1h 55m Total · 1 Seamless Step
                     </span>
                   </div>
 
-                  <div className="p-6 rounded-2xl bg-obsidian-950 border border-champagne-400/35 space-y-3">
-                    <div className="flex items-center gap-2.5 text-champagne-300 font-semibold text-sm">
-                      <CheckCircle2 className="w-5 h-5 text-emerald-400" />
-                      Step 1: Private Doorstep Pickup to Final Destination
+                  <div className="p-6 rounded-2xl bg-field border border-champagne-500/35 space-y-3">
+                    <div className="flex items-center gap-2.5 text-accent font-bold text-sm">
+                      <CheckCircle2 className="w-5 h-5 text-emerald-500" />
+                      Step 1: Private Canadian Doorstep to Final Destination
                     </div>
-                    <p className="text-xs sm:text-sm text-white/70 leading-relaxed">
-                      Step out of your front door or hotel lobby into a
-                      climate-staged S-Class, Escalade, or Maybach. Enjoy
-                      uninterrupted 5G Wi-Fi, confidential calls, and full trunk
-                      luggage capacity all the way to your destination entrance.
+                    <p className="text-xs sm:text-sm text-muted leading-relaxed">
+                      Step straight from your home, office, or hotel into a
+                      pre-warmed AWD S-Class, Escalade ESV, or Maybach. Enjoy
+                      uninterrupted 5G Wi-Fi, confidential calls, and full ski
+                      or luggage capacity directly to Whistler, Banff, Niagara,
+                      Muskoka, or Montréal.
                     </p>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-3 text-xs text-ivory-100">
-                    <div className="p-4 rounded-2xl bg-white/[0.03] border border-white/10">
-                      <div className="text-champagne-300 font-semibold mb-1">
-                        Per-Car Pricing
+                  <div className="grid grid-cols-2 gap-3 text-xs">
+                    <div className="p-4 rounded-2xl bg-field border border-line/10">
+                      <div className="text-accent font-bold mb-1">
+                        Per-Vehicle CAD Pricing
                       </div>
-                      <p className="text-white/55">
-                        Bring up to 3–6 guests for one transparent vehicle rate.
+                      <p className="text-muted">
+                        Bring up to 3–6 guests for one transparent CAD fare.
                       </p>
                     </div>
-                    <div className="p-4 rounded-2xl bg-white/[0.03] border border-white/10">
-                      <div className="text-champagne-300 font-semibold mb-1">
-                        Zero Queue Stress
+                    <div className="p-4 rounded-2xl bg-field border border-line/10">
+                      <div className="text-accent font-bold mb-1">
+                        Zero CATSA Queues
                       </div>
-                      <p className="text-white/55">
+                      <p className="text-muted">
                         Depart on your schedule; cancel free until 1h prior.
                       </p>
                     </div>
@@ -211,7 +211,7 @@ export default function ServiceDetailPage() {
                   href="#booking-widget"
                   className="mt-6 w-full py-4 rounded-2xl bg-gold-gradient text-obsidian-950 font-bold text-xs uppercase tracking-[0.16em] text-center flex items-center justify-center gap-2"
                 >
-                  Quote Your Intercity Route <ArrowRight className="w-4 h-4" />
+                  Quote Your Canadian Corridor <ArrowRight className="w-4 h-4" />
                 </a>
               </div>
             </div>
@@ -220,13 +220,13 @@ export default function ServiceDetailPage() {
       )}
 
       {/* Tailored Occasions */}
-      <section className="py-24 bg-obsidian-950">
+      <section className="py-24 bg-canvas">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="mb-12">
-            <span className="text-xs uppercase tracking-[0.26em] text-champagne-400 font-semibold">
-              Bespoke Use Cases
+            <span className="text-xs uppercase tracking-[0.24em] text-accent font-semibold">
+              Canadian Use Cases
             </span>
-            <h2 className="font-serif text-4xl text-ivory-50 mt-2">
+            <h2 className="font-serif text-4xl text-ink font-semibold mt-2">
               Tailored for Every Occasion
             </h2>
           </div>
@@ -235,22 +235,21 @@ export default function ServiceDetailPage() {
             {service.occasions.map((occ) => (
               <div
                 key={occ.title}
-                className="p-7 rounded-3xl bg-obsidian-900/75 border border-white/10 space-y-2.5"
+                className="p-7 rounded-3xl bg-card border border-line/12 shadow-luxury space-y-2.5"
               >
-                <h3 className="font-serif text-2xl text-champagne-300">
+                <h3 className="font-serif text-2xl text-accent font-semibold">
                   {occ.title}
                 </h3>
-                <p className="text-sm text-white/65 leading-relaxed">
+                <p className="text-sm text-muted leading-relaxed">
                   {occ.description}
                 </p>
               </div>
             ))}
           </div>
 
-          {/* Cross-Service Navigation */}
-          <div className="mt-12 pt-8 border-t border-white/10 flex flex-wrap items-center justify-between gap-4">
-            <span className="text-xs uppercase tracking-wider text-white/45">
-              Explore Other Limo Black Services:
+          <div className="mt-12 pt-8 border-t border-line/10 flex flex-wrap items-center justify-between gap-4">
+            <span className="text-xs uppercase tracking-wider text-subtle">
+              Explore Other Canadian Services:
             </span>
             <div className="flex flex-wrap gap-2.5">
               {Object.values(SERVICES_DATA)
@@ -259,7 +258,7 @@ export default function ServiceDetailPage() {
                   <Link
                     key={other.slug}
                     href={`/services/${other.slug}`}
-                    className="px-4 py-2 rounded-full bg-white/[0.05] hover:bg-white/[0.1] border border-white/10 text-xs font-medium text-ivory-50 transition-colors"
+                    className="px-4 py-2 rounded-full bg-card hover:bg-line/[0.06] border border-line/15 text-xs font-semibold text-ink transition-colors"
                   >
                     {other.title}
                   </Link>

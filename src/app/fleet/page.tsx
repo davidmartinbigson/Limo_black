@@ -21,7 +21,6 @@ export default function FleetPage() {
   const router = useRouter();
   const { updateDraft, formatPrice } = useBooking();
 
-  // Interactive Luggage & Party Calculator State
   const [passengers, setPassengers] = useState(2);
   const [checkInBags, setCheckInBags] = useState(2);
   const [carryOnBags, setCarryOnBags] = useState(2);
@@ -32,49 +31,47 @@ export default function FleetPage() {
   };
 
   return (
-    <div className="min-h-screen bg-obsidian-950 pt-28 pb-24">
+    <div className="min-h-screen bg-canvas pt-28 pb-24">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-20">
-        {/* Hero */}
         <div className="text-center max-w-3xl mx-auto">
-          <span className="inline-flex items-center gap-2 text-xs uppercase tracking-[0.28em] text-champagne-400 font-semibold">
+          <span className="inline-flex items-center gap-2 text-xs uppercase tracking-[0.26em] text-accent font-semibold">
             <Crown className="w-3.5 h-3.5" />
-            Five Signature Service Classes
+            Five All-Season Canadian Service Classes
           </span>
-          <h1 className="font-serif text-5xl sm:text-6xl text-ivory-50 mt-3 leading-[1.06]">
+          <h1 className="font-serif text-5xl sm:text-6xl text-ink font-semibold mt-3 leading-[1.06]">
             The Limo Black{" "}
-            <span className="italic text-champagne-300">Global Fleet.</span>
+            <span className="italic text-accent">Canada Fleet.</span>
           </h1>
-          <p className="text-sm sm:text-base text-white/65 mt-4 leading-relaxed">
-            From zero-emission Mercedes-Benz EQS sedans to flagship Maybach
-            Pullman Stretch Limousines, every vehicle meets our uncompromising
-            obsidian cosmetic and safety inspection.
+          <p className="text-sm sm:text-base text-muted mt-4 leading-relaxed">
+            From zero-emission dual-motor Mercedes-Benz EQS sedans to flagship
+            Maybach Pullman Stretch Limousines and winter-certified Escalade
+            ESVs — built for Canadian cities, Rockies, and coastal highways.
           </p>
         </div>
 
-        {/* Interactive Party & Luggage Fit Calculator */}
-        <div className="rounded-3xl bg-obsidian-900 border border-white/12 p-6 sm:p-10 shadow-luxury">
-          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 pb-8 border-b border-white/10">
+        <div className="rounded-3xl bg-card border border-line/12 p-6 sm:p-10 shadow-luxury">
+          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 pb-8 border-b border-line/10">
             <div>
-              <span className="inline-flex items-center gap-2 text-xs uppercase tracking-[0.22em] text-champagne-400 font-semibold">
+              <span className="inline-flex items-center gap-2 text-xs uppercase tracking-[0.22em] text-accent font-semibold">
                 <SlidersHorizontal className="w-3.5 h-3.5" />
                 Interactive Fleet Matcher
               </span>
-              <h2 className="font-serif text-3xl text-ivory-50 mt-1">
-                Will My Party & Luggage Fit?
+              <h2 className="font-serif text-3xl text-ink font-semibold mt-1">
+                Will My Party, Skis & Luggage Fit?
               </h2>
-              <p className="text-xs sm:text-sm text-white/60 mt-1">
-                Adjust your party size and luggage count to filter compatible
-                service classes instantly.
+              <p className="text-xs sm:text-sm text-muted mt-1">
+                Adjust your guest count and luggage below to filter compatible
+                Canadian service classes instantly.
               </p>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-5 lg:w-[540px]">
-              <div className="p-4 rounded-2xl bg-obsidian-950 border border-white/10">
-                <div className="flex items-center justify-between text-xs text-white/65 mb-2">
+              <div className="p-4 rounded-2xl bg-field border border-line/10">
+                <div className="flex items-center justify-between text-xs text-muted mb-2">
                   <span className="flex items-center gap-1.5">
-                    <Users className="w-3.5 h-3.5 text-champagne-400" /> Guests
+                    <Users className="w-3.5 h-3.5 text-accent" /> Guests
                   </span>
-                  <span className="font-bold text-ivory-50">{passengers}</span>
+                  <span className="font-bold text-ink">{passengers}</span>
                 </div>
                 <input
                   type="range"
@@ -86,13 +83,12 @@ export default function FleetPage() {
                 />
               </div>
 
-              <div className="p-4 rounded-2xl bg-obsidian-950 border border-white/10">
-                <div className="flex items-center justify-between text-xs text-white/65 mb-2">
+              <div className="p-4 rounded-2xl bg-field border border-line/10">
+                <div className="flex items-center justify-between text-xs text-muted mb-2">
                   <span className="flex items-center gap-1.5">
-                    <Luggage className="w-3.5 h-3.5 text-champagne-400" />{" "}
-                    Check-in
+                    <Luggage className="w-3.5 h-3.5 text-accent" /> Check-in
                   </span>
-                  <span className="font-bold text-ivory-50">{checkInBags}</span>
+                  <span className="font-bold text-ink">{checkInBags}</span>
                 </div>
                 <input
                   type="range"
@@ -104,13 +100,12 @@ export default function FleetPage() {
                 />
               </div>
 
-              <div className="p-4 rounded-2xl bg-obsidian-950 border border-white/10">
-                <div className="flex items-center justify-between text-xs text-white/65 mb-2">
+              <div className="p-4 rounded-2xl bg-field border border-line/10">
+                <div className="flex items-center justify-between text-xs text-muted mb-2">
                   <span className="flex items-center gap-1.5">
-                    <Briefcase className="w-3.5 h-3.5 text-champagne-400" />{" "}
-                    Carry-on
+                    <Briefcase className="w-3.5 h-3.5 text-accent" /> Carry-on
                   </span>
-                  <span className="font-bold text-ivory-50">{carryOnBags}</span>
+                  <span className="font-bold text-ink">{carryOnBags}</span>
                 </div>
                 <input
                   type="range"
@@ -124,7 +119,6 @@ export default function FleetPage() {
             </div>
           </div>
 
-          {/* Fleet Cards With Fit Indicator */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 pt-8">
             {FLEET_CLASSES.map((fleet, idx) => {
               const fits =
@@ -140,12 +134,12 @@ export default function FleetPage() {
                   transition={{ delay: idx * 0.06 }}
                   className={`rounded-3xl border overflow-hidden flex flex-col justify-between transition-all ${
                     fits
-                      ? "bg-obsidian-950 border-white/12 hover:border-champagne-400/50"
-                      : "bg-obsidian-950/40 border-white/5 opacity-50"
+                      ? "bg-field border-line/12 hover:border-champagne-500/50"
+                      : "bg-field/40 border-line/5 opacity-50"
                   }`}
                 >
                   <div>
-                    <div className="relative aspect-[16/10] overflow-hidden">
+                    <div className="relative aspect-[16/10] overflow-hidden bg-obsidian-950">
                       <img
                         src={fleet.image}
                         alt={fleet.name}
@@ -156,7 +150,7 @@ export default function FleetPage() {
                           className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${
                             fits
                               ? "bg-emerald-950/90 text-emerald-300 border border-emerald-400/35"
-                              : "bg-zinc-900/90 text-white/50 border border-white/10"
+                              : "bg-zinc-900/90 text-white/60 border border-white/10"
                           }`}
                         >
                           {fits ? "Recommended Fit" : "Exceeds Capacity"}
@@ -176,15 +170,15 @@ export default function FleetPage() {
 
                     <div className="p-6 space-y-4">
                       <div>
-                        <h3 className="font-serif text-2xl text-ivory-50">
+                        <h3 className="font-serif text-2xl text-ink font-semibold">
                           {fleet.name}
                         </h3>
-                        <p className="text-xs text-champagne-300 mt-0.5">
+                        <p className="text-xs text-accent font-medium mt-0.5">
                           {fleet.vehicles}
                         </p>
                       </div>
 
-                      <div className="flex items-center gap-4 text-xs text-white/65 py-2.5 border-y border-white/10">
+                      <div className="flex items-center gap-4 text-xs text-muted py-2.5 border-y border-line/10">
                         <span>Up to {fleet.maxPassengers} pax</span>
                         <span>·</span>
                         <span>{fleet.maxCheckIn} check-in</span>
@@ -196,9 +190,9 @@ export default function FleetPage() {
                         {fleet.highlights.map((h) => (
                           <li
                             key={h}
-                            className="flex items-start gap-2 text-xs text-white/65"
+                            className="flex items-start gap-2 text-xs text-muted"
                           >
-                            <Check className="w-3.5 h-3.5 text-champagne-400 shrink-0 mt-0.5" />
+                            <Check className="w-3.5 h-3.5 text-accent shrink-0 mt-0.5" />
                             <span>{h}</span>
                           </li>
                         ))}
@@ -208,12 +202,12 @@ export default function FleetPage() {
 
                   <div className="p-6 pt-0 flex items-center justify-between gap-3">
                     <div>
-                      <div className="text-[10px] uppercase tracking-wider text-white/45">
+                      <div className="text-[10px] uppercase tracking-wider text-subtle">
                         Hourly Standby From
                       </div>
-                      <div className="font-serif text-2xl text-ivory-50 font-semibold">
-                        {formatPrice(fleet.hourlyRateUsd)}
-                        <span className="text-xs font-sans text-white/50">
+                      <div className="font-serif text-2xl text-ink font-bold">
+                        {formatPrice(fleet.hourlyRateCad)}
+                        <span className="text-xs font-sans text-muted">
                           /hr
                         </span>
                       </div>

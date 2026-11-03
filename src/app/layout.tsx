@@ -16,9 +16,9 @@ import Footer from "@/components/Footer";
 import AuthModal from "@/components/AuthModal";
 
 export const metadata: Metadata = {
-  title: "Limo Black | Global Private Limousine & Chauffeur Service",
+  title: "Limo Black Canada | Premier Private Limousine & Chauffeur Service",
   description:
-    "Reserve five-star private limousines, Maybach Pullman, S-Class, and executive airport chauffeurs across 500+ cities in 64+ countries. Fixed all-inclusive rates.",
+    "Reserve five-star private limousines, Maybach Pullman, AWD S-Class, Escalade ESV, and airport chauffeurs across Toronto (YYZ), Vancouver (YVR), Montréal (YUL), Calgary (YYC), Ottawa & Whistler. Fixed all-inclusive CAD fares.",
 };
 
 export default function RootLayout({
@@ -27,8 +27,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className="dark">
-      <body className="min-h-screen flex flex-col bg-obsidian-950 text-ivory-50 font-sans">
+    <html lang="en-CA" className="dark" suppressHydrationWarning>
+      <body className="min-h-screen flex flex-col bg-canvas text-ink font-sans">
         <BookingProvider>
           <Navbar />
           <AuthModal />
