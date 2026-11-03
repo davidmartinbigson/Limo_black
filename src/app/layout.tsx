@@ -14,6 +14,7 @@ import { BookingProvider } from "@/context/BookingContext";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import AuthModal from "@/components/AuthModal";
+import ConciergeChat from "@/components/ConciergeChat";
 
 export const metadata: Metadata = {
   title: "Limo Black Canada | Premier Private Limousine & Chauffeur Service",
@@ -34,6 +35,7 @@ export default function RootLayout({
           <AuthModal />
           <main className="flex-1">{children}</main>
           <Footer />
+          <ConciergeChat />
         </BookingProvider>
       </body>
     </html>

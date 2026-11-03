@@ -49,7 +49,7 @@ export default function Footer() {
           <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-8">
             <div>
               <p className="text-xs uppercase tracking-[0.24em] text-accent font-semibold">
-                Coast-to-Coast Canadian Coverage 🇨🇦
+                Coast-to-Coast Canadian Coverage
               </p>
               <h3 className="font-serif text-3xl text-ink mt-1">
                 Canadian Chauffeur & Limousine Hubs
@@ -99,16 +99,17 @@ export default function Footer() {
               </div>
             </Link>
             <p className="text-sm text-muted leading-relaxed max-w-sm">
-              Canada’s premier private limousine and chauffeur network. All-wheel
-              drive Maybach, S-Class, Escalade ESV, and Stretch Limousines
-              across Toronto, Vancouver, Montréal, Calgary, Ottawa & beyond.
+              Canada’s premier private limousine and chauffeur network.
+              All-wheel drive Maybach, S-Class, Escalade ESV, and Stretch
+              Limousines across Toronto, Vancouver, Montréal, Calgary, Ottawa &
+              beyond.
             </p>
 
             <div className="space-y-2 text-xs text-muted">
               <div className="flex items-center gap-2">
                 <PhoneCall className="w-4 h-4 text-accent shrink-0" />
                 <span>
-                  24/7 Canada Dispatch: +1 (888) 555-LIMO · Toronto (416)
+                  24/7 Canada Dispatch: +1 (888) 546-6255 · Toronto (416)
                   555-0190
                 </span>
               </div>
@@ -171,39 +172,31 @@ export default function Footer() {
 
           <div className="lg:col-span-2 space-y-3">
             <h4 className="text-xs uppercase tracking-[0.2em] text-accent font-semibold">
-              Enterprise
+              Member & Portal
             </h4>
             <ul className="space-y-2.5 text-sm text-muted">
               <li>
                 <Link
-                  href="/business"
-                  className="hover:text-ink transition-colors"
+                  href="/account"
+                  className="hover:text-ink transition-colors font-medium text-accent"
                 >
-                  Corporate Canada
+                  My Personal Account
                 </Link>
               </li>
               <li>
                 <Link
-                  href="/business"
+                  href="/login"
                   className="hover:text-ink transition-colors"
                 >
-                  Travel Agencies & GDS
+                  Sign In
                 </Link>
               </li>
               <li>
                 <Link
-                  href="/business"
+                  href="/signup"
                   className="hover:text-ink transition-colors"
                 >
-                  Skyservice & FBO VIP
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="/chauffeurs"
-                  className="hover:text-ink transition-colors"
-                >
-                  Become a Partner
+                  Create Account
                 </Link>
               </li>
               <li>
@@ -211,7 +204,15 @@ export default function Footer() {
                   href="/bookings"
                   className="hover:text-ink transition-colors"
                 >
-                  Manage Bookings
+                  Track Ride & Receipt
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href="/admin"
+                  className="hover:text-ink transition-colors"
+                >
+                  Owner Dispatch Portal
                 </Link>
               </li>
             </ul>
@@ -256,7 +257,7 @@ export default function Footer() {
 
             <div className="flex items-center gap-2 text-[11px] text-subtle">
               <ShieldCheck className="w-3.5 h-3.5 text-accent shrink-0" />
-              PIPEDA Compliant · Canadian GST/HST Registered Chauffeur Network
+              PIPEDA Compliant · CRA GST/HST BN 84920-4119 RT0001
             </div>
           </div>
         </div>
@@ -267,8 +268,8 @@ export default function Footer() {
             Vancouver · Montréal · Calgary · Ottawa). All rights reserved.
           </p>
           <div className="flex items-center gap-6">
-            <Link href="/bookings" className="hover:text-ink transition-colors">
-              Free Cancellation Policy
+            <Link href="/account" className="hover:text-ink transition-colors">
+              Member Portal
             </Link>
             <Link href="/fleet" className="hover:text-ink transition-colors">
               Canadian AWD Standards
