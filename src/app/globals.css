@@ -1,0 +1,32 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+    background-color: #060709;
+    color: #faf8f5;
+  }
+
+  body {
+    font-family: "Plus Jakarta Sans", system-ui, -apple-system, sans-serif;
+    background-color: #060709;
+    color: #faf8f5;
+    overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  ::selection {
+    background-color: rgba(198, 163, 100, 0.35);
+    color: #faf8f5;
+  }
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
