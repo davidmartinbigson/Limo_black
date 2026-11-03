@@ -1,17 +1,15 @@
-export type CurrencyCode = "USD" | "EUR" | "GBP" | "AED";
+export type CurrencyCode = "CAD" | "USD";
 
 export interface CurrencyInfo {
   code: CurrencyCode;
   symbol: string;
-  rate: number; // relative to USD
+  rate: number; // relative to base CAD
   label: string;
 }
 
 export const CURRENCIES: Record<CurrencyCode, CurrencyInfo> = {
-  USD: { code: "USD", symbol: "$", rate: 1, label: "USD ($)" },
-  EUR: { code: "EUR", symbol: "€", rate: 0.92, label: "EUR (€)" },
-  GBP: { code: "GBP", symbol: "£", rate: 0.79, label: "GBP (£)" },
-  AED: { code: "AED", symbol: "AED ", rate: 3.67, label: "AED (د.إ)" },
+  CAD: { code: "CAD", symbol: "CA$", rate: 1, label: "CAD ($)" },
+  USD: { code: "USD", symbol: "US$", rate: 0.73, label: "USD ($)" },
 };
 
 export interface LocationItem {
@@ -19,231 +17,343 @@ export interface LocationItem {
   name: string;
   subtitle: string;
   city: string;
+  province: string;
   country: string;
-  type: "airport" | "hotel" | "district" | "landmark";
+  type: "airport" | "hotel" | "district" | "landmark" | "address";
   iata?: string;
   lat: number;
   lng: number;
 }
 
 export const GLOBAL_LOCATIONS: LocationItem[] = [
+  // TORONTO & ONTARIO
   {
-    id: "jfk",
-    name: "John F. Kennedy International Airport (JFK)",
-    subtitle: "Queens, New York, NY · All Terminals & Private FBO",
-    city: "New York",
-    country: "United States",
+    id: "yyz",
+    name: "Toronto Pearson International Airport (YYZ)",
+    subtitle: "6301 Silver Dart Dr, Mississauga, ON L5P 1B2 · Terminals 1, 3 & FBO",
+    city: "Toronto",
+    province: "ON",
+    country: "Canada",
     type: "airport",
-    iata: "JFK",
-    lat: 40.6413,
-    lng: -73.7781,
+    iata: "YYZ",
+    lat: 43.6777,
+    lng: -79.6248,
   },
   {
-    id: "aman-ny",
-    name: "Aman New York, Fifth Avenue",
-    subtitle: "730 Fifth Ave, Crown Building, Manhattan, NY",
-    city: "New York",
-    country: "United States",
+    id: "ytz",
+    name: "Billy Bishop Toronto City Airport (YTZ)",
+    subtitle: "2 Eireann Quay, Waterfront, Toronto, ON M5V 1A1",
+    city: "Toronto",
+    province: "ON",
+    country: "Canada",
+    type: "airport",
+    iata: "YTZ",
+    lat: 43.6285,
+    lng: -79.396,
+  },
+  {
+    id: "royal-york",
+    name: "Fairmont Royal York Hotel",
+    subtitle: "100 Front St W, Downtown Toronto, ON M5J 1E3",
+    city: "Toronto",
+    province: "ON",
+    country: "Canada",
     type: "hotel",
-    lat: 40.7629,
-    lng: -73.9749,
+    lat: 43.6456,
+    lng: -79.3814,
   },
   {
-    id: "wall-st",
-    name: "Manhattan Financial District & Wall Street",
-    subtitle: "Lower Manhattan, New York, NY",
-    city: "New York",
-    country: "United States",
+    id: "four-seasons-toronto",
+    name: "Four Seasons Hotel Toronto at Yorkville",
+    subtitle: "60 Yorkville Ave, Yorkville, Toronto, ON M4W 0A4",
+    city: "Toronto",
+    province: "ON",
+    country: "Canada",
+    type: "hotel",
+    lat: 43.6716,
+    lng: -79.3897,
+  },
+  {
+    id: "ritz-toronto",
+    name: "The Ritz-Carlton, Toronto",
+    subtitle: "181 Wellington St W, Entertainment District, Toronto, ON M5V 3G7",
+    city: "Toronto",
+    province: "ON",
+    country: "Canada",
+    type: "hotel",
+    lat: 43.6453,
+    lng: -79.3872,
+  },
+  {
+    id: "bay-street",
+    name: "Bay Street Financial District (First Canadian Place)",
+    subtitle: "100 King St W, Toronto, ON M5X 1A9",
+    city: "Toronto",
+    province: "ON",
+    country: "Canada",
     type: "district",
-    lat: 40.7074,
-    lng: -74.0113,
+    lat: 43.6487,
+    lng: -79.3817,
   },
   {
-    id: "east-hampton",
-    name: "East Hampton Village & Private Estates",
-    subtitle: "Main Street, East Hampton, Long Island, NY",
-    city: "East Hampton",
-    country: "United States",
+    id: "scotiabank-arena",
+    name: "Scotiabank Arena & Union Station VIP Gate",
+    subtitle: "40 Bay St, Toronto, ON M5J 2X2",
+    city: "Toronto",
+    province: "ON",
+    country: "Canada",
     type: "landmark",
-    lat: 40.9634,
-    lng: -72.1848,
+    lat: 43.6435,
+    lng: -79.3791,
   },
   {
-    id: "lhr",
-    name: "London Heathrow Airport (LHR)",
-    subtitle: "Terminals 2, 3, 4, 5 & Windsor VIP Suite, London",
-    city: "London",
-    country: "United Kingdom",
-    type: "airport",
-    iata: "LHR",
-    lat: 51.47,
-    lng: -0.4543,
+    id: "niagara-falls",
+    name: "Niagara Falls & Niagara-on-the-Lake Wine Estates",
+    subtitle: "6650 Niagara Pkwy, Niagara Falls, ON L2G 0L0",
+    city: "Niagara Falls",
+    province: "ON",
+    country: "Canada",
+    type: "landmark",
+    lat: 43.0828,
+    lng: -79.0763,
   },
   {
-    id: "claridges",
-    name: "Claridge's Mayfair",
-    subtitle: "Brook Street, Mayfair, London W1K 4HR",
-    city: "London",
-    country: "United Kingdom",
+    id: "muskoka",
+    name: "JW Marriott The Rosseau Muskoka Resort & Spa",
+    subtitle: "1050 Paignton House Rd, Minett, Muskoka, ON P0B 1G0",
+    city: "Muskoka",
+    province: "ON",
+    country: "Canada",
     type: "hotel",
-    lat: 51.5126,
-    lng: -0.1479,
+    lat: 45.1462,
+    lng: -79.6223,
+  },
+
+  // VANCOUVER, WHISTLER & BC
+  {
+    id: "yvr",
+    name: "Vancouver International Airport (YVR)",
+    subtitle: "3211 Grant McConachie Way, Richmond, BC V7B 0A4 · Main & South FBO",
+    city: "Vancouver",
+    province: "BC",
+    country: "Canada",
+    type: "airport",
+    iata: "YVR",
+    lat: 49.1967,
+    lng: -123.1815,
   },
   {
-    id: "canary-wharf",
-    name: "Canary Wharf Financial Plaza",
-    subtitle: "One Canada Square, London E14",
-    city: "London",
-    country: "United Kingdom",
+    id: "pacific-rim",
+    name: "Fairmont Pacific Rim, Coal Harbour",
+    subtitle: "1038 Canada Pl, Downtown Vancouver, BC V6C 0B9",
+    city: "Vancouver",
+    province: "BC",
+    country: "Canada",
+    type: "hotel",
+    lat: 49.2882,
+    lng: -123.1165,
+  },
+  {
+    id: "rosewood-georgia",
+    name: "Rosewood Hotel Georgia",
+    subtitle: "801 W Georgia St, Vancouver, BC V6C 1P7",
+    city: "Vancouver",
+    province: "BC",
+    country: "Canada",
+    type: "hotel",
+    lat: 49.2836,
+    lng: -123.1188,
+  },
+  {
+    id: "whistler-fs",
+    name: "Four Seasons Resort & Residences Whistler",
+    subtitle: "4591 Blackcomb Way, Whistler, BC V8E 0Y4",
+    city: "Whistler",
+    province: "BC",
+    country: "Canada",
+    type: "hotel",
+    lat: 50.1163,
+    lng: -122.9486,
+  },
+  {
+    id: "yyj",
+    name: "Victoria International Airport (YYJ) & Empress Hotel",
+    subtitle: "1640 Electra Blvd, Sidney, Victoria, BC V8L 5V4",
+    city: "Victoria",
+    province: "BC",
+    country: "Canada",
+    type: "airport",
+    iata: "YYJ",
+    lat: 48.6469,
+    lng: -123.4258,
+  },
+  {
+    id: "ylw",
+    name: "Kelowna International Airport (YLW)",
+    subtitle: "5533 Airport Way, Kelowna, Okanagan Valley, BC V1V 1S1",
+    city: "Kelowna",
+    province: "BC",
+    country: "Canada",
+    type: "airport",
+    iata: "YLW",
+    lat: 49.9561,
+    lng: -119.3778,
+  },
+
+  // MONTRÉAL, QUÉBEC CITY & QUÉBEC
+  {
+    id: "yul",
+    name: "Montréal–Pierre Elliott Trudeau International Airport (YUL)",
+    subtitle: "975 Roméo-Vachon Blvd N, Dorval, QC H4Y 1H1",
+    city: "Montréal",
+    province: "QC",
+    country: "Canada",
+    type: "airport",
+    iata: "YUL",
+    lat: 45.4657,
+    lng: -73.7455,
+  },
+  {
+    id: "ritz-montreal",
+    name: "The Ritz-Carlton, Montréal",
+    subtitle: "1228 Sherbrooke St W, Golden Square Mile, Montréal, QC H3G 1H6",
+    city: "Montréal",
+    province: "QC",
+    country: "Canada",
+    type: "hotel",
+    lat: 45.4998,
+    lng: -73.5784,
+  },
+  {
+    id: "mont-tremblant",
+    name: "Fairmont Tremblant, Mont-Tremblant Village",
+    subtitle: "3045 Chemin de la Chapelle, Mont-Tremblant, QC J8E 1E1",
+    city: "Mont-Tremblant",
+    province: "QC",
+    country: "Canada",
+    type: "hotel",
+    lat: 46.2125,
+    lng: -74.5844,
+  },
+  {
+    id: "chateau-frontenac",
+    name: "Fairmont Le Château Frontenac, Old Québec",
+    subtitle: "1 Rue des Carrières, Québec City, QC G1R 4P5",
+    city: "Québec City",
+    province: "QC",
+    country: "Canada",
+    type: "hotel",
+    lat: 46.8119,
+    lng: -71.2052,
+  },
+  {
+    id: "yqb",
+    name: "Québec City Jean Lesage International Airport (YQB)",
+    subtitle: "505 Rue Principale, Québec City, QC G2G 0J4",
+    city: "Québec City",
+    province: "QC",
+    country: "Canada",
+    type: "airport",
+    iata: "YQB",
+    lat: 46.7911,
+    lng: -71.3933,
+  },
+
+  // CALGARY, BANFF, EDMONTON & ALBERTA
+  {
+    id: "yyc",
+    name: "Calgary International Airport (YYC)",
+    subtitle: "2000 Airport Rd NE, Calgary, AB T2E 6W5 · Domestic & Intl Terminals",
+    city: "Calgary",
+    province: "AB",
+    country: "Canada",
+    type: "airport",
+    iata: "YYC",
+    lat: 51.1215,
+    lng: -114.0076,
+  },
+  {
+    id: "calgary-core",
+    name: "Downtown Calgary Financial Core (Brookfield Place)",
+    subtitle: "225 6 Ave SW, Calgary, AB T2P 1N2",
+    city: "Calgary",
+    province: "AB",
+    country: "Canada",
     type: "district",
-    lat: 51.5054,
-    lng: -0.0235,
+    lat: 51.0478,
+    lng: -114.0669,
   },
   {
-    id: "dxb",
-    name: "Dubai International Airport (DXB)",
-    subtitle: "Terminal 3 VIP & Executive Jet Al Majlis, Dubai",
-    city: "Dubai",
-    country: "United Arab Emirates",
+    id: "banff-springs",
+    name: "Fairmont Banff Springs & Lake Louise",
+    subtitle: "405 Spray Ave, Banff National Park, AB T1L 1J4",
+    city: "Banff",
+    province: "AB",
+    country: "Canada",
+    type: "hotel",
+    lat: 51.1644,
+    lng: -115.5618,
+  },
+  {
+    id: "yeg",
+    name: "Edmonton International Airport (YEG)",
+    subtitle: "1000 Airport Rd, Edmonton Metropolitan Region, AB T9E 0V3",
+    city: "Edmonton",
+    province: "AB",
+    country: "Canada",
     type: "airport",
-    iata: "DXB",
-    lat: 25.2532,
-    lng: 55.3657,
+    iata: "YEG",
+    lat: 53.3097,
+    lng: -113.5797,
   },
+
+  // OTTAWA, HALIFAX & WINNIPEG
   {
-    id: "burj-al-arab",
-    name: "Burj Al Arab & Jumeirah Royal Suite",
-    subtitle: "Umm Suqeim 3, Jumeirah Beach Rd, Dubai",
-    city: "Dubai",
-    country: "United Arab Emirates",
-    type: "hotel",
-    lat: 25.1412,
-    lng: 55.1852,
-  },
-  {
-    id: "difc",
-    name: "Dubai International Financial Centre (DIFC)",
-    subtitle: "Gate Village, Sheikh Zayed Road, Dubai",
-    city: "Dubai",
-    country: "United Arab Emirates",
-    type: "district",
-    lat: 25.2116,
-    lng: 55.2797,
-  },
-  {
-    id: "abu-dhabi-emirates",
-    name: "Emirates Palace Mandarin Oriental",
-    subtitle: "West Corniche Road, Abu Dhabi",
-    city: "Abu Dhabi",
-    country: "United Arab Emirates",
-    type: "hotel",
-    lat: 24.4616,
-    lng: 54.3173,
-  },
-  {
-    id: "cdg",
-    name: "Paris Charles de Gaulle Airport (CDG)",
-    subtitle: "Terminals 1, 2E & Salon Paris VIP, Roissy",
-    city: "Paris",
-    country: "France",
+    id: "yow",
+    name: "Ottawa Macdonald–Cartier International Airport (YOW)",
+    subtitle: "1000 Airport Pkwy Private, Ottawa, ON K1V 9B4",
+    city: "Ottawa",
+    province: "ON",
+    country: "Canada",
     type: "airport",
-    iata: "CDG",
-    lat: 49.0097,
-    lng: 2.5479,
+    iata: "YOW",
+    lat: 45.3225,
+    lng: -75.6692,
   },
   {
-    id: "ritz-paris",
-    name: "Ritz Paris, Place Vendôme",
-    subtitle: "15 Place Vendôme, 1st Arrondissement, Paris",
-    city: "Paris",
-    country: "France",
+    id: "chateau-laurier",
+    name: "Fairmont Château Laurier & Parliament Hill",
+    subtitle: "1 Rideau St, Downtown Ottawa, ON K1N 8S7",
+    city: "Ottawa",
+    province: "ON",
+    country: "Canada",
     type: "hotel",
-    lat: 48.868,
-    lng: 2.3289,
+    lat: 45.4256,
+    lng: -75.6924,
   },
   {
-    id: "lax",
-    name: "Los Angeles International Airport (LAX)",
-    subtitle: "PS Private Suite & Tom Bradley Intl, Los Angeles, CA",
-    city: "Los Angeles",
-    country: "United States",
+    id: "yhz",
+    name: "Halifax Stanfield International Airport (YHZ)",
+    subtitle: "1 Bell Blvd, Enfield, Halifax, NS B2T 1K2",
+    city: "Halifax",
+    province: "NS",
+    country: "Canada",
     type: "airport",
-    iata: "LAX",
-    lat: 33.9416,
-    lng: -118.4085,
+    iata: "YHZ",
+    lat: 44.8808,
+    lng: -63.5086,
   },
   {
-    id: "beverly-hills",
-    name: "The Beverly Hills Hotel, Sunset Boulevard",
-    subtitle: "9641 Sunset Blvd, Beverly Hills, CA 90210",
-    city: "Los Angeles",
-    country: "United States",
-    type: "hotel",
-    lat: 34.0816,
-    lng: -118.4137,
-  },
-  {
-    id: "zrh",
-    name: "Zurich Airport (ZRH)",
-    subtitle: "VIP Service & General Aviation Center, Zurich",
-    city: "Zurich",
-    country: "Switzerland",
+    id: "ywg",
+    name: "Winnipeg Richardson International Airport (YWG)",
+    subtitle: "2000 Wellington Ave, Winnipeg, MB R3H 1C2",
+    city: "Winnipeg",
+    province: "MB",
+    country: "Canada",
     type: "airport",
-    iata: "ZRH",
-    lat: 47.4582,
-    lng: 8.5555,
-  },
-  {
-    id: "st-moritz",
-    name: "Badrutt's Palace Hotel, St. Moritz",
-    subtitle: "Via Serlas 27, 7500 St. Moritz, Swiss Alps",
-    city: "St. Moritz",
-    country: "Switzerland",
-    type: "hotel",
-    lat: 46.497,
-    lng: 9.841,
-  },
-  {
-    id: "sin",
-    name: "Singapore Changi Airport (SIN)",
-    subtitle: "JetQuay CIP Terminal & Jewel, Singapore",
-    city: "Singapore",
-    country: "Singapore",
-    type: "airport",
-    iata: "SIN",
-    lat: 1.3644,
-    lng: 103.9915,
-  },
-  {
-    id: "marina-bay",
-    name: "Marina Bay Sands & Raffles Singapore",
-    subtitle: "10 Bayfront Avenue, Downtown Core, Singapore",
-    city: "Singapore",
-    country: "Singapore",
-    type: "hotel",
-    lat: 1.2834,
-    lng: 103.8607,
-  },
-  {
-    id: "mia",
-    name: "Miami International Airport (MIA)",
-    subtitle: "Concourse D–J & Signature Flight Support, Miami, FL",
-    city: "Miami",
-    country: "United States",
-    type: "airport",
-    iata: "MIA",
-    lat: 25.7959,
-    lng: -80.287,
-  },
-  {
-    id: "faena-miami",
-    name: "Faena Hotel & Four Seasons Surfside",
-    subtitle: "3201 Collins Ave, Miami Beach, FL",
-    city: "Miami",
-    country: "United States",
-    type: "hotel",
-    lat: 25.8078,
-    lng: -80.1235,
+    iata: "YWG",
+    lat: 49.91,
+    lng: -97.2399,
   },
 ];
 
@@ -263,9 +373,9 @@ export interface FleetClass {
   maxPassengers: number;
   maxCarryOn: number;
   maxCheckIn: number;
-  baseFareUsd: number;
-  perKmUsd: number;
-  hourlyRateUsd: number;
+  baseFareCad: number;
+  perKmCad: number;
+  hourlyRateCad: number;
   image: string;
   cabinImage: string;
   zeroEmission?: boolean;
@@ -279,128 +389,128 @@ export const FLEET_CLASSES: FleetClass[] = [
   {
     id: "business",
     name: "Business Class",
-    badge: "Executive Standard",
-    tagline: "Refined precision for seamless executive mobility.",
-    vehicles: "Mercedes-Benz E-Class, BMW 5 Series, Audi A6, or similar",
+    badge: "Canadian Executive Standard",
+    tagline: "All-wheel-drive precision for seamless metropolitan travel.",
+    vehicles: "Mercedes-Benz E-Class 4MATIC, BMW 5 Series xDrive, Audi A6, or similar",
     maxPassengers: 3,
     maxCarryOn: 2,
     maxCheckIn: 2,
-    baseFareUsd: 88,
-    perKmUsd: 2.35,
-    hourlyRateUsd: 95,
+    baseFareCad: 110,
+    perKmCad: 2.75,
+    hourlyRateCad: 120,
     image: "/images/fleet-business.jpg",
     cabinImage: "/images/service-corporate.jpg",
     description:
-      "Our signature black executive sedan pairs whisper-quiet acoustic glass with ergonomic Nappa leather seating, complimentary high-speed Wi-Fi, and universal device charging.",
+      "Engineered for year-round Canadian conditions with 4MATIC / xDrive all-wheel drive, heated Nappa leather seating, high-speed Bell/Rogers 5G cabin Wi-Fi, and universal device charging.",
     highlights: [
-      "60 minutes complimentary airport wait & live flight tracking",
-      "Chilled still & sparkling artisan water in every door",
+      "60 minutes complimentary airport wait at YYZ, YVR, YUL, YYC & all Canadian hubs",
+      "Heated rear leather seats & winter-rated touring tires",
       "High-speed 5G cabin Wi-Fi & dual USB-C / Lightning chargers",
-      "All taxes, tolls, fees & gratuity included upfront",
+      "All HST/GST taxes, 407 ETR highway tolls & gratuity included upfront",
     ],
-    idealFor: ["Airport Transfers", "Executive Meetings", "Point-to-Point"],
+    idealFor: ["Airport Transfers", "Bay Street Meetings", "Point-to-Point"],
   },
   {
     id: "electric",
     name: "Electric Class",
     badge: "100% Zero Tailpipe",
-    tagline: "Sustainable ultra-luxury in near-total acoustic silence.",
-    vehicles: "Mercedes-Benz EQS, BMW i7, Lucid Air Touring, or similar",
+    tagline: "Sustainable Canadian ultra-luxury in near-total silence.",
+    vehicles: "Mercedes-Benz EQS 580 4MATIC, BMW i7 xDrive60, Lucid Air, or similar",
     maxPassengers: 3,
     maxCarryOn: 2,
     maxCheckIn: 2,
-    baseFareUsd: 102,
-    perKmUsd: 2.6,
-    hourlyRateUsd: 110,
+    baseFareCad: 128,
+    perKmCad: 3.05,
+    hourlyRateCad: 138,
     image: "/images/fleet-electric.jpg",
     cabinImage: "/images/service-interior.jpg",
     zeroEmission: true,
     description:
-      "Glide silently through metropolitan centers in flagship electric limousines engineered for ESG-conscious executives who refuse to compromise on rear-seat indulgence.",
+      "Glide silently through Toronto, Vancouver, Montréal, and Ottawa in dual-motor all-wheel-drive electric limousines crafted for ESG-conscious Canadian executives.",
     highlights: [
-      "Zero-emission electric powertrain + verified carbon-negative badge",
-      "Panoramic electrochromic glass roof & HEPA air filtration",
-      "Whisper-silent cabin ideal for confidential calls",
-      "60 minutes complimentary airport wait & terminal Meet & Greet",
+      "Zero-emission AWD electric powertrain powered by clean Canadian grid",
+      "Pre-conditioned warm cabin & panoramic electrochromic glass roof",
+      "Whisper-silent rear lounge ideal for confidential calls",
+      "60 minutes complimentary airport wait & inside-terminal Meet & Greet",
     ],
-    idealFor: ["ESG Corporate Travel", "Silent Transfers", "City Commutes"],
+    idealFor: ["ESG Corporate Travel", "Silent Transfers", "Urban Commutes"],
   },
   {
     id: "first",
     name: "First Class",
     badge: "VIP Lounge Sedan",
     tagline: "Uncompromising long-wheelbase prestige for distinguished arrivals.",
-    vehicles: "Mercedes-Benz S-Class LWB, BMW 7 Series, Audi A8 L, or similar",
+    vehicles: "Mercedes-Benz S580 4MATIC LWB, BMW 760i xDrive, Audi A8 L, or similar",
     maxPassengers: 3,
     maxCarryOn: 2,
     maxCheckIn: 2,
-    baseFareUsd: 142,
-    perKmUsd: 3.45,
-    hourlyRateUsd: 155,
+    baseFareCad: 175,
+    perKmCad: 4.1,
+    hourlyRateCad: 190,
     image: "/images/fleet-first.jpg",
     cabinImage: "/images/service-interior.jpg",
     description:
-      "Make an unmistakable statement upon arrival. Featuring extended rear legroom, reclining massage seats, rear climate zones, and our highest-tenured senior chauffeurs.",
+      "Make an unmistakable statement from Yorkville to Coal Harbour. Extended rear legroom, heated reclining massage seats, and senior protocol-vetted Canadian chauffeurs.",
     highlights: [
-      "Extended-wheelbase reclining executive lounge seats with massage",
-      "Senior protocol-trained chauffeur in bespoke black attire",
-      "Individual rear climate, ambient lighting & privacy sunblinds",
-      "Priority VIP tarmac & five-star porte-cochère coordination",
+      "Extended-wheelbase reclining executive lounge seats with hot-stone massage",
+      "Bilingual (English/French available) senior chauffeur in bespoke black attire",
+      "Individual rear climate zones, ambient lighting & privacy sunblinds",
+      "Priority VIP FBO tarmac (Skyservice / Signature) coordination",
     ],
-    idealFor: ["C-Suite Roadshows", "VIP Arrivals", "Evening Dining & Galas"],
+    idealFor: ["C-Suite Roadshows", "TIFF & Gala Arrivals", "Diplomatic Travel"],
   },
   {
     id: "suv",
     name: "Business Van / SUV",
-    badge: "Spacious Group Luxury",
-    tagline: "Commanding presence and generous capacity for up to five guests.",
+    badge: "All-Season Alpine & Group",
+    tagline: "Commanding 4WD presence for up to five guests & full ski/luggage gear.",
     vehicles:
-      "Cadillac Escalade ESV, Mercedes-Benz V-Class, GMC Yukon Denali, or similar",
+      "Cadillac Escalade ESV 4WD, GMC Yukon Denali, Mercedes-Benz V-Class, or similar",
     maxPassengers: 5,
     maxCarryOn: 8,
     maxCheckIn: 5,
-    baseFareUsd: 134,
-    perKmUsd: 3.15,
-    hourlyRateUsd: 145,
+    baseFareCad: 165,
+    perKmCad: 3.75,
+    hourlyRateCad: 178,
     image: "/images/fleet-suv.jpg",
     cabinImage: "/images/service-airport.jpg",
     description:
-      "Designed for executive delegations, families, and ski or golf retreats requiring expansive luggage space alongside conference-style leather seating.",
+      "The gold standard for Whistler, Banff, Mont-Tremblant, and Muskoka transfers, as well as executive delegations requiring generous luggage and ski-bag capacity.",
     highlights: [
-      "Accommodates up to 5 passengers & 5 large check-in suitcases",
-      "Conference-facing or captain-chair leather seating layouts",
-      "Complimentary child & booster seats available upon request",
-      "Effortless curbside or terminal arrivals hall luggage assistance",
+      "Accommodates up to 5 passengers, 5 large suitcases & ski/golf bags",
+      "Winter-certified 4WD traction for Sea-to-Sky & Rocky Mountain highways",
+      "Complimentary Canadian-certified child & booster seats upon request",
+      "Heated second-row captain chairs & tri-zone climate control",
     ],
-    idealFor: ["Group Airport Runs", "Family Travel", "Alpine & Golf Trips"],
+    idealFor: ["Whistler & Banff Ski", "Group Airport Runs", "Muskoka Retreats"],
   },
   {
     id: "limousine",
     name: "Royal Stretch Limousine",
-    badge: "Limo Black Flagship",
-    tagline: "The pinnacle of private limousine artistry — Maybach Pullman & Stretch.",
+    badge: "Limo Black Canada Flagship",
+    tagline: "The pinnacle of Canadian limousine artistry — Maybach Pullman & Stretch.",
     vehicles:
-      "Mercedes-Maybach S680 Pullman, Rolls-Royce Extended, Bespoke Stretch Limousine",
+      "Mercedes-Maybach S680 AWD, Rolls-Royce Extended, Bespoke Stretch Limousine",
     maxPassengers: 6,
     maxCarryOn: 4,
     maxCheckIn: 4,
-    baseFareUsd: 265,
-    perKmUsd: 5.2,
-    hourlyRateUsd: 275,
+    baseFareCad: 325,
+    perKmCad: 6.2,
+    hourlyRateCad: 340,
     image: "/images/fleet-stretch-limo.jpg",
     cabinImage: "/images/service-interior.jpg",
     flagship: true,
     description:
-      "Crafted for heads of state, red-carpet galas, weddings, and milestone celebrations. Complete acoustic partition, bespoke crystal refreshment console, and white-glove chauffeur protocol.",
+      "Crafted for red-carpet premieres at TIFF, black-tie weddings, Parliamentary delegations, and milestone galas across Canada. Complete acoustic partition and white-glove chauffeur protocol.",
     highlights: [
       "Electrochromic privacy partition & starlight ambient ceiling",
-      "Chilled crystal glassware console & bespoke non-alcoholic cuvée",
-      "White-glove diplomatic & red-carpet protocol chauffeur",
-      "Dedicated 24/7 Private Concierge desk monitoring your itinerary",
+      "Chilled crystal glassware console & artisanal Canadian sparkling cuvée (0.0%)",
+      "White-glove diplomatic, wedding & red-carpet protocol chauffeur",
+      "Dedicated 24/7 Canadian Private Concierge monitoring your itinerary",
     ],
     idealFor: [
       "Weddings & Galas",
-      "Red Carpet & Proms",
+      "TIFF Red Carpet & Proms",
       "Diplomatic & Private Jet",
     ],
   },
@@ -412,127 +522,127 @@ export interface CityRoute {
   to: string;
   pickupFull: string;
   dropoffFull: string;
-  region: "North America" | "Europe" | "Middle East";
+  region: "Ontario" | "British Columbia" | "Québec" | "Alberta";
   duration: string;
   distanceKm: number;
   distanceLabel: string;
-  startingUsd: number;
+  startingCad: number;
   flightTimeSaved: string;
   highlight: string;
 }
 
 export const CITY_TO_CITY_ROUTES: CityRoute[] = [
   {
-    id: "nyc-hamptons",
-    from: "New York",
-    to: "East Hampton",
-    pickupFull: "Aman New York, Fifth Avenue",
-    dropoffFull: "East Hampton Village & Private Estates",
-    region: "North America",
-    duration: "2h 25m",
-    distanceKm: 168,
-    distanceLabel: "104 mi · 168 km",
-    startingUsd: 395,
-    flightTimeSaved: "Saves 1h 45m vs heli/train transfer",
-    highlight: "Weekend Coastal Sanctuary",
+    id: "toronto-niagara",
+    from: "Toronto",
+    to: "Niagara-on-the-Lake & Falls",
+    pickupFull: "Fairmont Royal York Hotel, 100 Front St W, Toronto, ON",
+    dropoffFull: "6650 Niagara Pkwy, Niagara Falls, ON",
+    region: "Ontario",
+    duration: "1h 35m",
+    distanceKm: 130,
+    distanceLabel: "130 km · QEW / 407 ETR",
+    startingCad: 345,
+    flightTimeSaved: "407 ETR tolls included · Door-to-winery luxury",
+    highlight: "Wine Country & Falls",
   },
   {
-    id: "nyc-philly",
-    from: "New York",
-    to: "Philadelphia",
-    pickupFull: "Manhattan Financial District & Wall Street",
-    dropoffFull: "Rittenhouse Square, Philadelphia, PA",
-    region: "North America",
-    duration: "1h 50m",
-    distanceKm: 152,
-    distanceLabel: "95 mi · 152 km",
-    startingUsd: 340,
-    flightTimeSaved: "Door-to-door mobile boardroom",
-    highlight: "Executive Corridor",
-  },
-  {
-    id: "london-oxford",
-    from: "London",
-    to: "Oxford & Cotswolds",
-    pickupFull: "Claridge's Mayfair",
-    dropoffFull: "The Randolph Hotel, Beaumont St, Oxford",
-    region: "Europe",
-    duration: "1h 40m",
-    distanceKm: 96,
-    distanceLabel: "60 mi · 96 km",
-    startingUsd: 265,
-    flightTimeSaved: "Zero rail transfers or luggage handling",
-    highlight: "Heritage & Countryside",
-  },
-  {
-    id: "dubai-abudhabi",
-    from: "Dubai",
-    to: "Abu Dhabi",
-    pickupFull: "Dubai International Financial Centre (DIFC)",
-    dropoffFull: "Emirates Palace Mandarin Oriental",
-    region: "Middle East",
-    duration: "1h 15m",
-    distanceKm: 138,
-    distanceLabel: "86 mi · 138 km",
-    startingUsd: 245,
-    flightTimeSaved: "Chilled S-Class / Maybach highway cruiser",
-    highlight: "Gulf Royal Express",
-  },
-  {
-    id: "paris-reims",
-    from: "Paris",
-    to: "Reims (Champagne)",
-    pickupFull: "Ritz Paris, Place Vendôme",
-    dropoffFull: "Domaine Les Crayères, Reims, Champagne",
-    region: "Europe",
+    id: "vancouver-whistler",
+    from: "Vancouver (YVR)",
+    to: "Whistler Village",
+    pickupFull: "Vancouver International Airport (YVR)",
+    dropoffFull: "Four Seasons Resort & Residences Whistler, BC",
+    region: "British Columbia",
     duration: "1h 55m",
-    distanceKm: 144,
-    distanceLabel: "89 mi · 144 km",
-    startingUsd: 355,
-    flightTimeSaved: "Private vineyard-to-door luxury",
-    highlight: "Grand Cru Vineyard Route",
+    distanceKm: 136,
+    distanceLabel: "136 km · Sea-to-Sky Hwy 99",
+    startingCad: 385,
+    flightTimeSaved: "Winter-tire AWD Escalade & S-Class fleet",
+    highlight: "Sea-to-Sky Alpine",
   },
   {
-    id: "zurich-stmoritz",
-    from: "Zurich",
-    to: "St. Moritz",
-    pickupFull: "Zurich Airport (ZRH)",
-    dropoffFull: "Badrutt's Palace Hotel, St. Moritz",
-    region: "Europe",
-    duration: "2h 50m",
-    distanceKm: 204,
-    distanceLabel: "127 mi · 204 km",
-    startingUsd: 540,
-    flightTimeSaved: "All-wheel-drive alpine ski-equipped fleet",
-    highlight: "Swiss Alpine Transfer",
+    id: "calgary-banff",
+    from: "Calgary (YYC)",
+    to: "Banff & Lake Louise",
+    pickupFull: "Calgary International Airport (YYC)",
+    dropoffFull: "Fairmont Banff Springs, 405 Spray Ave, Banff, AB",
+    region: "Alberta",
+    duration: "1h 30m",
+    distanceKm: 142,
+    distanceLabel: "142 km · Trans-Canada Hwy 1",
+    startingCad: 365,
+    flightTimeSaved: "Direct Rockies resort arrival with ski gear",
+    highlight: "Canadian Rockies",
   },
   {
-    id: "la-palmsprings",
-    from: "Los Angeles",
-    to: "Palm Springs",
-    pickupFull: "The Beverly Hills Hotel, Sunset Boulevard",
-    dropoffFull: "Parker Palm Springs, E Palm Canyon Dr",
-    region: "North America",
-    duration: "2h 10m",
-    distanceKm: 178,
-    distanceLabel: "110 mi · 178 km",
-    startingUsd: 385,
-    flightTimeSaved: "Skip LAX queues — depart on your schedule",
-    highlight: "Desert Retreat",
-  },
-  {
-    id: "nice-sttropez",
-    from: "Nice Airport",
-    to: "Saint-Tropez",
-    pickupFull: "Nice Côte d'Azur Airport (NCE) VIP Terminal",
-    dropoffFull: "Cheval Blanc St-Tropez, Plage de la Bouillabaisse",
-    region: "Europe",
+    id: "montreal-tremblant",
+    from: "Montréal",
+    to: "Mont-Tremblant",
+    pickupFull: "The Ritz-Carlton, 1228 Sherbrooke St W, Montréal, QC",
+    dropoffFull: "Fairmont Tremblant, Mont-Tremblant, QC",
+    region: "Québec",
     duration: "1h 40m",
-    distanceKm: 112,
-    distanceLabel: "70 mi · 112 km",
-    startingUsd: 330,
-    flightTimeSaved: "Direct Riviera coastal arrival",
-    highlight: "French Riviera",
+    distanceKm: 132,
+    distanceLabel: "132 km · Autoroute 15 Nord",
+    startingCad: 350,
+    flightTimeSaved: "Bilingual chauffeur · Laurentian sanctuary",
+    highlight: "Laurentian Resort",
+  },
+  {
+    id: "ottawa-montreal",
+    from: "Ottawa",
+    to: "Montréal Downtown",
+    pickupFull: "Fairmont Château Laurier, 1 Rideau St, Ottawa, ON",
+    dropoffFull: "The Ritz-Carlton, 1228 Sherbrooke St W, Montréal, QC",
+    region: "Ontario",
+    duration: "2h 05m",
+    distanceKm: 198,
+    distanceLabel: "198 km · Hwy 417 / A-40",
+    startingCad: 430,
+    flightTimeSaved: "Saves 2h vs YOW–YUL short-haul flight",
+    highlight: "Capital Corridor",
+  },
+  {
+    id: "toronto-muskoka",
+    from: "Toronto",
+    to: "Muskoka Lakes",
+    pickupFull: "Four Seasons Hotel Toronto, 60 Yorkville Ave, ON",
+    dropoffFull: "JW Marriott The Rosseau Muskoka Resort, Minett, ON",
+    region: "Ontario",
+    duration: "2h 15m",
+    distanceKm: 212,
+    distanceLabel: "212 km · Hwy 400 North",
+    startingCad: 465,
+    flightTimeSaved: "Private dockside & cottage arrival",
+    highlight: "Cottage Country",
+  },
+  {
+    id: "montreal-quebec",
+    from: "Montréal",
+    to: "Québec City (Old Québec)",
+    pickupFull: "Montréal-Trudeau International Airport (YUL)",
+    dropoffFull: "Fairmont Le Château Frontenac, Québec City, QC",
+    region: "Québec",
+    duration: "2h 45m",
+    distanceKm: 255,
+    distanceLabel: "255 km · Autoroute 20 / 40",
+    startingCad: 520,
+    flightTimeSaved: "Private mobile boardroom with 5G Wi-Fi",
+    highlight: "St. Lawrence Heritage",
+  },
+  {
+    id: "kelowna-okanagan",
+    from: "Kelowna (YLW)",
+    to: "Okanagan Estates & Big White",
+    pickupFull: "Kelowna International Airport (YLW), BC",
+    dropoffFull: "Mission Hill Family Estate, West Kelowna, BC",
+    region: "British Columbia",
+    duration: "45m",
+    distanceKm: 32,
+    distanceLabel: "32 km · Okanagan Hwy 97",
+    startingCad: 195,
+    flightTimeSaved: "Private vineyard & alpine chalet transfer",
+    highlight: "Okanagan Wine & Ski",
   },
 ];
 
@@ -552,151 +662,151 @@ export interface ServiceDetail {
 export const SERVICES_DATA: Record<ServiceDetail["slug"], ServiceDetail> = {
   "airport-transfers": {
     slug: "airport-transfers",
-    eyebrow: "Global Airport Chauffeur & FBO Service",
+    eyebrow: "Canadian Airport Chauffeur & Private FBO Service",
     title: "Airport Transfers",
-    headline: "Smooth landings, every single time.",
+    headline: "Smooth Canadian landings, summer or winter.",
     subtitle:
-      "Real-time satellite flight telemetry, 60 minutes of complimentary arrival wait time, and a tailored chauffeur greeting you inside arrivals with a personalized digital nameboard.",
+      "Real-time flight tracking across YYZ, YVR, YUL, YYC, YOW & all Canadian airports, 60 minutes of complimentary arrival wait time, and a pre-warmed AWD limousine waiting steps from customs.",
     heroImage: "/images/service-airport.jpg",
     defaultTab: "oneway",
     stats: [
-      { value: "60 Min", label: "Complimentary Wait Time" },
-      { value: "1,200+", label: "Commercial & Private FBO Airports" },
-      { value: "99.94%", label: "On-Time Arrival Precision" },
+      { value: "60 Min", label: "Complimentary Arrival Wait" },
+      { value: "25+", label: "Canadian Commercial & FBO Hubs" },
+      { value: "99.94%", label: "All-Weather On-Time Rate" },
       { value: "1 Hour", label: "Prior Free Cancellation" },
     ],
     pillars: [
       {
-        title: "Automatic Flight Telemetry Adjustment",
+        title: "Live Air Canada, WestJet, Porter & Intl Telemetry",
         description:
-          "Enter your commercial flight number or private tail code once. Whether your aircraft touches down 35 minutes early or faces a 3-hour transatlantic delay, your chauffeur adjusts automatically at zero extra charge.",
+          "Enter your flight number or private tail code once. Whether your flight into Toronto Pearson (YYZ) or Vancouver (YVR) lands early or faces winter de-icing delays, your chauffeur adjusts automatically.",
       },
       {
-        title: "Bespoke Inside-Terminal Meet & Greet",
+        title: "Inside-Terminal Heated Meet & Greet",
         description:
-          "Step past customs to find your chauffeur waiting with an illuminated Limo Black tablet displaying your preferred title, ready to escort you and handle every piece of luggage to the waiting car.",
+          "Step out of customs to find your chauffeur holding an illuminated Limo Black tablet with your name, ready to carry your luggage straight into a pre-warmed or pre-cooled cabin.",
       },
       {
-        title: "Guaranteed Fixed All-Inclusive Rates",
+        title: "Fixed All-Inclusive CAD Pricing",
         description:
-          "Airport parking fees, congestion tolls, taxes, and chauffeur gratuity are locked in at booking. Traffic delays never inflate your fare.",
+          "GTAA/airport pickup fees, 407 ETR highway tolls, HST/GST, and chauffeur gratuity are locked in upfront. Traffic on the Gardiner or Hwy 401 never changes your fare.",
       },
     ],
     occasions: [
       {
-        title: "Commercial First & Business Arrivals",
+        title: "YYZ, YTZ, YVR, YUL & YYC Arrivals",
         description:
-          "Seamless baggage-claim pickup across Heathrow, JFK, DXB, CDG, Changi, LAX, and 500+ global hubs.",
+          "Seamless terminal Meet & Greet at every major Canadian international and downtown island airport.",
       },
       {
-        title: "Private Aviation & FBO Tarmac",
+        title: "Private Aviation & Skyservice / Signature FBO",
         description:
-          "Direct planeside coordination with Signature, Jetex, Farnborough, Teterboro, and Le Bourget.",
+          "Direct ramp & lounge coordination for private jets in Mississauga, Richmond, Dorval, and Calgary.",
       },
       {
-        title: "Early-Morning Red-Eye Departures",
+        title: "Early-Morning Winter Departures",
         description:
-          "Guaranteed pre-scheduled dispatch with chauffeur details sent via SMS 60 minutes prior.",
+          "Guaranteed pre-dawn dispatch in snow or shine, with chauffeur SMS details sent 60 minutes prior.",
       },
     ],
   },
   hourly: {
     slug: "hourly",
-    eyebrow: "Dedicated Standby Limousine & Chauffeur",
+    eyebrow: "Dedicated Canadian Standby Limousine & Chauffeur",
     title: "Hourly & Full-Day Hire",
-    headline: "Seize the day with a chauffeur on standby.",
+    headline: "Seize the city with a chauffeur on standby.",
     subtitle:
-      "Reserve a private limousine and senior chauffeur from 2 to 24 hours. Leave your briefcase or eveningwear safely inside while your car waits steps from every doorway.",
+      "Reserve a private limousine and senior chauffeur from 2 to 24 hours across Toronto, Vancouver, Montréal, Calgary, or Ottawa — always warm, secure, and waiting outside every door.",
     heroImage: "/images/service-chauffeur.jpg",
     defaultTab: "hourly",
     stats: [
       { value: "2 – 24h", label: "Flexible Standby Duration" },
       { value: "40 km/h", label: "Generous Distance Included" },
       { value: "Unlimited", label: "In-City Stops & Detours" },
-      { value: "Zero", label: "Parking or Hail Wait Stress" },
+      { value: "Zero", label: "Winter Parking or Hail Waits" },
     ],
     pillars: [
       {
-        title: "Dynamic Fluid Itineraries",
+        title: "Dynamic Multi-Stop Canadian Itineraries",
         description:
-          "Meetings run late, dinner venues change, spontaneous gallery visits arise. Direct your chauffeur in real time without ever opening a ride-hail app.",
+          "Move effortlessly from Bay Street towers to Yorkville dining, or downtown Vancouver to North Shore meetings, without ever waiting in the cold for a ride.",
       },
       {
-        title: "Your Private Sanctuary Between Stops",
+        title: "Your Private Climate-Controlled Sanctuary",
         description:
-          "Keep shopping bags, confidential pitch decks, or gala attire securely inside a climate-controlled cabin maintained at your exact preferred temperature.",
+          "Leave winter coats, shopping bags, or confidential boardroom materials safely locked inside your dedicated vehicle while your chauffeur stands by.",
       },
       {
-        title: "Consistent Chauffeur All Day",
+        title: "Bilingual & Protocol-Trained Professionals",
         description:
-          "Build rapport with a single vetted local professional fluent in English and discreet diplomatic etiquette throughout your entire engagement.",
+          "Work with career local chauffeurs fluent in English (and French in Québec & Ottawa) with deep knowledge of city shortcuts and VIP entrances.",
       },
     ],
     occasions: [
       {
-        title: "Financial Roadshows & Board Days",
+        title: "Bay Street, Calgary & Montréal Roadshows",
         description:
-          "Back-to-back institutional meetings across Mayfair, Canary Wharf, Midtown, or DIFC with zero lost minutes.",
+          "Back-to-back institutional investor and legal meetings with zero wasted transit minutes.",
       },
       {
-        title: "Luxury Boutique & Couture Shopping",
+        title: "NHL Suites, Concerts & TIFF Screenings",
         description:
-          "Door-to-door drops on Avenue Montaigne, Bond Street, Fifth Avenue, or Via Montenapoleone.",
+          "Drop-off and instant VIP pickup outside Scotiabank Arena, Bell Centre, Rogers Arena, and Roy Thomson Hall.",
       },
       {
-        title: "Concerts, Stadium Suites & Opera Nights",
+        title: "Niagara & Okanagan Winery Day Charters",
         description:
-          "Bypass post-event gridlock — your chauffeur waits in the VIP staging lane ready to depart immediately.",
+          "Private full-day estate tasting tours with your dedicated chauffeur waiting at every cellar door.",
       },
     ],
   },
   "city-to-city": {
     slug: "city-to-city",
-    eyebrow: "Intercity Private Executive Corridors",
+    eyebrow: "Intercity Canadian Private Corridors",
     title: "City-to-City Rides",
-    headline: "Between cities, elevated beyond short-haul flights.",
+    headline: "Across Canadian corridors, beyond short-haul flights.",
     subtitle:
-      "Replace airport security queues, rail strikes, and cramped transfers with uninterrupted door-to-door serenity in a flagship limousine.",
+      "Skip Pearson/Trudeau security lines and VIA Rail schedules. Enjoy uninterrupted door-to-door luxury from Toronto to Niagara or Muskoka, Vancouver to Whistler, Calgary to Banff, and Ottawa to Montréal.",
     heroImage: "/images/service-corporate.jpg",
     defaultTab: "oneway",
     stats: [
-      { value: "350+", label: "Curated Intercity Corridors" },
+      { value: "45+", label: "Canadian Intercity Routes" },
       { value: "1 Step", label: "Doorstep to Doorstep" },
-      { value: "Per Car", label: "Pricing — Never Per Seat" },
-      { value: "100%", label: "Carbon-Offset Journeys" },
+      { value: "Per Car", label: "CAD Rate — Never Per Seat" },
+      { value: "AWD", label: "Winter-Certified Fleet" },
     ],
     pillars: [
       {
-        title: "Reclaim Productive & Restorative Hours",
+        title: "Reclaim Productive & Restful Hours",
         description:
-          "Turn a 200-kilometer regional hop into uninterrupted focus time with 5G Wi-Fi, ergonomic reclining seats, and total acoustic privacy.",
+          "Turn a 2-hour highway corridor into a quiet mobile boardroom with 5G Wi-Fi, heated reclining leather seats, and panoramic Canadian scenery.",
       },
       {
-        title: "Pay Per Limousine, Not Per Ticket",
+        title: "Pay Per Limousine, Not Per Passenger",
         description:
-          "Travel with up to 3–6 colleagues or family members and full luggage capacity for one transparent vehicle rate.",
+          "Travel with up to 3–6 colleagues or family members plus skis, golf clubs, and luggage for one fixed all-inclusive CAD fare.",
       },
       {
         title: "Depart on Your Exact Clock",
         description:
-          "Morning meeting wraps 40 minutes early? Message concierge to bring your departure forward, or cancel free up to 1 hour before pickup.",
+          "You choose the exact minute of departure from your home, office, or hotel — with free cancellation up to 1 hour prior.",
       },
     ],
     occasions: [
       {
-        title: "Executive Regional Shuttles",
+        title: "Alpine Ski & Mountain Transfers",
         description:
-          "New York ↔ Philadelphia, London ↔ Oxford, Dubai ↔ Abu Dhabi, Frankfurt ↔ Zurich.",
+          "YVR ↔ Whistler Blackcomb, YYC ↔ Banff & Lake Louise, YUL ↔ Mont-Tremblant.",
       },
       {
-        title: "Alpine Ski & Coastal Retreats",
+        title: "Executive Business Corridors",
         description:
-          "Zurich ↔ St. Moritz, Geneva ↔ Courchevel, Manhattan ↔ East Hampton, Nice ↔ Saint-Tropez.",
+          "Ottawa ↔ Montréal, Toronto ↔ Waterloo Tech Corridor, Toronto ↔ Hamilton/Burlington, Calgary ↔ Edmonton.",
       },
       {
-        title: "Vineyard & Gastronomy Tours",
+        title: "Wine Country & Lake Retreats",
         description:
-          "Paris ↔ Reims Champagne, San Francisco ↔ Napa Valley, Milan ↔ Lake Como.",
+          "Toronto ↔ Niagara-on-the-Lake, Toronto ↔ Muskoka Lakes, Kelowna ↔ Okanagan Valley.",
       },
     ],
   },
@@ -704,49 +814,49 @@ export const SERVICES_DATA: Record<ServiceDetail["slug"], ServiceDetail> = {
     slug: "limousine",
     eyebrow: "Maybach Pullman, Rolls-Royce & Stretch Limousines",
     title: "Royal Limousine & Events",
-    headline: "Unforgettable arrivals for life's defining occasions.",
+    headline: "Grand Canadian entrances for life's defining nights.",
     subtitle:
-      "From red-carpet premieres and black-tie weddings to diplomatic summits, experience the flagship fleet that gives Limo Black its name.",
+      "From TIFF red-carpet premieres and luxury weddings in Toronto, Vancouver & Montréal to Parliamentary galas in Ottawa — experience the flagship stretch fleet that defines Limo Black Canada.",
     heroImage: "/images/fleet-stretch-limo.jpg",
     defaultTab: "hourly",
     stats: [
       { value: "Maybach", label: "& Stretch Flagship Fleet" },
       { value: "6 Guests", label: "Rear Lounge Capacity" },
-      { value: "24/7", label: "Dedicated Event Concierge" },
+      { value: "24/7", label: "Canadian Event Concierge" },
       { value: "5.0 ★", label: "VIP Protocol Rating" },
     ],
     pillars: [
       {
-        title: "True Extended-Wheelbase & Stretch Coachwork",
+        title: "Extended-Wheelbase & Stretch Coachwork",
         description:
-          "Select our Royal Stretch Limousine class for whisper-quiet acoustic partitions, starlight headliners, face-to-face lounge seating, and crystal beverage consoles.",
+          "Reserve our Royal Stretch Limousine class for acoustic privacy partitions, starlight ceilings, lounge seating, and crystal refreshment consoles.",
       },
       {
-        title: "White-Glove Event Coordination",
+        title: "White-Glove Canadian Event Coordination",
         description:
-          "Our special events desk coordinates directly with wedding planners, venue security, and FBO tarmac marshals so every entrance unfolds to the second.",
+          "Our events desk coordinates directly with wedding planners, TIFF publicists, hotel porte-cochères, and venue security.",
       },
       {
         title: "Bespoke Cabin Staging",
         description:
-          "Pre-select cabin temperature, floral ribbons, chilled non-alcoholic vintage sparkling cuvées, and custom music playlists before stepping aboard.",
+          "Pre-select heated cabin climate, chilled non-alcoholic Niagara sparkling cuvées, and custom playlists before stepping aboard.",
       },
     ],
     occasions: [
       {
-        title: "Black-Tie Weddings & Anniversaries",
+        title: "Luxury Weddings & Milestone Anniversaries",
         description:
-          "Immaculately detailed obsidian limousines with white-gloved chauffeurs and bridal party SUV escorts.",
+          "Immaculately detailed obsidian stretch limousines across the GTA, Lower Mainland, Montréal, and Banff.",
       },
       {
-        title: "Film Galas, Fashion Weeks & Proms",
+        title: "TIFF Premieres, Galas & Graduations",
         description:
-          "Show-stopping red-carpet arrivals in Paris, Milan, New York, London, Cannes, and Los Angeles.",
+          "Show-stopping red-carpet arrivals on King Street West, Place des Arts, and downtown Vancouver.",
       },
       {
-        title: "Heads of State & Royal Delegations",
+        title: "Diplomatic & Parliamentary Delegations",
         description:
-          "Multi-vehicle convoy coordination with NDA-bound protocol chauffeurs.",
+          "Multi-vehicle convoy coordination in Ottawa, Toronto, and Montréal with NDA-bound chauffeurs.",
       },
     ],
   },
@@ -767,165 +877,166 @@ export interface ClientReview {
 export const CLIENT_REVIEWS: ClientReview[] = [
   {
     id: "r1",
-    author: "Alexander Sterling",
-    role: "Managing Partner, Private Equity",
-    route: "JFK Terminal 4 → Aman New York",
+    author: "David MacLeod",
+    role: "Managing Director, Bay Street Capital",
+    route: "Toronto Pearson (YYZ) → King St West, Toronto",
     category: "Airport Transfers",
     rating: 5,
     date: "2 days ago",
-    title: "Flawless touchdown despite a 2-hour Atlantic delay",
+    title: "Pre-warmed S-Class waiting despite a Pearson snow delay",
     quote:
-      "My BA flight out of Heathrow landed nearly two hours behind schedule. Before my wheels even stopped taxiing, I had an SMS from my Limo Black chauffeur, Marcus, confirming he was waiting outside customs with an S-Class cooled to 20°C.",
+      "My Air Canada flight from London landed 90 minutes late during an Ontario sleet storm. My chauffeur, Liam, tracked the gate change automatically, met me at Terminal 1 arrivals, and took the 407 ETR at zero extra toll charge.",
   },
   {
     id: "r2",
-    author: "Camille Laurent-Vasseur",
-    role: "Creative Director, Haute Joaillerie",
-    route: "Ritz Paris → Palais Garnier Gala",
+    author: "Geneviève Bouchard",
+    role: "Executive Producer",
+    route: "Ritz-Carlton Montréal → Place des Arts Gala",
     category: "Stretch Limousine",
     rating: 5,
     date: "5 days ago",
-    title: "The Maybach Pullman exceeded every expectation",
+    title: "Impeccable bilingual white-glove protocol in Montréal",
     quote:
-      "We reserved two Royal Stretch Limousines and three First Class sedans for our autumn high-jewelry unveiling in Paris. Every vehicle gleamed like black glass, and the white-glove protocol was worthy of a state visit.",
+      "We booked two Royal Stretch Limousines for our gala premiere in Montréal. Spotless obsidian coachwork, effortless French and English etiquette, and true five-star grace from start to finish.",
   },
   {
     id: "r3",
-    author: "Tariq Al-Mansoor",
-    role: "VP Global Operations",
-    route: "DIFC Dubai ↔ Emirates Palace Abu Dhabi",
+    author: "Jason & Priya Grewal",
+    role: "Private Clients",
+    route: "Vancouver (YVR) → Four Seasons Whistler",
     category: "City-to-City",
     rating: 5,
     date: "1 week ago",
-    title: "Our mobile boardroom between Dubai and Abu Dhabi",
+    title: "The smoothest Sea-to-Sky transfer we have ever taken",
     quote:
-      "Using Limo Black City-to-City twice weekly has transformed how I work. High-speed Wi-Fi, complete silence in the rear lounge, and never a dirham of surprise charges.",
+      "With four suitcases and two snowboard bags, our Escalade ESV handled Highway 99 effortlessly. Heated captain chairs, sparkling water, and a driver who knew every curve of the Sea-to-Sky.",
   },
   {
     id: "r4",
-    author: "Eleanor Vance-Kerr",
-    role: "Head of Executive Travel, FinTech",
-    route: "London Canary Wharf · 45+ Monthly Rides",
+    author: "Sarah Jenkins-Reid",
+    role: "VP Executive Operations",
+    route: "Toronto, Calgary & Vancouver · 60+ Monthly Rides",
     category: "Corporate",
     rating: 5,
     date: "1 week ago",
-    title: "Consolidated 14 global offices onto one platform",
+    title: "One Canadian HST invoice across all four national offices",
     quote:
-      "Before Limo Black, booking reliable black cars across Tokyo, Zurich, London, and New York meant juggling six local vendors. Now our EAs book in 20 seconds with consolidated monthly ESG reporting.",
+      "Managing executive ground travel across Toronto, Calgary, Ottawa, and Vancouver used to mean four separate limo vendors. Limo Black unified everything into one portal with automated GST/HST billing.",
   },
   {
     id: "r5",
-    author: "Dr. Jonathan & Sophia Meyer",
+    author: "Michael & Claire Thompson",
     role: "Private Clients",
-    route: "Zurich Airport (ZRH) → St. Moritz",
+    route: "Calgary Airport (YYC) → Fairmont Banff Springs",
     category: "City-to-City",
     rating: 5,
     date: "2 weeks ago",
-    title: "Effortless winter alpine transfer with all ski gear",
+    title: "First-class arrival into the Canadian Rockies",
     quote:
-      "Four suitcases, two ski bags, and two tired children after an overnight flight — our Escalade ESV chauffeur handled everything with warmth, precision, and smooth mountain driving.",
+      "Watching the Rockies appear through the panoramic glass roof of an EQS while sipping chilled water after a long flight was pure magic. Worth every dollar.",
   },
   {
     id: "r6",
-    author: "Victoria Chen",
-    role: "Senior Event Producer",
-    route: "Beverly Hills · 10-Hour Standby",
+    author: "arman K. Sidhu",
+    role: "Wedding Groom, Vaughan & Yorkville",
+    route: "Yorkville Toronto · 10-Hour Wedding Standby",
     category: "Stretch Limousine",
     rating: 5,
     date: "3 weeks ago",
-    title: "Award-season perfection from afternoon fittings to afterparty",
+    title: "Made our Toronto wedding day completely stress-free",
     quote:
-      "Having our dedicated Stretch Limousine on 10-hour standby meant zero stress across four venues. Chilled Perrier, phone chargers, and instant curbside pickup the second we texted.",
+      "The Maybach stretch limousine turned heads all along Bloor Street. Our chauffeur arrived 25 minutes early, coordinated with our photographer, and kept the cabin at the exact temperature we asked.",
   },
 ];
 
 export const FAQ_ITEMS = [
   {
-    question: "What makes Limo Black different from standard ride-hailing apps?",
+    question: "Which cities and provinces across Canada does Limo Black serve?",
     answer:
-      "Unlike on-demand ride-hail networks with surge pricing and variable vehicle quality, every Limo Black reservation guarantees a late-model obsidian luxury vehicle, a vetted career chauffeur in bespoke attire, fixed all-inclusive pricing locked at booking, 60 minutes of complimentary airport wait time, and customizable cabin preferences.",
+      "Limo Black operates coast-to-coast across Canada, including Toronto & the Greater Toronto Area (GTA), Niagara Falls, Muskoka, Ottawa, Montréal, Mont-Tremblant, Québec City, Vancouver, Whistler, Victoria, Kelowna, Calgary, Banff & Lake Louise, Edmonton, Winnipeg, and Halifax.",
   },
   {
-    question: "How does airport flight tracking and complimentary wait time work?",
+    question: "How does Canadian address search and instant pricing work?",
     answer:
-      "Simply provide your commercial flight number or private aviation tail number during booking. Our dispatch telemetry monitors your flight in real time and automatically adjusts your pickup time for early arrivals or delays. You enjoy 60 full minutes of complimentary wait time from actual touchdown (15 minutes for non-airport pickups).",
+      "Simply start typing any Canadian street address, postal code, hotel, landmark, or airport code (like YYZ, YVR, YUL, YYC) into our Pickup or Drop-off box. Live Canadian map suggestions appear automatically so you can pick your exact door-to-door address and lock in a guaranteed CAD fare.",
   },
   {
-    question: "What is your cancellation and modification policy?",
+    question: "Are GST/HST taxes, 407 ETR highway tolls, and chauffeur tip included?",
     answer:
-      "Plans evolve — which is why you can modify pickup details or cancel any one-way or hourly booking completely free of charge up until 1 hour before your scheduled pickup time directly from our Manage Rides portal.",
+      "Yes — 100%. The CAD price shown when you select your vehicle class is the final all-inclusive price you pay. Provincial HST/GST, airport pickup levies, highway tolls (including Ontario's 407 ETR), and chauffeur gratuity are all included upfront.",
   },
   {
-    question: "Are taxes, highway tolls, and chauffeur gratuity included in the fare?",
+    question: "Are your vehicles equipped for Canadian winter snow and ski trips?",
     answer:
-      "Yes, 100%. The price displayed when you select your vehicle class is the exact final price you pay. All airport fees, congestion charges, highway tolls, taxes, and chauffeur gratuity are included upfront — you never need cash or tip calculations.",
+      "Every vehicle in our Canadian fleet features 4MATIC / xDrive / 4WD all-wheel drive, commercial winter-certified tires during winter months, heated leather seating, and pre-warmed cabins prior to your pickup.",
   },
   {
-    question: "When do I receive my chauffeur's name and vehicle license plate?",
+    question: "What is your cancellation and flight-delay policy?",
     answer:
-      "Once your booking is confirmed, you receive an immediate itinerary receipt. Exactly 60 minutes prior to pickup, we send your chauffeur's full name, direct mobile number, portrait badge, vehicle make/model, and registration plate via email and SMS.",
+      "You can modify or cancel any one-way or hourly reservation free of charge up until 1 hour before pickup. For airport pickups, we track Air Canada, WestJet, Porter, and all international flights live and include 60 minutes of complimentary arrival wait time.",
   },
   {
-    question: "Can I book a Royal Stretch Limousine or multi-car fleet for weddings and corporate events?",
+    question: "Do you offer bilingual English & French chauffeurs?",
     answer:
-      "Absolutely. You can reserve our Royal Stretch Limousine (Mercedes-Maybach Pullman / Executive Stretch) directly online for point-to-point or 2-to-24-hour standby, or connect with our 24/7 Special Events & Corporate Concierge for coordinated multi-vehicle convoys.",
+      "Yes. Bilingual English/French chauffeurs are standard across Montréal, Québec City, Mont-Tremblant, and Ottawa, and can also be requested in Toronto and other cities via your booking notes.",
   },
 ];
 
 export const GLOBAL_CITIES_DIRECTORY: Record<string, string[]> = {
-  "North America": [
-    "New York",
-    "Los Angeles",
-    "Miami",
-    "Chicago",
-    "San Francisco",
-    "Boston",
-    "Dallas",
-    "Toronto",
-    "Las Vegas",
-    "Washington D.C.",
+  Ontario: [
+    "Toronto & GTA",
+    "Mississauga (YYZ)",
+    "Ottawa",
+    "Niagara-on-the-Lake",
+    "Niagara Falls",
+    "Muskoka",
+    "Oakville & Burlington",
+    "Waterloo & Kitchener",
+    "Hamilton",
+    "London, ON",
   ],
-  Europe: [
-    "London",
-    "Paris",
-    "Zurich",
-    "Milan",
-    "Geneva",
-    "Munich",
-    "Monaco",
-    "Madrid",
-    "Amsterdam",
-    "Vienna",
+  "British Columbia": [
+    "Vancouver",
+    "Whistler",
+    "Richmond (YVR)",
+    "Victoria",
+    "Kelowna & Okanagan",
+    "Surrey & Burnaby",
+    "West Vancouver",
+    "Nanaimo",
   ],
-  "Middle East": [
-    "Dubai",
-    "Abu Dhabi",
-    "Riyadh",
-    "Doha",
-    "Jeddah",
-    "Muscat",
-    "Kuwait City",
-    "Manama",
+  Québec: [
+    "Montréal",
+    "Québec City",
+    "Mont-Tremblant",
+    "Laval",
+    "Dorval (YUL)",
+    "Gatineau",
+    "Sherbrooke",
+    "Trois-Rivières",
   ],
-  "Asia-Pacific": [
-    "Singapore",
-    "Tokyo",
-    "Hong Kong",
-    "Sydney",
-    "Seoul",
-    "Melbourne",
-    "Bangkok",
-    "Osaka",
+  "Alberta & Prairies / Atlantic": [
+    "Calgary",
+    "Banff & Lake Louise",
+    "Edmonton",
+    "Canmore",
+    "Winnipeg",
+    "Saskatoon",
+    "Halifax",
+    "Moncton",
   ],
 };
 
 /**
- * Estimates realistic driving distance (km) and travel duration (minutes)
- * from pickup & dropoff strings, matching known locations or computing smart deterministic distances.
+ * Computes realistic Canadian road distance (km) and driving duration (minutes)
+ * using exact GPS coordinates (from live Canadian address autocomplete or curated hubs)
+ * with fallback deterministic estimation.
  */
 export function estimateRouteMetrics(
   pickup: string,
-  dropoff: string
+  dropoff: string,
+  pickupCoords?: { lat: number; lng: number } | null,
+  dropoffCoords?: { lat: number; lng: number } | null
 ): { distanceKm: number; durationMin: number; isAirport: boolean } {
   const pLower = pickup.toLowerCase();
   const dLower = dropoff.toLowerCase();
@@ -933,17 +1044,63 @@ export function estimateRouteMetrics(
   const isAirport =
     pLower.includes("airport") ||
     dLower.includes("airport") ||
-    /\b(jfk|lhr|dxb|cdg|lax|zrh|sin|mia|ord|nce)\b/i.test(
+    pLower.includes("aéroport") ||
+    dLower.includes("aéroport") ||
+    /\b(yyz|ytz|yvr|yul|yyc|yow|yeg|yhz|yqb|yyj|ylw|ywg)\b/i.test(
       `${pickup} ${dropoff}`
     );
 
-  // Check if matches any curated city-to-city route
+  // 1. If exact live GPS coordinates exist for both endpoints, compute real road distance!
+  const resolvedA =
+    pickupCoords ||
+    GLOBAL_LOCATIONS.find(
+      (l) =>
+        l.name.toLowerCase() === pLower ||
+        pLower.includes(l.name.toLowerCase().slice(0, 15))
+    );
+
+  const resolvedB =
+    dropoffCoords ||
+    GLOBAL_LOCATIONS.find(
+      (l) =>
+        l.name.toLowerCase() === dLower ||
+        dLower.includes(l.name.toLowerCase().slice(0, 15))
+    );
+
+  if (
+    resolvedA &&
+    resolvedB &&
+    (Math.abs(resolvedA.lat - resolvedB.lat) > 0.0005 ||
+      Math.abs(resolvedA.lng - resolvedB.lng) > 0.0005)
+  ) {
+    const toRad = (deg: number) => (deg * Math.PI) / 180;
+    const R = 6371;
+    const dLat = toRad(resolvedB.lat - resolvedA.lat);
+    const dLng = toRad(resolvedB.lng - resolvedA.lng);
+    const a =
+      Math.sin(dLat / 2) ** 2 +
+      Math.cos(toRad(resolvedA.lat)) *
+        Math.cos(toRad(resolvedB.lat)) *
+        Math.sin(dLng / 2) ** 2;
+    const straightKm = R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
+    // Cap cross-country flights gracefully (e.g. Toronto to Vancouver) to realistic regional charter preview
+    if (straightKm > 900) {
+      return { distanceKm: 45, durationMin: 48, isAirport };
+    }
+    const roadKm = Math.max(8, Math.round(straightKm * 1.27));
+    const avgSpeedKmh = roadKm > 75 ? 82 : 48;
+    const durationMin = Math.max(18, Math.round((roadKm / avgSpeedKmh) * 60 + 10));
+    return { distanceKm: roadKm, durationMin, isAirport };
+  }
+
+  // 2. Check curated Canadian City-to-City routes
   const matchedRoute = CITY_TO_CITY_ROUTES.find(
     (r) =>
-      (pLower.includes(r.from.toLowerCase()) &&
-        dLower.includes(r.to.toLowerCase())) ||
-      (pLower.includes(r.pickupFull.toLowerCase().slice(0, 12)) &&
-        dLower.includes(r.dropoffFull.toLowerCase().slice(0, 12)))
+      (pLower.includes(r.from.toLowerCase().split(" ")[0]) &&
+        dLower.includes(r.to.toLowerCase().split(" ")[0])) ||
+      (pLower.includes(r.pickupFull.toLowerCase().slice(0, 14)) &&
+        dLower.includes(r.dropoffFull.toLowerCase().slice(0, 14)))
   );
 
   if (matchedRoute) {
@@ -954,51 +1111,19 @@ export function estimateRouteMetrics(
       (mMatch ? parseInt(mMatch[1], 10) : 0);
     return {
       distanceKm: matchedRoute.distanceKm,
-      durationMin: mins || 110,
+      durationMin: mins || 95,
       isAirport,
     };
   }
 
-  // Match coordinates from GLOBAL_LOCATIONS
-  const locA = GLOBAL_LOCATIONS.find(
-    (l) =>
-      l.name.toLowerCase() === pLower ||
-      pLower.includes(l.name.toLowerCase().slice(0, 14))
-  );
-  const locB = GLOBAL_LOCATIONS.find(
-    (l) =>
-      l.name.toLowerCase() === dLower ||
-      dLower.includes(l.name.toLowerCase().slice(0, 14))
-  );
-
-  if (locA && locB && locA.id !== locB.id) {
-    const toRad = (deg: number) => (deg * Math.PI) / 180;
-    const R = 6371;
-    const dLat = toRad(locB.lat - locA.lat);
-    const dLng = toRad(locB.lng - locA.lng);
-    const a =
-      Math.sin(dLat / 2) ** 2 +
-      Math.cos(toRad(locA.lat)) *
-        Math.cos(toRad(locB.lat)) *
-        Math.sin(dLng / 2) ** 2;
-    const straightKm = R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-    // Cap intercontinental combinations gracefully so demo fares always stay realistic
-    if (straightKm > 600) {
-      return { distanceKm: 42, durationMin: 48, isAirport };
-    }
-    const roadKm = Math.max(12, Math.round(straightKm * 1.28));
-    const durationMin = Math.max(22, Math.round((roadKm / 52) * 60 + 12));
-    return { distanceKm: roadKm, durationMin, isAirport };
-  }
-
-  // Deterministic fallback hash for custom user addresses
+  // 3. Deterministic fallback for typed custom addresses
   const combined = `${pickup}-${dropoff}`;
   let hash = 0;
   for (let i = 0; i < combined.length; i++) {
     hash = (hash * 31 + combined.charCodeAt(i)) % 1000;
   }
-  const distanceKm = 24 + (hash % 45);
-  const durationMin = Math.round((distanceKm / 46) * 60 + 14);
+  const distanceKm = 22 + (hash % 38);
+  const durationMin = Math.round((distanceKm / 48) * 60 + 12);
   return { distanceKm, durationMin, isAirport };
 }
 
@@ -1009,9 +1134,8 @@ export function calculateClassPriceUsd(
   durationHours: number
 ): number {
   if (rideType === "hourly") {
-    // Slight volume privilege for 6+ hours
     const multiplier = durationHours >= 8 ? 0.92 : durationHours >= 5 ? 0.96 : 1;
-    return Math.round(fleetClass.hourlyRateUsd * durationHours * multiplier);
+    return Math.round(fleetClass.hourlyRateCad * durationHours * multiplier);
   }
-  return Math.round(fleetClass.baseFareUsd + distanceKm * fleetClass.perKmUsd);
+  return Math.round(fleetClass.baseFareCad + distanceKm * fleetClass.perKmCad);
 }
