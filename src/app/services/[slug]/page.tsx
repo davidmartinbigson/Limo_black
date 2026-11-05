@@ -50,35 +50,39 @@ export default function ServiceDetailPage() {
         </div>
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="max-w-3xl mb-10"
-          >
-            <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-obsidian-950/80 backdrop-blur-md border border-champagne-400/35 text-[11px] uppercase tracking-[0.22em] text-champagne-300 font-semibold mb-5">
-              <Crown className="w-3.5 h-3.5 text-champagne-400" />
-              {service.eyebrow}
-            </span>
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-8 items-center">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="lg:col-span-7"
+            >
+              <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-obsidian-950/80 backdrop-blur-md border border-champagne-400/35 text-[11px] uppercase tracking-[0.22em] text-champagne-300 font-semibold mb-5">
+                <Crown className="w-3.5 h-3.5 text-champagne-400" />
+                {service.eyebrow}
+              </span>
 
-            <h1 className="font-serif text-4xl sm:text-5xl lg:text-6xl font-bold text-ivory-50 leading-[1.12]">
-              {service.headline}
-            </h1>
-            <p className="text-base sm:text-lg text-ivory-100/85 mt-4 leading-relaxed max-w-2xl">
-              {service.subtitle}
-            </p>
-          </motion.div>
+              <h1 className="font-serif text-4xl sm:text-5xl lg:text-6xl font-bold text-ivory-50 leading-[1.12]">
+                {service.headline}
+              </h1>
+              <p className="text-base sm:text-lg text-ivory-100/85 mt-4 leading-relaxed max-w-xl">
+                {service.subtitle}
+              </p>
 
-          <BookingWidget defaultTab={service.defaultTab} />
-
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-5 mt-10 pt-6 border-t border-white/15">
-            {service.stats.map((st) => (
-              <div key={st.label}>
-                <div className="font-serif text-3xl text-champagne-300 font-semibold">
-                  {st.value}
-                </div>
-                <div className="text-xs text-white/70 mt-0.5">{st.label}</div>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-5 mt-10 pt-6 border-t border-white/15">
+                {service.stats.map((st) => (
+                  <div key={st.label}>
+                    <div className="font-serif text-2xl sm:text-3xl text-champagne-300 font-semibold">
+                      {st.value}
+                    </div>
+                    <div className="text-xs text-white/70 mt-0.5">{st.label}</div>
+                  </div>
+                ))}
               </div>
-            ))}
+            </motion.div>
+
+            <div className="lg:col-span-5 flex lg:justify-end">
+              <BookingWidget defaultTab={service.defaultTab} />
+            </div>
           </div>
         </div>
       </section>

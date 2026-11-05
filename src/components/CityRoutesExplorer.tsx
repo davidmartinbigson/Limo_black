@@ -1,35 +1,52 @@
 "use client";
 
-import React, { useState } from "react";
+import React from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { motion } from "framer-motion";
-import { ArrowRight, Clock, Compass, MapPin, Sparkles } from "lucide-react";
-import { CITY_TO_CITY_ROUTES, CityRoute } from "@/data/limoData";
+import { ArrowRight } from "lucide-react";
+import { CITY_TO_CITY_ROUTES } from "@/data/limoData";
 import { useBooking } from "@/context/BookingContext";
 
-const REGIONS = [
-  "All",
-  "Ontario",
-  "British Columbia",
-  "Québec",
-  "Alberta",
-] as const;
+const TOP_CANADIAN_CITIES = [
+  {
+    name: "Toronto",
+    routesCount: "14 routes to/from this city",
+    image: "/images/city-toronto.jpg",
+    pickup: "Toronto Pearson International Airport (YYZ)",
+    dropoff: "Fairmont Royal York Hotel, 100 Front St W, Toronto, ON",
+  },
+  {
+    name: "Vancouver",
+    routesCount: "11 routes to/from this city",
+    image: "/images/city-vancouver.jpg",
+    pickup: "Vancouver International Airport (YVR)",
+    dropoff: "Four Seasons Resort & Residences Whistler, BC",
+  },
+  {
+    name: "Montréal",
+    routesCount: "12 routes to/from this city",
+    image: "/images/city-montreal.jpg",
+    pickup: "Montréal–Trudeau International Airport (YUL)",
+    dropoff: "Ritz-Carlton Montréal, 1228 Sherbrooke St W, QC",
+  },
+  {
+    name: "Calgary",
+    routesCount: "9 routes to/from this city",
+    image: "/images/city-calgary.jpg",
+    pickup: "Calgary International Airport (YYC)",
+    dropoff: "Fairmont Banff Springs, 405 Spray Ave, Banff, AB",
+  },
+];
 
 export default function CityRoutesExplorer() {
   const router = useRouter();
   const { updateDraft, formatPrice } = useBooking();
-  const [region, setRegion] = useState<(typeof REGIONS)[number]>("All");
 
-  const visibleRoutes =
-    region === "All"
-      ? CITY_TO_CITY_ROUTES
-      : CITY_TO_CITY_ROUTES.filter((r) => r.region === region);
-
-  const handleSelectRoute = (route: CityRoute) => {
+  const handleSelectRoute = (pickup: string, dropoff: string) => {
     updateDraft({
       rideType: "oneway",
-      pickup: route.pickupFull,
-      dropoff: route.dropoffFull,
+      pickup,
+      dropoff,
       pickupCoords: null,
       dropoffCoords: null,
     });
@@ -37,112 +54,120 @@ export default function CityRoutesExplorer() {
   };
 
   return (
-    <section className="py-24 sm:py-32 bg-canvas relative">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6 mb-12">
-          <div>
-            <span className="inline-flex items-center gap-2 text-xs uppercase tracking-[0.26em] text-accent font-semibold mb-3">
-              <Compass className="w-3.5 h-3.5" />
-              Canadian City-to-City Corridors
-            </span>
-            <h2 className="font-serif text-3xl sm:text-4xl lg:text-5xl font-bold text-ink leading-[1.12]">
-              Across Canada,{" "}
-              <span className="text-accent">Done Better.</span>
-            </h2>
-            <p className="text-sm sm:text-base text-muted max-w-xl mt-3">
-              From Toronto–Niagara and Muskoka to Vancouver–Whistler,
-              Calgary–Banff, and Ottawa–Montréal. Select any corridor to lock in
-              fixed door-to-door CAD fares.
-            </p>
+    <section className="py-20 sm:py-24 bg-surface border-y border-line/10">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
+        {/* Main Section Title */}
+        <div className="text-center max-w-2xl mx-auto">
+          <h2 className="font-serif text-3xl sm:text-4xl font-bold text-ink">
+            City-to-City routes
+          </h2>
+          <p className="text-sm sm:text-base text-muted mt-2">
+            Door-to-door intercity chauffeur rides across Canada — the stress-free
+            alternative to short-haul flights and regional trains.
+          </p>
+        </div>
+
+        {/* Top Cities (Blacklane 4 Photo Cards) */}
+        <div className="space-y-5">
+          <div className="flex items-center justify-between">
+            <h3 className="font-serif text-xl sm:text-2xl font-bold text-ink">
+              Top cities
+            </h3>
+            <Link
+              href="/services/city-to-city"
+              className="text-sm font-semibold text-ink hover:text-accent underline underline-offset-4 transition-colors"
+            >
+              See all
+            </Link>
           </div>
 
-          <div className="flex flex-wrap gap-2">
-            {REGIONS.map((reg) => (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+            {TOP_CANADIAN_CITIES.map((city) => (
               <button
-                key={reg}
+                key={city.name}
                 type="button"
-                onClick={() => setRegion(reg)}
-                className={`px-4 py-2 rounded-full text-xs font-semibold transition-all ${
-                  region === reg
-                    ? "bg-champagne-500 text-obsidian-950"
-                    : "bg-card text-muted hover:text-ink border border-line/12"
-                }`}
+                onClick={() => handleSelectRoute(city.pickup, city.dropoff)}
+                className="group text-left rounded-xl bg-card border border-line/12 hover:border-champagne-500/50 overflow-hidden shadow-luxury transition-all"
               >
-                {reg}
+                <div className="relative h-44 w-full overflow-hidden">
+                  <img
+                    src={city.image}
+                    alt={city.name}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                  />
+                </div>
+                <div className="p-4">
+                  <div className="font-serif text-base font-bold text-ink group-hover:text-accent transition-colors">
+                    {city.name}
+                  </div>
+                  <div className="text-xs text-muted mt-0.5">
+                    {city.routesCount}
+                  </div>
+                </div>
               </button>
             ))}
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
-          {visibleRoutes.map((route, idx) => (
-            <motion.div
-              key={route.id}
-              initial={{ opacity: 0, y: 18 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.4, delay: idx * 0.05 }}
-              onClick={() => handleSelectRoute(route)}
-              className="group cursor-pointer rounded-3xl bg-card hover:border-champagne-500/50 border border-line/12 p-6 transition-all duration-300 flex flex-col justify-between shadow-luxury"
+        {/* Top Routes (Blacklane 8 Clean Route Cards) */}
+        <div className="space-y-5">
+          <div className="flex items-center justify-between">
+            <h3 className="font-serif text-xl sm:text-2xl font-bold text-ink">
+              Top routes
+            </h3>
+            <Link
+              href="/services/city-to-city"
+              className="text-sm font-semibold text-ink hover:text-accent underline underline-offset-4 transition-colors"
             >
-              <div>
-                <div className="flex items-center justify-between gap-2 mb-4">
-                  <span className="px-2.5 py-1 rounded-full text-[10px] uppercase tracking-[0.16em] bg-champagne-500/15 text-accent border border-champagne-500/30 font-semibold">
-                    {route.highlight}
-                  </span>
-                  <span className="text-[11px] text-subtle">
-                    {route.region}
-                  </span>
-                </div>
+              See all
+            </Link>
+          </div>
 
-                <div className="space-y-2 mb-4">
-                  <div className="flex items-center gap-2.5">
-                    <span className="w-2 h-2 rounded-full bg-champagne-500" />
-                    <span className="font-serif text-xl text-ink font-semibold">
-                      {route.from}
-                    </span>
-                  </div>
-                  <div className="ml-[3px] h-4 border-l border-dashed border-champagne-500/45" />
-                  <div className="flex items-center gap-2.5">
-                    <MapPin className="w-3.5 h-3.5 text-accent -ml-[3px]" />
-                    <span className="font-serif text-xl text-accent font-semibold">
-                      {route.to}
-                    </span>
-                  </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            {CITY_TO_CITY_ROUTES.slice(0, 8).map((route) => (
+              <button
+                key={route.id}
+                type="button"
+                onClick={() =>
+                  handleSelectRoute(route.pickupFull, route.dropoffFull)
+                }
+                className="group text-left p-4 rounded-xl bg-card border border-line/12 hover:border-champagne-500/50 shadow-sm hover:shadow-luxury transition-all flex flex-col justify-between gap-3"
+              >
+                <div className="flex items-center gap-2 text-sm font-bold text-ink group-hover:text-accent transition-colors">
+                  <span className="truncate">{route.from}</span>
+                  <ArrowRight className="w-3.5 h-3.5 shrink-0 text-muted group-hover:text-accent group-hover:translate-x-0.5 transition-all" />
+                  <span className="truncate">{route.to}</span>
                 </div>
-
-                <div className="flex items-center gap-3 text-xs text-muted pt-3 border-t border-line/10">
-                  <span className="flex items-center gap-1">
-                    <Clock className="w-3.5 h-3.5 text-accent" />
-                    {route.duration}
+                <div className="flex items-center justify-between text-xs text-muted">
+                  <span>
+                    {route.duration} · {route.distanceKm} km
                   </span>
-                  <span>·</span>
-                  <span className="truncate">
-                    {route.distanceLabel.split("·")[0]}
+                  <span className="font-semibold text-ink">
+                    from {formatPrice(route.startingCad)}
                   </span>
                 </div>
+              </button>
+            ))}
+          </div>
+        </div>
 
-                <p className="text-[11px] text-subtle mt-2 flex items-center gap-1.5">
-                  <Sparkles className="w-3 h-3 text-accent shrink-0" />
-                  {route.flightTimeSaved}
-                </p>
-              </div>
-
-              <div className="mt-6 pt-4 border-t border-line/10 flex items-center justify-between">
-                <div>
-                  <div className="text-[10px] uppercase tracking-wider text-subtle">
-                    Per Vehicle From
-                  </div>
-                  <div className="text-lg font-bold text-ink">
-                    {formatPrice(route.startingCad)}
-                  </div>
-                </div>
-                <div className="w-10 h-10 rounded-full bg-field group-hover:bg-gold-gradient text-accent group-hover:text-obsidian-950 flex items-center justify-center transition-all">
-                  <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-0.5" />
-                </div>
-              </div>
-            </motion.div>
-          ))}
+        {/* Blacklane "Have a route in mind?" Callout Box */}
+        <div className="rounded-xl bg-card border border-line/12 p-6 sm:p-7 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-sm">
+          <div>
+            <h4 className="font-serif text-base sm:text-lg font-bold text-ink">
+              Have a Canadian route in mind?
+            </h4>
+            <p className="text-xs sm:text-sm text-muted mt-0.5">
+              Enter your pickup and drop-off locations to see the guaranteed
+              all-inclusive CAD price.
+            </p>
+          </div>
+          <a
+            href="#booking-widget"
+            className="px-6 py-3 rounded-xl bg-ink text-canvas hover:opacity-90 font-semibold text-xs sm:text-sm whitespace-nowrap text-center transition-opacity"
+          >
+            Book a City-to-City ride
+          </a>
         </div>
       </div>
     </section>

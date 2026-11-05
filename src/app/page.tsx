@@ -5,16 +5,11 @@ import Link from "next/link";
 import { motion } from "framer-motion";
 import {
   ArrowRight,
-  Building2,
-  Clock,
-  Crown,
+  Award,
+  CheckCircle2,
+  Globe2,
   Leaf,
-  MapPin,
-  Plane,
-  Route,
   ShieldCheck,
-  Sparkles,
-  Star,
 } from "lucide-react";
 import BookingWidget from "@/components/BookingWidget";
 import FleetShowcase from "@/components/FleetShowcase";
@@ -24,258 +19,211 @@ import AppShowcase from "@/components/AppShowcase";
 import ReviewsCarousel from "@/components/ReviewsCarousel";
 import FaqAccordion from "@/components/FaqAccordion";
 
-const CORE_SERVICES = [
+const ARRIVE_AT_YOUR_BEST_CARDS = [
   {
-    title: "Canadian airport transfers",
-    headline: "Smooth landings at YYZ, YVR, YUL & YYC.",
-    desc: "Delayed Air Canada, WestJet, or Porter flight? Chauffeurs track live telemetry and adjust automatically — with 60 minutes of complimentary arrival wait time.",
+    category: "Airport transfers",
+    headline: "Smooth landings, every time.",
+    desc: "Delayed Air Canada or WestJet flight? Chauffeurs track arrivals at YYZ, YVR, YUL & YYC and adjust accordingly. Plus, you have 1 hour of complimentary wait time just in case.",
     href: "/services/airport-transfers",
     image: "/images/service-airport.jpg",
-    icon: Plane,
-    badge: "60m Free Wait",
   },
   {
-    title: "Hourly and full-day hire",
-    headline: "Seize the city, snow or shine.",
-    desc: "Reserve a dedicated AWD limousine and senior chauffeur from 2 to 24 hours across Toronto, Vancouver, Montréal, Calgary, or Ottawa.",
+    category: "Hourly and full day hire",
+    headline: "Seize the day.",
+    desc: "Reserve a dedicated limousine and chauffeur from 2 to 24 hours across Toronto, Vancouver, Montréal, or Calgary. They'll be on standby as long as you need them.",
     href: "/services/hourly",
     image: "/images/service-chauffeur.jpg",
-    icon: Clock,
-    badge: "2 – 24 Hours",
   },
   {
-    title: "Royal stretch limousine",
-    headline: "Grand Canadian entrances, perfected.",
-    desc: "Arrive in unmistakable style with Mercedes-Maybach Pullman and bespoke Stretch Limousines for weddings, TIFF premieres, galas, and graduations.",
-    href: "/services/limousine",
-    image: "/images/fleet-stretch-limo.jpg",
-    icon: Sparkles,
-    badge: "Limo Black Signature",
+    category: "City-to-city",
+    headline: "Between cities, done better.",
+    desc: "Turn long-distance Canadian corridors — like Toronto to Niagara, Vancouver to Whistler, or Calgary to Banff — into time well spent. Arrive refreshed, not stressed.",
+    href: "/services/city-to-city",
+    image: "/images/city-vancouver.jpg",
   },
   {
-    title: "Canadian corporate & enterprise",
-    headline: "National business travel, simplified.",
-    desc: "One unified executive portal for Bay Street firms, Calgary energy leaders, and Canadian agencies with consolidated monthly GST/HST invoicing.",
+    category: "Enterprise and limousine solutions",
+    headline: "Corporate & gala travel, simplified.",
+    desc: "One Canadian GST/HST platform for companies, agencies, and VIP events to book, track, and account for every executive sedan, AWD SUV, and stretch limousine.",
     href: "/business",
-    image: "/images/service-corporate.jpg",
-    icon: Building2,
-    badge: "Consolidated HST Billing",
+    image: "/images/fleet-stretch-limo.jpg",
   },
 ];
 
-const EXCELLENCE_PILLARS = [
+const EXPECT_EXCELLENCE_ITEMS = [
   {
-    icon: MapPin,
-    title: "Coast-to-coast Canada",
-    desc: "Vetted career chauffeurs across Toronto, Vancouver, Montréal, Calgary, Ottawa, Whistler, Banff, Niagara & 25+ Canadian hubs.",
+    icon: Globe2,
+    title: "Available coast-to-coast",
+    desc: "Expert local chauffeurs across 25+ Canadian cities & airports",
   },
   {
-    icon: Crown,
-    title: "All-season AWD fleet",
-    desc: "Exclusively late-model 4MATIC / xDrive / 4WD Maybach, S-Class, EQS Electric, Escalade ESV, and Stretch Limousines.",
+    icon: Award,
+    title: "High-end vehicles",
+    desc: "Only the finest recent AWD sedans, SUVs & stretch limousines",
   },
   {
     icon: ShieldCheck,
-    title: "Fixed CAD fares",
-    desc: "Every 407 ETR highway toll, airport pickup fee, GST/HST tax, and tip is locked in upfront. Cancel free until 1 hour prior.",
+    title: "Safe travels",
+    desc: "Trained, licensed professionals and reliable on-time pickups",
   },
   {
     icon: Leaf,
-    title: "100% Carbon-neutral",
-    desc: "Every Canadian journey is carbon-offset at zero extra cost, backed by our clean-grid Electric Class sedans.",
+    title: "Sustainability partners",
+    desc: "100% carbon-offset Canadian rides & zero-emission Electric Class",
   },
 ];
 
 export default function HomePage() {
   return (
     <div className="bg-canvas">
-      {/* CINEMATIC FULL-BLEED HERO */}
-      <section className="relative min-h-[96vh] pt-28 pb-16 sm:pt-36 sm:pb-24 flex flex-col justify-center overflow-hidden">
-        <motion.div
-          initial={{ scale: 1.07, opacity: 0.8 }}
-          animate={{ scale: 1, opacity: 1 }}
-          transition={{ duration: 1.5, ease: "easeOut" }}
-          className="absolute inset-0 z-0"
-        >
+      {/* 1. BLACKLANE SIGNATURE SPLIT HERO ("Your chauffeur awaits." + Right Stacked Booking Card) */}
+      <section className="relative pt-24 pb-14 sm:pt-28 sm:pb-20 lg:min-h-[690px] flex items-center overflow-hidden bg-obsidian-950">
+        {/* Full-Bleed Hero Photography */}
+        <div className="absolute inset-0 z-0">
           <img
             src="/images/hero-limo.jpg"
-            alt="Limo Black Canada Maybach Chauffeur Service"
+            alt="LimoBlack Canada Chauffeur & Limousine Service"
             className="w-full h-full object-cover object-center"
           />
-          <div className="absolute inset-0 bg-gradient-to-r from-obsidian-950/95 via-obsidian-950/80 to-obsidian-950/35" />
-          <div className="absolute inset-0 bg-gradient-to-t from-obsidian-950 via-obsidian-950/25 to-obsidian-950/55" />
-        </motion.div>
+          <div className="absolute inset-0 bg-gradient-to-r from-obsidian-950/90 via-obsidian-950/60 to-obsidian-950/45" />
+          <div className="absolute inset-0 bg-gradient-to-t from-obsidian-950/85 via-transparent to-obsidian-950/40" />
+        </div>
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 w-full">
-          <motion.div
-            initial={{ opacity: 0, y: 26 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.7 }}
-            className="max-w-3xl mb-10 sm:mb-12"
-          >
-            <div className="inline-flex items-center gap-2.5 px-4 py-1.5 rounded-full bg-obsidian-950/80 backdrop-blur-md border border-champagne-400/40 mb-6">
-              <span className="w-2 h-2 rounded-full bg-champagne-400 animate-pulse" />
-              <span className="text-[11px] uppercase tracking-[0.22em] text-champagne-300 font-semibold">
-                Canada&apos;s Premier Limousine & Chauffeur Service 🇨🇦
-              </span>
-            </div>
-
-            <h1 className="font-serif text-4xl sm:text-5xl lg:text-6xl font-bold text-ivory-50 leading-[1.12] tracking-tight">
-              Premium Limousine &{" "}
-              <span className="text-champagne-300">Chauffeur Service.</span>
-            </h1>
-
-            <p className="text-base sm:text-lg text-ivory-100/85 mt-5 max-w-xl leading-relaxed">
-              Door-to-door luxury across Toronto, Vancouver, Montréal, Calgary,
-              Ottawa, Whistler, Banff & Niagara. Search any Canadian street
-              address below for guaranteed all-inclusive CAD fares.
-            </p>
-          </motion.div>
-
-          {/* Interactive Booking Engine (Adapts cleanly to Light/Dark Mode!) */}
-          <motion.div
-            initial={{ opacity: 0, y: 32 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.75, delay: 0.15 }}
-          >
-            <BookingWidget />
-          </motion.div>
-
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.8, delay: 0.35 }}
-            className="mt-10 grid grid-cols-2 sm:grid-cols-4 gap-4 sm:gap-6 pt-6 border-t border-white/15"
-          >
-            {[
-              { value: "10 Provinces", label: "25+ Major Canadian Cities & Hubs" },
-              { value: "60 Minutes", label: "Free Airport Arrival Wait" },
-              { value: "4.9 ★ Rating", label: "Verified Canadian VIP Journeys" },
-              { value: "100% Fixed CAD", label: "GST/HST, Tolls & Tip Included" },
-            ].map((stat) => (
-              <div key={stat.value}>
-                <div className="font-serif text-2xl sm:text-3xl text-champagne-300 font-semibold">
-                  {stat.value}
-                </div>
-                <div className="text-xs text-white/70 mt-0.5">{stat.label}</div>
-              </div>
-            ))}
-          </motion.div>
-        </div>
-      </section>
-
-      {/* CORE SERVICES ("ARRIVE AT YOUR BEST") */}
-      <section className="py-24 sm:py-32 bg-surface border-t border-line/10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-14">
-            <div>
-              <span className="text-xs uppercase tracking-[0.26em] text-accent font-semibold">
-                Arrive at Your Best Across Canada
-              </span>
-              <h2 className="font-serif text-3xl sm:text-4xl lg:text-5xl font-bold text-ink mt-2.5 leading-[1.12]">
-                Effortless Journeys,{" "}
-                <span className="text-accent">Tailored to You.</span>
-              </h2>
-            </div>
-            <Link
-              href="/services/city-to-city"
-              className="inline-flex items-center gap-2 text-xs uppercase tracking-[0.18em] text-accent hover:opacity-80 font-semibold"
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-8 items-center">
+            {/* Left Hero Headline (Blacklane Signature Copy & Hierarchy) */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6 }}
+              className="lg:col-span-7 space-y-5 text-white"
             >
-              <Route className="w-4 h-4" />
-              Explore Canadian Corridors
-              <ArrowRight className="w-4 h-4" />
-            </Link>
-          </div>
+              <h1 className="font-serif text-4xl sm:text-5xl lg:text-[56px] font-bold tracking-tight leading-[1.08] text-white">
+                Your chauffeur awaits.
+              </h1>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-7">
-            {CORE_SERVICES.map((service, idx) => {
-              const Icon = service.icon;
-              return (
-                <motion.div
-                  key={service.title}
-                  initial={{ opacity: 0, y: 24 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true, margin: "-50px" }}
-                  transition={{ duration: 0.5, delay: idx * 0.1 }}
-                >
-                  <Link
-                    href={service.href}
-                    className="group block h-full rounded-3xl bg-card border border-line/12 hover:border-champagne-500/50 overflow-hidden shadow-luxury transition-all duration-300"
-                  >
-                    <div className="relative h-64 sm:h-72 overflow-hidden">
-                      <img
-                        src={service.image}
-                        alt={service.title}
-                        className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-                      />
-                      <div className="absolute inset-0 bg-gradient-to-t from-obsidian-950/75 via-obsidian-950/20 to-transparent" />
-                      <div className="absolute top-4 left-4 px-3.5 py-1.5 rounded-full bg-obsidian-950/85 backdrop-blur-md border border-champagne-400/35 text-[11px] uppercase tracking-[0.16em] text-champagne-300 font-semibold flex items-center gap-1.5">
-                        <Icon className="w-3.5 h-3.5 text-champagne-400" />
-                        {service.badge}
-                      </div>
-                    </div>
+              <p className="text-base sm:text-lg text-white/85 max-w-xl leading-relaxed">
+                Premium limousine and executive chauffeur service across
+                Toronto, Vancouver, Montréal, Calgary, Ottawa, Whistler & 25+
+                Canadian cities.
+              </p>
 
-                    <div className="p-7 sm:p-8">
-                      <div className="text-xs uppercase tracking-[0.2em] text-accent font-semibold mb-1.5">
-                        {service.title}
-                      </div>
-                      <h3 className="font-serif text-2xl sm:text-[26px] font-semibold text-ink group-hover:text-accent transition-colors leading-snug">
-                        {service.headline}
-                      </h3>
-                      <p className="text-sm text-muted leading-relaxed mt-3">
-                        {service.desc}
-                      </p>
-                      <div className="mt-6 inline-flex items-center gap-2 text-xs uppercase tracking-[0.18em] font-bold text-ink group-hover:text-accent transition-colors">
-                        Learn More
-                        <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
-                      </div>
-                    </div>
-                  </Link>
-                </motion.div>
-              );
-            })}
+              <div className="pt-2 flex flex-wrap items-center gap-x-6 gap-y-2 text-xs sm:text-sm text-white/80 font-medium">
+                <span className="inline-flex items-center gap-2">
+                  <CheckCircle2 className="w-4 h-4 text-champagne-400 shrink-0" />
+                  All-inclusive fixed CAD pricing
+                </span>
+                <span className="inline-flex items-center gap-2">
+                  <CheckCircle2 className="w-4 h-4 text-champagne-400 shrink-0" />
+                  Free cancellation until 1h before
+                </span>
+              </div>
+
+              <p className="text-xs text-white/60 pt-2">
+                Set your pickup across all 10 Canadian provinces. We&apos;ll be
+                there on time.
+              </p>
+            </motion.div>
+
+            {/* Right Floating Vertical Booking Card (Exact Blacklane Hero Card) */}
+            <motion.div
+              initial={{ opacity: 0, y: 22 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.65, delay: 0.1 }}
+              className="lg:col-span-5 flex lg:justify-end"
+            >
+              <BookingWidget />
+            </motion.div>
           </div>
         </div>
       </section>
 
-      {/* INTERACTIVE FLEET & STRETCH LIMOUSINE SHOWCASE */}
-      <FleetShowcase />
-
-      {/* SANCTUARY CABIN CUSTOMIZER */}
-      <SanctuaryInteractive />
-
-      {/* INTERACTIVE CANADIAN CITY-TO-CITY ROUTES EXPLORER */}
-      <CityRoutesExplorer />
-
-      {/* EXPECT EXCELLENCE PILLARS */}
-      <section className="py-20 sm:py-24 bg-canvas border-t border-line/10">
+      {/* 2. BLACKLANE "ARRIVE AT YOUR BEST." — 4 EDITORIAL SERVICE CARDS */}
+      <section className="py-20 sm:py-28 bg-canvas">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center max-w-2xl mx-auto mb-14">
-            <span className="text-xs uppercase tracking-[0.26em] text-accent font-semibold">
-              Expect Canadian Excellence
-            </span>
-            <h2 className="font-serif text-3xl sm:text-4xl lg:text-5xl font-bold text-ink mt-2.5 leading-[1.12]">
-              Arrive Refreshed in{" "}
-              <span className="text-accent">Every Season.</span>
+          <div className="max-w-2xl mb-12 sm:mb-14">
+            <p className="text-sm font-semibold text-accent mb-2">
+              Arrive at your best.
+            </p>
+            <h2 className="font-serif text-3xl sm:text-4xl lg:text-[42px] font-bold text-ink leading-[1.14]">
+              Effortless journeys, tailored to you.
             </h2>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {EXCELLENCE_PILLARS.map((item, idx) => {
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-10">
+            {ARRIVE_AT_YOUR_BEST_CARDS.map((card, idx) => (
+              <motion.div
+                key={card.category}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: "-40px" }}
+                transition={{ duration: 0.45, delay: idx * 0.08 }}
+              >
+                <Link href={card.href} className="group block space-y-4">
+                  <div className="relative aspect-[16/10] rounded-2xl overflow-hidden bg-obsidian-900 border border-line/10">
+                    <img
+                      src={card.image}
+                      alt={card.category}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+                    />
+                  </div>
+
+                  <div className="space-y-1.5 pt-1">
+                    <p className="text-xs font-semibold uppercase tracking-wider text-muted">
+                      {card.category}
+                    </p>
+                    <h3 className="font-serif text-2xl font-bold text-ink group-hover:text-accent transition-colors">
+                      {card.headline}
+                    </h3>
+                    <p className="text-sm text-muted leading-relaxed">
+                      {card.desc}
+                    </p>
+                    <div className="pt-2 inline-flex items-center gap-1.5 text-sm font-semibold text-ink group-hover:text-accent underline underline-offset-4 transition-colors">
+                      <span>Learn more</span>
+                      <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
+                    </div>
+                  </div>
+                </Link>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* 3. BLACKLANE "WE MOVE WITH YOU." — SPLIT APP & PORTAL BANNER */}
+      <AppShowcase />
+
+      {/* 4. BLACKLANE "STEP IN. BREATHE OUT." — 3-COLUMN SANCTUARY */}
+      <SanctuaryInteractive />
+
+      {/* 5. BLACKLANE "EXPECT EXCELLENCE." — 4 MINIMAL PILLAR COLUMNS */}
+      <section className="py-20 sm:py-24 bg-surface border-y border-line/10">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="max-w-2xl mb-12 sm:mb-14">
+            <p className="text-sm font-semibold text-accent mb-2">
+              Expect excellence.
+            </p>
+            <h2 className="font-serif text-3xl sm:text-4xl font-bold text-ink leading-[1.15]">
+              Leave the limousine refreshed and ready for what&apos;s next.
+            </h2>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+            {EXPECT_EXCELLENCE_ITEMS.map((item, idx) => {
               const Icon = item.icon;
               return (
                 <motion.div
                   key={item.title}
-                  initial={{ opacity: 0, y: 20 }}
+                  initial={{ opacity: 0, y: 16 }}
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
                   transition={{ duration: 0.4, delay: idx * 0.08 }}
-                  className="p-7 rounded-3xl bg-card border border-line/12 hover:border-champagne-500/40 shadow-luxury transition-colors"
+                  className="space-y-3"
                 >
-                  <div className="w-12 h-12 rounded-2xl bg-champagne-500/15 border border-champagne-500/30 flex items-center justify-center mb-5">
+                  <div className="w-11 h-11 rounded-xl bg-card border border-line/12 flex items-center justify-center shadow-sm">
                     <Icon className="w-5 h-5 text-accent" />
                   </div>
-                  <h3 className="font-serif text-2xl text-ink font-semibold mb-2">
+                  <h3 className="font-serif text-lg font-bold text-ink">
                     {item.title}
                   </h3>
                   <p className="text-sm text-muted leading-relaxed">
@@ -288,52 +236,17 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* MOBILE APP & LIVE CHAUFFEUR TELEMETRY SHOWCASE */}
-      <AppShowcase />
+      {/* 6. SERVICE CLASSES FLEET SHOWCASE */}
+      <FleetShowcase />
 
-      {/* CLIENT REVIEWS & AWARDS */}
+      {/* 7. BLACKLANE "CITY-TO-CITY ROUTES" (TOP 4 CITIES + TOP 8 ROUTES) */}
+      <CityRoutesExplorer />
+
+      {/* 8. VERIFIED CANADIAN CLIENT REVIEWS */}
       <ReviewsCarousel />
 
-      {/* FAQ KNOWLEDGE BASE */}
+      {/* 9. FREQUENTLY ASKED QUESTIONS */}
       <FaqAccordion />
-
-      {/* FINAL EXECUTIVE CALL TO ACTION BANNER */}
-      <section className="py-20 sm:py-24 bg-canvas border-t border-line/10">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="relative rounded-3xl overflow-hidden border border-champagne-500/40 p-8 sm:p-14 text-center bg-obsidian-950 text-ivory-50 shadow-luxury">
-            <div className="absolute -top-24 left-1/2 -translate-x-1/2 w-96 h-96 rounded-full bg-champagne-500/15 blur-3xl pointer-events-none" />
-            <div className="relative z-10 max-w-2xl mx-auto space-y-6">
-              <div className="inline-flex items-center gap-1.5 text-champagne-400 text-xs uppercase tracking-[0.24em] font-semibold">
-                <Star className="w-3.5 h-3.5 fill-champagne-400" />
-                Canadian Welcome Privilege: LIMOBLACK15
-              </div>
-              <h2 className="font-serif text-3xl sm:text-4xl lg:text-5xl font-bold text-ivory-50 leading-tight">
-                Ready to Ride with{" "}
-                <span className="text-champagne-300">LimoBlack Canada?</span>
-              </h2>
-              <p className="text-sm sm:text-base text-white/70">
-                Search any Canadian address and lock in your guaranteed
-                all-inclusive CAD fare in under 60 seconds — with free
-                cancellation up until 1 hour before pickup.
-              </p>
-              <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-2">
-                <a
-                  href="#booking-widget"
-                  className="w-full sm:w-auto px-8 py-4 rounded-full bg-gold-gradient text-obsidian-950 font-bold text-xs uppercase tracking-[0.18em] shadow-gold-glow hover:brightness-110 transition-all"
-                >
-                  Book Your Limousine
-                </a>
-                <Link
-                  href="/business"
-                  className="w-full sm:w-auto px-8 py-4 rounded-full bg-white/10 hover:bg-white/15 border border-white/20 text-ivory-50 font-semibold text-xs uppercase tracking-[0.18em] transition-colors"
-                >
-                  Canadian Corporate Accounts
-                </Link>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
     </div>
   );
 }
