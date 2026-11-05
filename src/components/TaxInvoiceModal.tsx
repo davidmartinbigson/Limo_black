@@ -5,6 +5,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { Crown, Printer, ShieldCheck, X } from "lucide-react";
 import { FLEET_CLASSES } from "@/data/limoData";
 import { ConfirmedBooking } from "@/context/BookingContext";
+import BrandLogo from "@/components/BrandLogo";
 
 export default function TaxInvoiceModal({
   booking,
@@ -44,19 +45,12 @@ export default function TaxInvoiceModal({
           className="relative w-full max-w-2xl rounded-3xl bg-card border border-line/15 p-6 sm:p-10 shadow-luxury max-h-[92vh] overflow-y-auto text-ink"
         >
           <div className="flex items-center justify-between gap-4 pb-6 border-b border-line/12">
-            <div className="flex items-center gap-3">
-              <div className="w-11 h-11 rounded-xl bg-champagne-500/15 border border-champagne-500/35 flex items-center justify-center">
-                <Crown className="w-5 h-5 text-accent" />
-              </div>
-              <div>
-                <p className="font-serif text-xl font-bold text-ink">
-                  LIMO BLACK CANADA INC.
-                </p>
-                <p className="text-[11px] text-muted">
-                  100 King Street West, Suite 5600, Toronto, ON M5X 1C9 • CRA
-                  GST/HST BN: 84920-4119 RT0001
-                </p>
-              </div>
+            <div className="space-y-1.5">
+              <BrandLogo size="md" showCanadaBadge />
+              <p className="text-[11px] text-muted">
+                100 King Street West, Suite 5600, Toronto, ON M5X 1C9 • CRA
+                GST/HST BN: 84920-4119 RT0001
+              </p>
             </div>
 
             <div className="flex items-center gap-2">

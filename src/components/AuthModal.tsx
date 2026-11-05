@@ -14,6 +14,7 @@ import {
   X,
 } from "lucide-react";
 import { useBooking } from "@/context/BookingContext";
+import BrandLogo from "@/components/BrandLogo";
 
 export default function AuthModal() {
   const router = useRouter();
@@ -101,15 +102,10 @@ export default function AuthModal() {
               <X className="w-4 h-4" />
             </button>
 
-            <div className="flex items-center gap-3 mb-6">
-              <div className="w-11 h-11 rounded-xl bg-champagne-500/15 border border-champagne-500/30 flex items-center justify-center">
-                <Crown className="w-5 h-5 text-accent" />
-              </div>
+            <div className="space-y-3 mb-6">
+              <BrandLogo size="sm" showCanadaBadge />
               <div>
-                <p className="text-[10px] uppercase tracking-[0.24em] text-accent font-semibold">
-                  Limo Black Canada Account
-                </p>
-                <h3 className="font-serif text-2xl text-ink font-semibold">
+                <h3 className="font-serif text-2xl text-ink font-bold">
                   {mode === "signin"
                     ? "Sign In to Your Account"
                     : "Create Your VIP Account"}

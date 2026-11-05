@@ -47,9 +47,9 @@ export default function ChauffeursPartnerPage() {
               <Crown className="w-3.5 h-3.5 text-accent" />
               Canadian Chauffeur & Fleet Partner Network
             </span>
-            <h1 className="font-serif text-5xl sm:text-6xl text-ink font-semibold leading-[1.06]">
+            <h1 className="font-serif text-4xl sm:text-5xl lg:text-6xl text-ink font-bold leading-[1.12]">
               Grow Your Canadian Fleet With{" "}
-              <span className="italic text-accent">Limo Black.</span>
+              <span className="text-accent">LimoBlack.</span>
             </h1>
             <p className="text-base sm:text-lg text-muted leading-relaxed">
               Partner with Canada’s premier luxury limousine network. Access

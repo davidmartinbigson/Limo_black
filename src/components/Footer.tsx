@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { GLOBAL_CITIES_DIRECTORY } from "@/data/limoData";
 import { useBooking } from "@/context/BookingContext";
+import BrandLogo from "@/components/BrandLogo";
 
 export default function Footer() {
   const router = useRouter();
@@ -88,15 +89,8 @@ export default function Footer() {
         {/* Main Footer Columns */}
         <div className="py-16 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-10 border-b border-line/10">
           <div className="lg:col-span-4 space-y-5">
-            <Link href="/" className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-obsidian-950 border border-champagne-500/40 flex items-center justify-center">
-                <Crown className="w-5 h-5 text-champagne-400" />
-              </div>
-              <div>
-                <span className="font-serif text-2xl tracking-[0.16em] font-semibold text-ink">
-                  LIMO <span className="text-accent">BLACK</span>
-                </span>
-              </div>
+            <Link href="/" className="inline-flex items-center">
+              <BrandLogo size="lg" showCanadaBadge />
             </Link>
             <p className="text-sm text-muted leading-relaxed max-w-sm">
               Canada’s premier private limousine and chauffeur network.

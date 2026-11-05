@@ -12,21 +12,21 @@
     --c-muted: 75 82 98;
     --c-subtle: 118 125 140;
     --c-line: 15 18 24;
-    --c-accent: 148 106 38;
+    --c-accent: 168 122 36;
     --shadow-luxury: 0 20px 50px -15px rgba(15, 18, 24, 0.10),
       0 4px 16px -4px rgba(15, 18, 24, 0.05);
   }
 
   .dark {
     --c-canvas: 6 7 9;
-    --c-surface: 13 15 21;
-    --c-card: 18 21 30;
+    --c-surface: 12 14 19;
+    --c-card: 17 20 28;
     --c-field: 8 10 14;
     --c-ink: 250 248 245;
     --c-muted: 184 190 204;
     --c-subtle: 132 139 156;
     --c-line: 255 255 255;
-    --c-accent: 214 185 130;
+    --c-accent: 232 193 100;
     --shadow-luxury: 0 24px 64px -12px rgba(0, 0, 0, 0.65);
   }
 
@@ -43,10 +43,25 @@
     transition: background-color 0.3s ease, color 0.3s ease;
   }
 
+  h1,
+  h2,
+  h3,
+  h4,
+  .font-serif {
+    font-family: "Montserrat", "Plus Jakarta Sans", system-ui, sans-serif;
+    letter-spacing: -0.02em;
+  }
+
   ::selection {
-    background-color: rgba(198, 163, 100, 0.35);
+    background-color: rgba(223, 180, 83, 0.35);
     color: rgb(var(--c-ink));
   }
+}
+
+.glass-panel {
+  background: rgb(var(--c-card) / 0.88);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
 }
 
 .no-scrollbar::-webkit-scrollbar {

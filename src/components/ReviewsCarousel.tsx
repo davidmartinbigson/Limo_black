@@ -38,9 +38,9 @@ export default function ReviewsCarousel() {
               </span>
             </div>
 
-            <h2 className="font-serif text-4xl sm:text-5xl text-ink leading-[1.08]">
+            <h2 className="font-serif text-3xl sm:text-4xl lg:text-5xl font-bold text-ink leading-[1.12]">
               Trusted Across{" "}
-              <span className="italic text-accent">Canadian Cities.</span>
+              <span className="text-accent">Canadian Cities.</span>
             </h2>
           </div>
 

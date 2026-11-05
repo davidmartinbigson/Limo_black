@@ -70,9 +70,9 @@ export default function SanctuaryInteractive() {
           <span className="text-xs uppercase tracking-[0.26em] text-accent font-semibold">
             Step In. Breathe Out.
           </span>
-          <h2 className="font-serif text-4xl sm:text-5xl lg:text-6xl text-ink mt-3 leading-[1.08]">
+          <h2 className="font-serif text-3xl sm:text-4xl lg:text-5xl font-bold text-ink mt-3 leading-[1.14]">
             Thoughtful Details Transform Every Canadian Ride Into Your{" "}
-            <span className="italic text-accent">Sanctuary.</span>
+            <span className="text-accent">Sanctuary.</span>
           </h2>
           <p className="text-sm sm:text-base text-muted mt-4">
             Every Limo Black reservation across Canada includes complimentary

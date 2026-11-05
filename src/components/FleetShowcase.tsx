@@ -42,9 +42,9 @@ export default function FleetShowcase() {
               <Crown className="w-3.5 h-3.5" />
               Discover Our Canadian Service Classes
             </span>
-            <h2 className="font-serif text-4xl sm:text-5xl lg:text-6xl text-ink leading-[1.08]">
-              An All-Season Luxury{" "}
-              <span className="italic text-accent">Canadian Fleet.</span>
+            <h2 className="font-serif text-3xl sm:text-4xl lg:text-5xl font-bold text-ink leading-[1.12]">
+              Travel in First-Class{" "}
+              <span className="text-accent">Canadian Luxury.</span>
             </h2>
           </div>
           <p className="text-sm sm:text-base text-muted max-w-md">

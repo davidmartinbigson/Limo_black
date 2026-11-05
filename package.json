@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@fontsource/cormorant-garamond": "^5.1.0",
+    "@fontsource/montserrat": "^5.3.0",
     "@fontsource/plus-jakarta-sans": "^5.1.0",
     "@neondatabase/serverless": "^1.2.0",
     "bcryptjs": "^3.0.3",

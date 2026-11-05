@@ -60,7 +60,7 @@ export default function ServiceDetailPage() {
               {service.eyebrow}
             </span>
 
-            <h1 className="font-serif text-5xl sm:text-6xl text-ivory-50 leading-[1.06]">
+            <h1 className="font-serif text-4xl sm:text-5xl lg:text-6xl font-bold text-ivory-50 leading-[1.12]">
               {service.headline}
             </h1>
             <p className="text-base sm:text-lg text-ivory-100/85 mt-4 leading-relaxed max-w-2xl">
@@ -90,9 +90,9 @@ export default function ServiceDetailPage() {
             <span className="text-xs uppercase tracking-[0.24em] text-accent font-semibold">
               The Limo Black Canada Advantage
             </span>
-            <h2 className="font-serif text-4xl sm:text-5xl text-ink font-semibold mt-2">
+            <h2 className="font-serif text-3xl sm:text-4xl lg:text-5xl text-ink font-bold mt-2">
               Engineered Around{" "}
-              <span className="italic text-accent">Your Schedule.</span>
+              <span className="text-accent">Your Schedule.</span>
             </h2>
           </div>
 
@@ -129,9 +129,9 @@ export default function ServiceDetailPage() {
               <span className="text-xs uppercase tracking-[0.24em] text-accent font-semibold">
                 Canadian Corridor Comparison
               </span>
-              <h2 className="font-serif text-4xl sm:text-5xl text-ink font-semibold mt-2">
+              <h2 className="font-serif text-3xl sm:text-4xl lg:text-5xl text-ink font-bold mt-2">
                 Why Short-Haul Flights Lose to{" "}
-                <span className="italic text-accent">Limo Black Canada.</span>
+                <span className="text-accent">LimoBlack Canada.</span>
               </h2>
             </div>
 

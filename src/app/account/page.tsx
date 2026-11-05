@@ -38,6 +38,7 @@ import {
 } from "@/context/BookingContext";
 import CanadianAddressInput from "@/components/CanadianAddressInput";
 import TaxInvoiceModal from "@/components/TaxInvoiceModal";
+import BrandLogo from "@/components/BrandLogo";
 
 export default function AccountDashboardPage() {
   const router = useRouter();
@@ -105,10 +106,10 @@ export default function AccountDashboardPage() {
     return (
       <div className="min-h-screen bg-canvas pt-32 pb-24 px-4 flex items-center justify-center">
         <div className="max-w-lg w-full rounded-3xl bg-card border border-line/12 p-8 sm:p-10 text-center space-y-6 shadow-luxury">
-          <div className="w-14 h-14 rounded-2xl bg-champagne-500/15 border border-champagne-500/35 flex items-center justify-center mx-auto">
-            <Crown className="w-7 h-7 text-accent" />
+          <div className="flex justify-center">
+            <BrandLogo size="md" showCanadaBadge />
           </div>
-          <h1 className="font-serif text-3xl text-ink font-semibold">
+          <h1 className="font-serif text-2xl sm:text-3xl text-ink font-bold">
             Sign In to View Your Personal Account
           </h1>
           <p className="text-sm text-muted leading-relaxed">
