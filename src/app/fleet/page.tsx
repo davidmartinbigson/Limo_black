@@ -38,9 +38,9 @@ export default function FleetPage() {
             <Crown className="w-3.5 h-3.5" />
             Five All-Season Canadian Service Classes
           </span>
-          <h1 className="font-serif text-5xl sm:text-6xl text-ink font-semibold mt-3 leading-[1.06]">
-            The Limo Black{" "}
-            <span className="italic text-accent">Canada Fleet.</span>
+          <h1 className="font-serif text-4xl sm:text-5xl lg:text-6xl text-ink font-bold mt-3 leading-[1.12]">
+            The LimoBlack{" "}
+            <span className="text-accent">Canada Fleet.</span>
           </h1>
           <p className="text-sm sm:text-base text-muted mt-4 leading-relaxed">
             From zero-emission dual-motor Mercedes-Benz EQS sedans to flagship

@@ -58,9 +58,9 @@ export default function AppShowcase() {
               <Smartphone className="w-3.5 h-3.5" />
               We Move Across Canada With You
             </span>
-            <h2 className="font-serif text-4xl sm:text-5xl lg:text-6xl text-ink leading-[1.08]">
+            <h2 className="font-serif text-3xl sm:text-4xl lg:text-5xl font-bold text-ink leading-[1.12]">
               Every Canadian Journey in the{" "}
-              <span className="italic text-accent">Palm of Your Hand.</span>
+              <span className="text-accent">Palm of Your Hand.</span>
             </h2>
             <p className="text-sm sm:text-base text-muted leading-relaxed max-w-xl">
               Book in 20 seconds across Toronto, Vancouver, Montréal, Calgary,

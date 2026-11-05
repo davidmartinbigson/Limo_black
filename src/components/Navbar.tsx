@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import { CurrencyCode, SERVICES_DATA } from "@/data/limoData";
 import { useBooking } from "@/context/BookingContext";
+import BrandLogo from "@/components/BrandLogo";
 
 const SERVICE_LIST = Object.values(SERVICES_DATA);
 
@@ -62,26 +63,17 @@ export default function Navbar() {
       }`}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between gap-3">
-        {/* Brand Logo */}
-        <Link href="/" className="flex items-center gap-2.5 shrink-0 group">
-          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-champagne-400 via-champagne-500 to-champagne-700 p-[1px] shadow-gold-glow shrink-0">
-            <div className="w-full h-full rounded-[11px] bg-obsidian-950 flex items-center justify-center">
-              <Crown className="w-4 h-4 text-champagne-400 group-hover:scale-110 transition-transform" />
-            </div>
-          </div>
-          <div className="flex flex-col leading-none">
-            <div className="flex items-center gap-1.5">
-              <span className="font-serif text-lg xl:text-xl font-bold tracking-[0.14em] text-ink whitespace-nowrap">
-                LIMO <span className="text-accent">BLACK</span>
-              </span>
-              <span className="px-1.5 py-0.5 rounded bg-champagne-500/15 border border-champagne-500/35 text-[9px] font-bold tracking-widest text-accent uppercase">
-                CA
-              </span>
-            </div>
-            <span className="text-[9px] uppercase tracking-[0.22em] text-muted mt-0.5 whitespace-nowrap hidden sm:block">
-              Canada Chauffeur & Limousine
-            </span>
-          </div>
+        {/* Official / LIMOBLACK Brand Logo */}
+        <Link
+          href="/"
+          aria-label="LimoBlack Canada Home"
+          className="flex items-center shrink-0 py-1 group"
+        >
+          <BrandLogo
+            size="md"
+            showCanadaBadge
+            className="group-hover:opacity-90 transition-opacity"
+          />
         </Link>
 
         {/* Desktop Navigation — Clean & Non-Overlapping */}

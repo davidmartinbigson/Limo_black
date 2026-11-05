@@ -45,9 +45,9 @@ export default function CityRoutesExplorer() {
               <Compass className="w-3.5 h-3.5" />
               Canadian City-to-City Corridors
             </span>
-            <h2 className="font-serif text-4xl sm:text-5xl text-ink leading-[1.08]">
+            <h2 className="font-serif text-3xl sm:text-4xl lg:text-5xl font-bold text-ink leading-[1.12]">
               Across Canada,{" "}
-              <span className="italic text-accent">Done Better.</span>
+              <span className="text-accent">Done Better.</span>
             </h2>
             <p className="text-sm sm:text-base text-muted max-w-xl mt-3">
               From Toronto–Niagara and Muskoka to Vancouver–Whistler,

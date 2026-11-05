@@ -87,12 +87,14 @@ export default function ConciergeChat() {
             {/* Header */}
             <div className="p-4 bg-obsidian-950 text-ivory border-b border-white/10 flex items-center justify-between">
               <div className="flex items-center gap-2.5">
-                <div className="w-9 h-9 rounded-xl bg-champagne-500/20 border border-champagne-500/40 flex items-center justify-center">
-                  <Crown className="w-4 h-4 text-champagne-400" />
-                </div>
+                <img
+                  src="/images/limoblack-mark.png"
+                  alt="LimoBlack"
+                  className="w-9 h-9 rounded-xl object-contain border border-champagne-500/40"
+                />
                 <div>
                   <p className="text-xs font-bold text-white flex items-center gap-1.5">
-                    Limo Black Concierge
+                    LimoBlack Concierge
                     <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
                   </p>
                   <p className="text-[10px] text-champagne-300">

@@ -94,9 +94,9 @@ export default function BusinessPage() {
             <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-champagne-500/15 border border-champagne-500/35 text-[11px] uppercase tracking-[0.22em] text-accent font-semibold">
               Limo Black Canada for Enterprise
             </span>
-            <h1 className="font-serif text-5xl sm:text-6xl text-ink font-semibold leading-[1.06]">
+            <h1 className="font-serif text-4xl sm:text-5xl lg:text-6xl text-ink font-bold leading-[1.12]">
               Canadian Corporate Mobility,{" "}
-              <span className="italic text-accent">Simplified.</span>
+              <span className="text-accent">Simplified.</span>
             </h1>
             <p className="text-base sm:text-lg text-muted leading-relaxed">
               Five-star AWD limousines and chauffeurs across Bay Street,

@@ -16,9 +16,9 @@ export default function FaqAccordion() {
             <HelpCircle className="w-3.5 h-3.5" />
             Canadian Concierge FAQ
           </span>
-          <h2 className="font-serif text-4xl sm:text-5xl text-ink mt-3">
+          <h2 className="font-serif text-3xl sm:text-4xl lg:text-5xl font-bold text-ink mt-3">
             Frequently Asked{" "}
-            <span className="italic text-accent">Questions</span>
+            <span className="text-accent">Questions</span>
           </h2>
         </div>
 

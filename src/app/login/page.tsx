@@ -14,6 +14,7 @@ import {
   Sparkles,
 } from "lucide-react";
 import { useBooking } from "@/context/BookingContext";
+import BrandLogo from "@/components/BrandLogo";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -51,14 +52,11 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen bg-canvas pt-28 pb-24 flex items-center justify-center px-4">
       <div className="w-full max-w-md rounded-3xl bg-card border border-line/12 p-7 sm:p-10 shadow-luxury space-y-6">
-        <div className="text-center space-y-2">
-          <div className="w-12 h-12 rounded-2xl bg-champagne-500/15 border border-champagne-500/35 flex items-center justify-center mx-auto">
-            <Crown className="w-6 h-6 text-accent" />
+        <div className="text-center space-y-3">
+          <div className="flex justify-center pb-1">
+            <BrandLogo size="md" showCanadaBadge />
           </div>
-          <p className="text-xs uppercase tracking-[0.24em] text-accent font-semibold pt-2">
-            Limo Black Canada
-          </p>
-          <h1 className="font-serif text-3xl sm:text-4xl text-ink font-semibold">
+          <h1 className="font-serif text-2xl sm:text-3xl text-ink font-bold">
             Sign In to Your Account
           </h1>
           <p className="text-xs sm:text-sm text-muted">

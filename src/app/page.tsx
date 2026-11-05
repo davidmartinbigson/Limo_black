@@ -120,9 +120,9 @@ export default function HomePage() {
               </span>
             </div>
 
-            <h1 className="font-serif text-5xl sm:text-6xl lg:text-7xl text-ivory-50 leading-[1.03] tracking-tight">
-              Your Canadian Limousine &{" "}
-              <span className="italic text-champagne-300">Chauffeur Await.</span>
+            <h1 className="font-serif text-4xl sm:text-5xl lg:text-6xl font-bold text-ivory-50 leading-[1.12] tracking-tight">
+              Premium Limousine &{" "}
+              <span className="text-champagne-300">Chauffeur Service.</span>
             </h1>
 
             <p className="text-base sm:text-lg text-ivory-100/85 mt-5 max-w-xl leading-relaxed">
@@ -172,9 +172,9 @@ export default function HomePage() {
               <span className="text-xs uppercase tracking-[0.26em] text-accent font-semibold">
                 Arrive at Your Best Across Canada
               </span>
-              <h2 className="font-serif text-4xl sm:text-5xl lg:text-6xl text-ink mt-2.5 leading-[1.08]">
+              <h2 className="font-serif text-3xl sm:text-4xl lg:text-5xl font-bold text-ink mt-2.5 leading-[1.12]">
                 Effortless Journeys,{" "}
-                <span className="italic text-accent">Tailored to You.</span>
+                <span className="text-accent">Tailored to You.</span>
               </h2>
             </div>
             <Link
@@ -219,7 +219,7 @@ export default function HomePage() {
                       <div className="text-xs uppercase tracking-[0.2em] text-accent font-semibold mb-1.5">
                         {service.title}
                       </div>
-                      <h3 className="font-serif text-3xl text-ink group-hover:text-accent transition-colors">
+                      <h3 className="font-serif text-2xl sm:text-[26px] font-semibold text-ink group-hover:text-accent transition-colors leading-snug">
                         {service.headline}
                       </h3>
                       <p className="text-sm text-muted leading-relaxed mt-3">
@@ -254,9 +254,9 @@ export default function HomePage() {
             <span className="text-xs uppercase tracking-[0.26em] text-accent font-semibold">
               Expect Canadian Excellence
             </span>
-            <h2 className="font-serif text-4xl sm:text-5xl text-ink mt-2.5">
+            <h2 className="font-serif text-3xl sm:text-4xl lg:text-5xl font-bold text-ink mt-2.5 leading-[1.12]">
               Arrive Refreshed in{" "}
-              <span className="italic text-accent">Every Season.</span>
+              <span className="text-accent">Every Season.</span>
             </h2>
           </div>
 
@@ -307,11 +307,9 @@ export default function HomePage() {
                 <Star className="w-3.5 h-3.5 fill-champagne-400" />
                 Canadian Welcome Privilege: LIMOBLACK15
               </div>
-              <h2 className="font-serif text-4xl sm:text-5xl text-ivory-50 leading-tight">
-                Ready for an Unforgettable{" "}
-                <span className="italic text-champagne-300">
-                  Canadian Chauffeur Ride?
-                </span>
+              <h2 className="font-serif text-3xl sm:text-4xl lg:text-5xl font-bold text-ivory-50 leading-tight">
+                Ready to Ride with{" "}
+                <span className="text-champagne-300">LimoBlack Canada?</span>
               </h2>
               <p className="text-sm sm:text-base text-white/70">
                 Search any Canadian address and lock in your guaranteed

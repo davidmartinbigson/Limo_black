@@ -27,10 +27,10 @@ const config: Config = {
           700: "#1E222E",
         },
         champagne: {
-          300: "#E8D5B0",
-          400: "#D6B982",
-          500: "#C6A364",
-          600: "#9E7835",
+          300: "#F2D488",
+          400: "#E8C164",
+          500: "#D4A847",
+          600: "#A87E28",
         },
         ivory: {
           50: "#FAF8F5",
@@ -39,18 +39,19 @@ const config: Config = {
         },
       },
       fontFamily: {
-        serif: ['"Cormorant Garamond"', "Georgia", "serif"],
+        serif: ['"Montserrat"', '"Plus Jakarta Sans"', "system-ui", "sans-serif"],
+        display: ['"Montserrat"', '"Plus Jakarta Sans"', "system-ui", "sans-serif"],
         sans: ['"Plus Jakarta Sans"', "system-ui", "sans-serif"],
       },
       backgroundImage: {
         "gold-gradient":
-          "linear-gradient(135deg, #E8D5B0 0%, #C6A364 52%, #9E7835 100%)",
+          "linear-gradient(135deg, #F3D586 0%, #DFB453 52%, #B8892B 100%)",
         "obsidian-radial":
-          "radial-gradient(circle at 50% 0%, rgba(198, 163, 100, 0.14) 0%, rgba(6, 7, 9, 0) 65%)",
+          "radial-gradient(circle at 50% 0%, rgba(223, 180, 83, 0.14) 0%, rgba(6, 7, 9, 0) 65%)",
       },
       boxShadow: {
         luxury: "var(--shadow-luxury)",
-        "gold-glow": "0 8px 30px -4px rgba(198, 163, 100, 0.35)",
+        "gold-glow": "0 8px 30px -4px rgba(223, 180, 83, 0.35)",
       },
     },
   },
