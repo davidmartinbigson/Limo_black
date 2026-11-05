@@ -313,7 +313,7 @@ const DEFAULT_DEMO_ACCOUNTS: Record<string, LocalVaultUser> = {
 const BookingContext = createContext<BookingContextValue | null>(null);
 
 export function BookingProvider({ children }: { children: React.ReactNode }) {
-  const [theme, setTheme] = useState<ThemeMode>("dark");
+  const [theme, setTheme] = useState<ThemeMode>("light");
   const [currency, setCurrency] = useState<CurrencyCode>("CAD");
   const [storageMode, setStorageMode] = useState<"postgres" | "hybrid">(
     "hybrid"
@@ -333,13 +333,14 @@ export function BookingProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     try {
       const savedTheme = localStorage.getItem(
-        "limoblack_theme_v1"
+        "limoblack_theme_v2"
       ) as ThemeMode | null;
       if (savedTheme === "light" || savedTheme === "dark") {
         setTheme(savedTheme);
         document.documentElement.classList.toggle("dark", savedTheme === "dark");
       } else {
-        document.documentElement.classList.add("dark");
+        setTheme("light");
+        document.documentElement.classList.remove("dark");
       }
 
       const savedBookings = localStorage.getItem("limoblack_ca_bookings_v3");
@@ -464,7 +465,7 @@ export function BookingProvider({ children }: { children: React.ReactNode }) {
       document.documentElement.classList.toggle("dark", nextTheme === "dark");
     }
     try {
-      localStorage.setItem("limoblack_theme_v1", nextTheme);
+      localStorage.setItem("limoblack_theme_v2", nextTheme);
     } catch {}
   };
 

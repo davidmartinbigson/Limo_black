@@ -27,7 +27,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en-CA" className="dark" suppressHydrationWarning>
+    <html lang="en-CA" suppressHydrationWarning>
       <body className="min-h-screen flex flex-col bg-canvas text-ink font-sans">
         <BookingProvider>
           <Navbar />

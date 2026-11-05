@@ -4,17 +4,17 @@
 
 @layer base {
   :root {
-    --c-canvas: 250 248 244;
-    --c-surface: 241 236 227;
+    --c-canvas: 255 255 255;
+    --c-surface: 245 246 248;
     --c-card: 255 255 255;
-    --c-field: 246 243 237;
-    --c-ink: 15 18 24;
-    --c-muted: 75 82 98;
-    --c-subtle: 118 125 140;
-    --c-line: 15 18 24;
-    --c-accent: 168 122 36;
-    --shadow-luxury: 0 20px 50px -15px rgba(15, 18, 24, 0.10),
-      0 4px 16px -4px rgba(15, 18, 24, 0.05);
+    --c-field: 244 245 247;
+    --c-ink: 20 22 27;
+    --c-muted: 88 94 108;
+    --c-subtle: 124 131 146;
+    --c-line: 20 22 27;
+    --c-accent: 172 124 32;
+    --shadow-luxury: 0 20px 50px -15px rgba(15, 18, 24, 0.12),
+      0 4px 16px -4px rgba(15, 18, 24, 0.06);
   }
 
   .dark {
