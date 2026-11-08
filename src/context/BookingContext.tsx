@@ -183,11 +183,11 @@ const DEFAULT_CABIN: CabinPreferences = {
 
 const DEFAULT_DRAFT: BookingDraft = {
   rideType: "oneway",
-  pickup: "Toronto Pearson International Airport (YYZ)",
-  dropoff: "Fairmont Royal York Hotel, 100 Front St W, Toronto, ON",
+  pickup: "",
+  dropoff: "",
   extraStops: [],
-  pickupCoords: { lat: 43.6777, lng: -79.6248 },
-  dropoffCoords: { lat: 43.6456, lng: -79.3814 },
+  pickupCoords: null,
+  dropoffCoords: null,
   durationHours: 4,
   date: "2026-11-05",
   time: "18:30",
