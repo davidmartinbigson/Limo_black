@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
 import { Crown, MessageCircle, Phone, Send, Sparkles, X } from "lucide-react";
 
@@ -53,14 +54,19 @@ function getConciergeReply(q: string): string {
 }
 
 export default function ConciergeChat() {
+  const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const [input, setInput] = useState("");
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
       sender: "concierge",
-      text: "Welcome to Limo Black Canada 24/7 VIP Concierge. How may we assist with your limousine or airport chauffeur today?",
+      text: "Welcome to LimoBlack Canada 24/7 VIP Concierge. How may we assist with your limousine or airport chauffeur today?",
     },
   ]);
+
+  if (pathname === "/") {
+    return null;
+  }
 
   const sendMessage = (text: string) => {
     const clean = text.trim();

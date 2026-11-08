@@ -89,7 +89,7 @@ export default function BookPage() {
   const [step, setStep] = useState<1 | 2 | 3 | 4>(1);
   const [confirmed, setConfirmed] = useState<ConfirmedBooking | null>(null);
   const [showInvoice, setShowInvoice] = useState(false);
-  const [showRouteEditor, setShowRouteEditor] = useState(false);
+  const [showRouteEditor, setShowRouteEditor] = useState(!draft.pickup);
 
   // Checkout Account Sign-up / Login states
   const [checkoutAuthMode, setCheckoutAuthMode] = useState<"signup" | "login">(
@@ -1050,7 +1050,9 @@ export default function BookPage() {
                   <span className="w-2 h-2 rounded-full bg-champagne-500 mt-1.5 shrink-0" />
                   <div>
                     <span className="text-subtle block">Pickup (Canada)</span>
-                    <span className="text-ink font-medium">{draft.pickup}</span>
+                    <span className="text-ink font-medium">
+                      {draft.pickup || "Toronto Pearson Airport (YYZ)"}
+                    </span>
                   </div>
                 </div>
 
@@ -1072,7 +1074,7 @@ export default function BookPage() {
                         Destination (Canada)
                       </span>
                       <span className="text-ink font-medium">
-                        {draft.dropoff}
+                        {draft.dropoff || "Downtown Toronto, ON"}
                       </span>
                     </div>
                   </div>
