@@ -1,24 +1,30 @@
 "use client";
 
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import {
   ArrowLeft,
   ArrowRight,
   Briefcase,
   Calendar,
+  CalendarCheck,
   Check,
   CheckCircle2,
+  ChevronDown,
   Clock,
+  CreditCard,
   Eye,
   EyeOff,
   FileText,
+  Headphones,
   Loader2,
-  Lock,
   MapPin,
+  MessageCircle,
   Pencil,
+  Plane,
   ShieldCheck,
   User,
+  UserPlus,
   Users,
 } from "lucide-react";
 import { FleetClassId, GLOBAL_LOCATIONS } from "@/data/limoData";
@@ -67,11 +73,13 @@ function estimateRouteMetrics(
 }
 
 type VehicleCategory = "all" | "sedan" | "suv" | "van";
+type CheckoutAccountMode = "guest" | "login" | "signup";
 
 interface BookingVehicleOption {
   id: FleetClassId;
   category: Exclude<VehicleCategory, "all">;
   title: string;
+  modelSubtitle: string;
   description: string;
   passengersLabel: string;
   luggageLabel: string;
@@ -79,6 +87,7 @@ interface BookingVehicleOption {
   extraKmCad: number;
   hourlyCad: number;
   image: string;
+  bannerImage: string;
 }
 
 const BOOKING_VEHICLES: BookingVehicleOption[] = [
@@ -86,6 +95,7 @@ const BOOKING_VEHICLES: BookingVehicleOption[] = [
     id: "business",
     category: "sedan",
     title: "Business Class Sedan",
+    modelSubtitle: "Mercedes E-Class or similar",
     description: "Comfortable and stylish for everyday travel.",
     passengersLabel: "1 – 3",
     luggageLabel: "2",
@@ -93,11 +103,13 @@ const BOOKING_VEHICLES: BookingVehicleOption[] = [
     extraKmCad: 2.4,
     hourlyCad: 95,
     image: "/images/book-sedan-business.jpg",
+    bannerImage: "/images/checkout-banner-sedan.jpg",
   },
   {
     id: "first",
     category: "sedan",
     title: "First Class Sedan",
+    modelSubtitle: "BMW 7 Series / Mercedes S-Class or similar",
     description: "A higher level of comfort and premium amenities.",
     passengersLabel: "1 – 3",
     luggageLabel: "3",
@@ -105,11 +117,13 @@ const BOOKING_VEHICLES: BookingVehicleOption[] = [
     extraKmCad: 3.1,
     hourlyCad: 125,
     image: "/images/book-sedan-first.jpg",
+    bannerImage: "/images/checkout-banner-first.jpg",
   },
   {
     id: "suv",
     category: "suv",
     title: "Business SUV",
+    modelSubtitle: "Cadillac Escalade ESV or similar",
     description: "Spacious, versatile, and ideal for small groups.",
     passengersLabel: "1 – 6",
     luggageLabel: "6",
@@ -117,11 +131,13 @@ const BOOKING_VEHICLES: BookingVehicleOption[] = [
     extraKmCad: 3.5,
     hourlyCad: 145,
     image: "/images/book-suv-business.jpg",
+    bannerImage: "/images/checkout-banner-suv.jpg",
   },
   {
     id: "van",
     category: "van",
     title: "Executive Van",
+    modelSubtitle: "Mercedes-Benz Sprinter or similar",
     description: "Premium group travel with extra space and comfort.",
     passengersLabel: "7 – 14",
     luggageLabel: "10",
@@ -129,6 +145,7 @@ const BOOKING_VEHICLES: BookingVehicleOption[] = [
     extraKmCad: 4.5,
     hourlyCad: 215,
     image: "/images/book-van-executive.jpg",
+    bannerImage: "/images/checkout-banner-van.jpg",
   },
 ];
 
@@ -183,10 +200,29 @@ function formatDisplayTime(hhmm: string): string {
   return `${hour12}:${String(m).padStart(2, "0")} ${period}`;
 }
 
+function CanadaFlagIcon() {
+  return (
+    <svg
+      viewBox="0 0 24 16"
+      className="w-5 h-3.5 rounded-[2px] shadow-[0_0_0_1px_rgba(0,0,0,0.08)] shrink-0"
+      aria-hidden="true"
+    >
+      <rect width="24" height="16" fill="#FFFFFF" />
+      <rect x="0" y="0" width="6" height="16" fill="#D80621" />
+      <rect x="18" y="0" width="6" height="16" fill="#D80621" />
+      <path
+        d="M12 2.4l1.05 2.15 1.85-.4-.65 2.2 1.65.45-1.45 1.35.4 1.15-2.35-.25V13h-1v-3.95l-2.35.25.4-1.15L8.1 6.8l1.65-.45-.65-2.2 1.85.4L12 2.4z"
+        fill="#D80621"
+      />
+    </svg>
+  );
+}
+
 export default function BookPage() {
   const {
     draft,
     updateDraft,
+    updateCabin,
     confirmCurrentBooking,
     user,
     registerAccount,
@@ -196,17 +232,58 @@ export default function BookPage() {
   const [step, setStep] = useState<1 | 2 | 3 | 4>(2);
   const [categoryFilter, setCategoryFilter] = useState<VehicleCategory>("all");
 
-  // Account auth states inside Step 3
-  const [authMode, setAuthMode] = useState<"signup" | "login">("signup");
+  // Step 3 Passenger Details states matching reference checkout design
+  const [accountMode, setAccountMode] = useState<CheckoutAccountMode>("guest");
+  const [fullName, setFullName] = useState(() =>
+    `${draft.firstName} ${draft.lastName}`.trim()
+  );
+  const [dialCountry, setDialCountry] = useState<"CA" | "US">("CA");
+  const [airline, setAirline] = useState("");
+  const [flightNumOnly, setFlightNumOnly] = useState(draft.flightNumber || "");
+  const [specialRequests, setSpecialRequests] = useState(
+    draft.cabin?.notes || ""
+  );
+
+  // Account password states when Log In or Create Account radio is chosen
   const [password, setPassword] = useState("");
   const [showPass, setShowPass] = useState(false);
   const [companyName, setCompanyName] = useState("");
   const [authError, setAuthError] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
+  // Step 4 payment method state
+  const [paymentMethod, setPaymentMethod] = useState<"card" | "corporate">(
+    "card"
+  );
+  const [cardHolder, setCardHolder] = useState("");
+  const [cardNumber, setCardNumber] = useState("");
+  const [cardExpiry, setCardExpiry] = useState("");
+  const [cardCvc, setCardCvc] = useState("");
+
   // Confirmed reservation state
   const [confirmed, setConfirmed] = useState<ConfirmedBooking | null>(null);
   const [showInvoice, setShowInvoice] = useState(false);
+
+  // Pre-fill passenger contact fields when user logs in
+  useEffect(() => {
+    if (user) {
+      if (!fullName.trim() && user.name) {
+        setFullName(user.name);
+        const parts = user.name.trim().split(/\s+/);
+        updateDraft({
+          firstName: parts[0] || "",
+          lastName: parts.slice(1).join(" "),
+        });
+      }
+      if (!draft.email && user.email) {
+        updateDraft({ email: user.email });
+      }
+      if (!draft.phone && user.phone) {
+        updateDraft({ phone: user.phone });
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user]);
 
   const effectiveSelectedId: FleetClassId = useMemo(() => {
     const exists = BOOKING_VEHICLES.some((v) => v.id === draft.selectedClassId);
@@ -262,18 +339,32 @@ export default function BookPage() {
       ? `${draft.durationHours} Hours Hourly Charter`
       : formatShortLocation(draft.dropoff, "Royal York Hotel, Toronto");
 
+  const handleFullNameChange = (val: string) => {
+    setFullName(val);
+    const parts = val.trim().split(/\s+/);
+    updateDraft({
+      firstName: parts[0] || "",
+      lastName: parts.slice(1).join(" "),
+    });
+  };
+
   const handlePassengerSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setAuthError("");
 
-    if (!user) {
+    const combinedFlight = [airline.trim(), flightNumOnly.trim()]
+      .filter(Boolean)
+      .join(" · ");
+    updateDraft({ flightNumber: combinedFlight });
+    updateCabin({ notes: specialRequests.trim() });
+
+    if (!user && (accountMode === "signup" || accountMode === "login")) {
       setSubmitting(true);
       try {
-        if (authMode === "signup") {
-          const fullName =
-            `${draft.firstName} ${draft.lastName}`.trim() || "VIP Passenger";
+        if (accountMode === "signup") {
+          const nameToSave = fullName.trim() || "VIP Passenger";
           const res = await registerAccount({
-            name: fullName,
+            name: nameToSave,
             email: draft.email,
             phone: draft.phone,
             password,
@@ -282,7 +373,7 @@ export default function BookPage() {
           if (!res.ok) {
             setAuthError(
               res.error ||
-                "An account with this email already exists. Switch to Sign In."
+                "An account with this email already exists. Select 'Log In to My Account'."
             );
             setSubmitting(false);
             return;
@@ -301,9 +392,11 @@ export default function BookPage() {
     }
 
     setStep(4);
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
-  const handleConfirmBooking = () => {
+  const handleConfirmBooking = (e: React.FormEvent) => {
+    e.preventDefault();
     if (!draft.pickup.trim()) {
       updateDraft({
         pickup: "Toronto Pearson International Airport (YYZ)",
@@ -324,6 +417,7 @@ export default function BookPage() {
       ownerEmail
     );
     setConfirmed(result);
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   // =========================================================================
@@ -346,7 +440,11 @@ export default function BookPage() {
                 Your chauffeur is reserved.
               </h1>
               <p className="text-sm text-[#55555A]">
-                Saved to your account ({confirmed.ownerEmail}). Chauffeur{" "}
+                Confirmation sent to{" "}
+                <strong className="text-[#141416]">
+                  {confirmed.ownerEmail}
+                </strong>
+                . Chauffeur{" "}
                 <strong className="text-[#141416]">
                   {confirmed.chauffeur.name}
                 </strong>{" "}
@@ -382,7 +480,7 @@ export default function BookPage() {
               </div>
               <div className="pt-2.5 border-t border-[#E4E2DA] flex justify-between items-baseline">
                 <span className="font-semibold text-[#141416]">
-                  Total Paid (Tax Incl.)
+                  Total Paid (All-Inclusive)
                 </span>
                 <span className="text-lg font-extrabold text-[#111113]">
                   CAD ${confirmed.totalUsd}
@@ -394,19 +492,29 @@ export default function BookPage() {
               <button
                 type="button"
                 onClick={() => setShowInvoice(true)}
-                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg bg-white border border-[#C9A65B] hover:bg-[#FAF6EC] text-sm font-semibold text-[#141416] transition-colors"
+                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-white border border-[#C9A65B] hover:bg-[#FAF6EC] text-sm font-semibold text-[#141416] transition-colors"
               >
                 <FileText className="w-4 h-4 text-[#C59B3F]" />
                 GST/HST Tax Receipt
               </button>
 
-              <Link
-                href="/account"
-                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-2.5 rounded-lg bg-gradient-to-b from-[#D4B26A] to-[#BE9644] hover:from-[#DCBC76] hover:to-[#C79F4E] text-sm font-semibold text-[#111113] transition-all"
-              >
-                View My Rides
-                <ArrowRight className="w-4 h-4" />
-              </Link>
+              {user ? (
+                <Link
+                  href="/account"
+                  className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-2.5 rounded-xl bg-gradient-to-b from-[#DFBC6A] to-[#C69838] hover:from-[#E5C476] hover:to-[#CE9F3E] text-sm font-bold text-[#111113] transition-all"
+                >
+                  View My Rides
+                  <ArrowRight className="w-4 h-4" />
+                </Link>
+              ) : (
+                <Link
+                  href="/"
+                  className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-2.5 rounded-xl bg-gradient-to-b from-[#DFBC6A] to-[#C69838] hover:from-[#E5C476] hover:to-[#CE9F3E] text-sm font-bold text-[#111113] transition-all"
+                >
+                  Return to Home
+                  <ArrowRight className="w-4 h-4" />
+                </Link>
+              )}
             </div>
           </div>
         </div>
@@ -422,79 +530,268 @@ export default function BookPage() {
     );
   }
 
-  // =========================================================================
-  // MAIN 4-STEP CLEAN BOOKING FLOW (MATCHING REFERENCE LAYOUT)
-  // =========================================================================
-  return (
-    <div className="min-h-screen bg-[#FCFCFA] text-[#141416] pt-16 sm:pt-[74px] pb-16">
-      {/* Top 4-Step Progress Bar */}
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 pt-8 sm:pt-10 pb-6 sm:pb-8">
-        <div className="flex items-center justify-center">
-          {STEPS.map((s, idx) => {
-            const isCompleted = s.num < step;
-            const isActive = s.num === step;
+  const isCheckoutStage = step === 3 || step === 4;
 
-            return (
-              <React.Fragment key={s.num}>
-                <button
-                  type="button"
-                  onClick={() => setStep(s.num)}
-                  className="flex items-center gap-2 sm:gap-2.5 group focus:outline-none"
-                >
-                  <span
-                    className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-semibold transition-all shrink-0 ${
-                      isCompleted
-                        ? "bg-[#C8A24D] text-[#111113]"
-                        : isActive
-                        ? "bg-[#C8A24D] text-white shadow-sm"
-                        : "bg-white border border-[#D5D5D0] text-[#222226]"
-                    }`}
-                  >
-                    {isCompleted ? (
-                      <Check className="w-3.5 h-3.5 stroke-[2.6]" />
-                    ) : (
-                      s.num
-                    )}
-                  </span>
-                  <span
-                    className={`text-xs sm:text-[13.5px] whitespace-nowrap ${
-                      isCompleted || isActive
-                        ? "font-semibold text-[#141416]"
-                        : "font-normal text-[#5A5A60] hidden sm:inline"
-                    }`}
-                  >
-                    {s.label}
-                  </span>
-                </button>
+  // Reusable Right Sidebar "Your Booking" Card for Steps 3 & 4
+  const renderYourBookingSidebar = () => (
+    <div className="rounded-2xl bg-[#F9F8F5] border border-[#EAE8E0] overflow-hidden shadow-[0_4px_22px_rgba(0,0,0,0.04)]">
+      {/* Dark Night Hotel Vehicle Header Banner */}
+      <div className="relative h-[222px] bg-[#0B0B0D] rounded-b-2xl overflow-hidden">
+        <img
+          src={selectedVehicle.bannerImage}
+          alt={selectedVehicle.title}
+          className="absolute inset-0 w-full h-full object-cover object-right"
+        />
+        <div className="absolute inset-0 bg-gradient-to-r from-[#09090C]/90 via-[#09090C]/45 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-[#09090C]/92 via-transparent to-[#09090C]/45" />
 
-                {idx < STEPS.length - 1 && (
-                  <div
-                    className={`w-8 sm:w-16 md:w-20 h-[1.5px] mx-2.5 sm:mx-4 shrink-0 ${
-                      s.num < step ? "bg-[#C8A24D]" : "bg-[#DFDFDA]"
-                    }`}
-                  />
-                )}
-              </React.Fragment>
-            );
-          })}
+        <div className="relative z-10 h-full p-5 sm:p-6 flex flex-col justify-between">
+          <h2 className="text-[19px] font-bold text-white tracking-tight">
+            Your Booking
+          </h2>
+
+          <div>
+            <h3 className="text-[18px] font-bold text-white leading-snug">
+              {selectedVehicle.title}
+            </h3>
+            <p className="text-[12.5px] text-white/80 mt-0.5">
+              {selectedVehicle.modelSubtitle}
+            </p>
+
+            <div className="flex items-center gap-3.5 mt-2.5 text-[12.5px] font-medium text-white/95">
+              <span className="inline-flex items-center gap-1.5">
+                <User className="w-3.5 h-3.5 stroke-[2]" />
+                {selectedVehicle.passengersLabel}
+              </span>
+              <span className="h-3.5 w-px bg-white/25" />
+              <span className="inline-flex items-center gap-1.5">
+                <Briefcase className="w-3.5 h-3.5 stroke-[2]" />
+                {selectedVehicle.luggageLabel}
+              </span>
+            </div>
+          </div>
         </div>
       </div>
 
-      {/* Centered Step Title & Subtitle */}
-      <div className="max-w-3xl mx-auto px-4 text-center mb-8 sm:mb-9">
-        <h1 className="font-serif text-3xl sm:text-[40px] font-bold text-[#111113] tracking-tight leading-tight">
-          {step === 1 && "Trip Details"}
-          {step === 2 && "Choose Your Vehicle"}
-          {step === 3 && "Passenger Details"}
-          {step === 4 && "Review & Pay"}
-        </h1>
-        <p className="text-sm sm:text-[16px] text-[#4E4E54] mt-2">
-          {step === 1 && "Enter or update your pickup, destination, and schedule."}
-          {step === 2 && "Select the vehicle that best fits your trip."}
-          {step === 3 && "Provide contact details for chauffeur updates."}
-          {step === 4 && "Review your trip summary and confirm your chauffeur."}
-        </p>
+      {/* Trip Details List */}
+      <div className="px-6 py-5 space-y-3.5 border-b border-[#E8E6DF] text-[14px] text-[#1E1E22]">
+        <div>
+          <div className="flex items-start gap-3.5">
+            <MapPin className="w-[18px] h-[18px] text-[#1E1E22] shrink-0 mt-0.5 stroke-[1.9]" />
+            <span className="font-medium leading-snug">{pickupSummary}</span>
+          </div>
+
+          <div className="flex items-start gap-3.5 mt-1">
+            <div className="w-[18px] flex justify-center shrink-0 py-0.5">
+              <span className="h-5 border-l-[1.5px] border-dashed border-[#2A2A2E]" />
+            </div>
+            <span className="font-medium leading-snug pt-1.5">
+              {dropoffSummary}
+            </span>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-3.5 pt-0.5">
+          <Calendar className="w-[18px] h-[18px] text-[#1E1E22] shrink-0 stroke-[1.9]" />
+          <span className="font-medium">{formatDisplayDate(draft.date)}</span>
+        </div>
+
+        <div className="flex items-center gap-3.5">
+          <Clock className="w-[18px] h-[18px] text-[#1E1E22] shrink-0 stroke-[1.9]" />
+          <span className="font-medium">{formatDisplayTime(draft.time)}</span>
+        </div>
+
+        <div className="flex items-center gap-3.5">
+          <Users className="w-[18px] h-[18px] text-[#1E1E22] shrink-0 stroke-[1.9]" />
+          <span className="font-medium">
+            {draft.passengersCount || 1}{" "}
+            {(draft.passengersCount || 1) === 1 ? "Passenger" : "Passengers"}
+          </span>
+        </div>
       </div>
+
+      {/* Total Price Row */}
+      <div className="px-6 py-5 border-b border-[#E8E6DF] flex items-center justify-between gap-4">
+        <div>
+          <div className="text-[17px] font-bold text-[#111113] leading-snug">
+            Total Price
+          </div>
+          <div className="text-[12px] text-[#66666C] mt-0.5">
+            All-inclusive (taxes &amp; fees included)
+          </div>
+        </div>
+        <div className="flex items-baseline gap-1 text-[#111113] shrink-0">
+          <span className="text-[15px] font-bold tracking-tight">CAD</span>
+          <span className="text-[28px] font-extrabold leading-none tracking-tight">
+            ${selectedPriceCad}
+          </span>
+        </div>
+      </div>
+
+      {/* 3 Gold Trust Badges Strip */}
+      <div className="px-3 py-4 grid grid-cols-3 divide-x divide-[#E6E4DC] text-center bg-[#F9F8F5]">
+        <div className="px-1 flex flex-col items-center justify-center gap-1.5">
+          <ShieldCheck className="w-5 h-5 text-[#C89B3C] stroke-[1.9]" />
+          <span className="text-[11.5px] font-medium text-[#2A2A2E]">
+            Secure Booking
+          </span>
+        </div>
+        <div className="px-1 flex flex-col items-center justify-center gap-1.5">
+          <CalendarCheck className="w-5 h-5 text-[#C89B3C] stroke-[1.9]" />
+          <span className="text-[11.5px] font-medium text-[#2A2A2E]">
+            Free Changes
+          </span>
+        </div>
+        <div className="px-1 flex flex-col items-center justify-center gap-1.5">
+          <Headphones className="w-5 h-5 text-[#C89B3C] stroke-[1.9]" />
+          <span className="text-[11.5px] font-medium text-[#2A2A2E]">
+            24/7 Support
+          </span>
+        </div>
+      </div>
+    </div>
+  );
+
+  // =========================================================================
+  // MAIN 4-STEP BOOKING & CHECKOUT PAGE
+  // =========================================================================
+  return (
+    <div className="min-h-screen bg-[#FCFCFA] text-[#141416] pt-16 sm:pt-[74px] pb-16">
+      {/* Top 4-Step Progress Bar:
+          - Dark Obsidian Sub-Bar on Steps 3 & 4 (matching Checkout reference)
+          - Clean Light Stepper on Steps 1 & 2 (matching Vehicle Selector reference) */}
+      {isCheckoutStage ? (
+        <div className="w-full bg-[#101013] border-b border-white/10 py-4">
+          <div className="max-w-4xl mx-auto px-4 sm:px-6 flex items-center justify-center">
+            {STEPS.map((s, idx) => {
+              const isCompleted = s.num < step;
+              const isActive = s.num === step;
+
+              return (
+                <React.Fragment key={s.num}>
+                  <button
+                    type="button"
+                    onClick={() => setStep(s.num)}
+                    className="flex items-center gap-2 sm:gap-2.5 focus:outline-none"
+                  >
+                    <span
+                      className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold transition-all shrink-0 ${
+                        isCompleted || isActive
+                          ? "bg-[#D8AF4F] text-[#111113]"
+                          : "bg-transparent border border-white/30 text-white/70 font-medium"
+                      }`}
+                    >
+                      {isCompleted ? (
+                        <Check className="w-3.5 h-3.5 stroke-[2.7]" />
+                      ) : (
+                        s.num
+                      )}
+                    </span>
+                    <span
+                      className={`text-xs sm:text-[13.5px] whitespace-nowrap ${
+                        isActive
+                          ? "font-bold text-white"
+                          : isCompleted
+                          ? "font-medium text-white/90 hidden sm:inline"
+                          : "font-normal text-white/60 hidden sm:inline"
+                      }`}
+                    >
+                      {s.label}
+                    </span>
+                  </button>
+
+                  {idx < STEPS.length - 1 && (
+                    <div
+                      className={`w-8 sm:w-16 md:w-20 h-[1.5px] mx-2.5 sm:mx-4 shrink-0 ${
+                        s.num < step ? "bg-[#C8A24D]" : "bg-white/20"
+                      }`}
+                    />
+                  )}
+                </React.Fragment>
+              );
+            })}
+          </div>
+        </div>
+      ) : (
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 pt-8 sm:pt-10 pb-6 sm:pb-8">
+          <div className="flex items-center justify-center">
+            {STEPS.map((s, idx) => {
+              const isCompleted = s.num < step;
+              const isActive = s.num === step;
+
+              return (
+                <React.Fragment key={s.num}>
+                  <button
+                    type="button"
+                    onClick={() => setStep(s.num)}
+                    className="flex items-center gap-2 sm:gap-2.5 group focus:outline-none"
+                  >
+                    <span
+                      className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-semibold transition-all shrink-0 ${
+                        isCompleted
+                          ? "bg-[#C8A24D] text-[#111113]"
+                          : isActive
+                          ? "bg-[#C8A24D] text-white shadow-sm"
+                          : "bg-white border border-[#D5D5D0] text-[#222226]"
+                      }`}
+                    >
+                      {isCompleted ? (
+                        <Check className="w-3.5 h-3.5 stroke-[2.6]" />
+                      ) : (
+                        s.num
+                      )}
+                    </span>
+                    <span
+                      className={`text-xs sm:text-[13.5px] whitespace-nowrap ${
+                        isCompleted || isActive
+                          ? "font-semibold text-[#141416]"
+                          : "font-normal text-[#5A5A60] hidden sm:inline"
+                      }`}
+                    >
+                      {s.label}
+                    </span>
+                  </button>
+
+                  {idx < STEPS.length - 1 && (
+                    <div
+                      className={`w-8 sm:w-16 md:w-20 h-[1.5px] mx-2.5 sm:mx-4 shrink-0 ${
+                        s.num < step ? "bg-[#C8A24D]" : "bg-[#DFDFDA]"
+                      }`}
+                    />
+                  )}
+                </React.Fragment>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* Step Title & Subtitle:
+          - Left-aligned inside container on Steps 3 & 4 (matching Checkout reference)
+          - Centered on Steps 1 & 2 (matching Vehicle Selector reference) */}
+      {isCheckoutStage ? (
+        <div className="max-w-[1140px] mx-auto px-4 sm:px-6 lg:px-8 pt-8 sm:pt-9 pb-6">
+          <h1 className="font-serif text-3xl sm:text-[38px] font-bold text-[#111113] tracking-tight leading-tight">
+            {step === 3 ? "Passenger Details" : "Review & Pay"}
+          </h1>
+          <p className="text-sm sm:text-[15.5px] text-[#4E4E54] mt-1.5">
+            {step === 3
+              ? "Provide your details to confirm the booking."
+              : "Review your booking summary and complete your reservation."}
+          </p>
+        </div>
+      ) : (
+        <div className="max-w-3xl mx-auto px-4 text-center mb-8 sm:mb-9">
+          <h1 className="font-serif text-3xl sm:text-[40px] font-bold text-[#111113] tracking-tight leading-tight">
+            {step === 1 ? "Trip Details" : "Choose Your Vehicle"}
+          </h1>
+          <p className="text-sm sm:text-[16px] text-[#4E4E54] mt-2">
+            {step === 1
+              ? "Enter or update your pickup, destination, and schedule."
+              : "Select the vehicle that best fits your trip."}
+          </p>
+        </div>
+      )}
 
       {/* Main 2-Column Content Container */}
       <div className="max-w-[1140px] mx-auto px-4 sm:px-6 lg:px-8">
@@ -630,7 +927,7 @@ export default function BookPage() {
                   <button
                     type="button"
                     onClick={() => setStep(2)}
-                    className="inline-flex items-center gap-2 px-7 py-3 rounded-lg bg-gradient-to-b from-[#D4B26A] to-[#BE9644] hover:from-[#DCBC76] hover:to-[#C79F4E] text-sm font-semibold text-[#111113] transition-all"
+                    className="inline-flex items-center gap-2 px-7 py-3 rounded-xl bg-gradient-to-b from-[#DFBC6A] to-[#C69838] hover:from-[#E5C476] hover:to-[#CE9F3E] text-sm font-bold text-[#111113] transition-all"
                   >
                     Continue to Vehicles
                     <ArrowRight className="w-4 h-4" />
@@ -639,10 +936,9 @@ export default function BookPage() {
               </div>
             )}
 
-            {/* STEP 2: CHOOSE VEHICLE (EXACT MATCH TO REFERENCE) */}
+            {/* STEP 2: CHOOSE VEHICLE */}
             {step === 2 && (
               <div>
-                {/* Category Filter Segmented Pill Bar */}
                 <div className="mb-5">
                   <div className="inline-flex items-center rounded-full bg-[#F6F6F3] border border-[#E4E4DE] p-1">
                     {CATEGORY_TABS.map((tab) => {
@@ -665,7 +961,6 @@ export default function BookPage() {
                   </div>
                 </div>
 
-                {/* 4 Horizontal Vehicle Cards */}
                 <div className="space-y-4">
                   {filteredVehicles.map((v) => {
                     const isSelected = effectiveSelectedId === v.id;
@@ -682,7 +977,6 @@ export default function BookPage() {
                         }`}
                       >
                         <div className="flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-6">
-                          {/* Studio Vehicle Image */}
                           <div className="w-full sm:w-[205px] h-[106px] flex items-center justify-center shrink-0">
                             <img
                               src={v.image}
@@ -691,7 +985,6 @@ export default function BookPage() {
                             />
                           </div>
 
-                          {/* Vehicle Title, Subtitle & Capacity */}
                           <div className="flex-1 min-w-0">
                             <h3 className="text-[18px] sm:text-[19px] font-bold text-[#111113] leading-snug">
                               {v.title}
@@ -712,7 +1005,6 @@ export default function BookPage() {
                             </div>
                           </div>
 
-                          {/* Price & Select CTA */}
                           <div className="sm:pl-7 sm:border-l sm:border-[#EAE5DA] sm:w-[178px] shrink-0 flex sm:flex-col items-center sm:items-start justify-between gap-3 pt-3 sm:pt-0 border-t sm:border-t-0 border-[#ECEAE2]">
                             <div>
                               <span className="block text-[11.5px] text-[#66666B] leading-none mb-1">
@@ -734,6 +1026,7 @@ export default function BookPage() {
                                 onClick={(e) => {
                                   e.stopPropagation();
                                   setStep(3);
+                                  window.scrollTo({ top: 0, behavior: "smooth" });
                                 }}
                                 className="w-auto sm:w-full inline-flex items-center justify-center gap-1.5 px-5 py-2.5 rounded-lg bg-gradient-to-b from-[#D4B26A] to-[#BE9644] hover:from-[#DCBC76] hover:to-[#C79F4E] text-[13.5px] font-semibold text-[#111113] shadow-sm transition-all"
                               >
@@ -746,6 +1039,8 @@ export default function BookPage() {
                                 onClick={(e) => {
                                   e.stopPropagation();
                                   updateDraft({ selectedClassId: v.id });
+                                  setStep(3);
+                                  window.scrollTo({ top: 0, behavior: "smooth" });
                                 }}
                                 className="w-auto sm:w-full inline-flex items-center justify-center px-5 py-2.5 rounded-lg bg-white border border-[#C9A65B] hover:bg-[#FAF6EC] text-[13.5px] font-semibold text-[#141416] transition-colors"
                               >
@@ -761,151 +1056,181 @@ export default function BookPage() {
               </div>
             )}
 
-            {/* STEP 3: PASSENGER DETAILS */}
+            {/* ============================================================= */}
+            {/* STEP 3: PASSENGER DETAILS (EXACT MATCH TO CHECKOUT REFERENCE) */}
+            {/* ============================================================= */}
             {step === 3 && (
               <form
                 onSubmit={handlePassengerSubmit}
-                className="rounded-2xl bg-white border border-[#EAEAE4] shadow-[0_2px_14px_rgba(0,0,0,0.03)] p-6 sm:p-8 space-y-6"
+                className="rounded-2xl bg-white border border-[#E6E6E2] shadow-[0_2px_16px_rgba(0,0,0,0.03)] p-6 sm:p-7 space-y-6"
               >
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-xs font-semibold text-[#222226] mb-1.5">
-                      First Name *
-                    </label>
-                    <input
-                      type="text"
-                      required
-                      value={draft.firstName}
-                      onChange={(e) =>
-                        updateDraft({ firstName: e.target.value })
-                      }
-                      placeholder="Alexander"
-                      className="w-full px-4 py-3 rounded-xl bg-white border border-[#DEDED8] focus:border-[#C8A24D] text-sm text-[#141416] focus:outline-none"
-                    />
+                {/* Top 3 Booking Mode Radio Cards */}
+                {user ? (
+                  <div className="rounded-xl bg-[#FAF6EC] border border-[#CEAA56] px-4 py-3.5 flex items-center justify-between gap-3">
+                    <div className="flex items-center gap-2.5 text-sm">
+                      <CheckCircle2 className="w-4 h-4 text-[#B88E35] shrink-0" />
+                      <span className="text-[#141416]">
+                        Signed in as{" "}
+                        <strong className="font-semibold">{user.name}</strong> (
+                        {user.email})
+                      </span>
+                    </div>
+                    <span className="text-xs font-semibold text-[#9C7625] shrink-0">
+                      Saved to Account
+                    </span>
                   </div>
-                  <div>
-                    <label className="block text-xs font-semibold text-[#222226] mb-1.5">
-                      Last Name *
-                    </label>
-                    <input
-                      type="text"
-                      required
-                      value={draft.lastName}
-                      onChange={(e) =>
-                        updateDraft({ lastName: e.target.value })
-                      }
-                      placeholder="Sterling"
-                      className="w-full px-4 py-3 rounded-xl bg-white border border-[#DEDED8] focus:border-[#C8A24D] text-sm text-[#141416] focus:outline-none"
-                    />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-xs font-semibold text-[#222226] mb-1.5">
-                      Email Address *
-                    </label>
-                    <input
-                      type="email"
-                      required
-                      value={draft.email}
-                      onChange={(e) => updateDraft({ email: e.target.value })}
-                      placeholder="you@company.ca"
-                      className="w-full px-4 py-3 rounded-xl bg-white border border-[#DEDED8] focus:border-[#C8A24D] text-sm text-[#141416] focus:outline-none"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-semibold text-[#222226] mb-1.5">
-                      Mobile Phone *
-                    </label>
-                    <input
-                      type="tel"
-                      required
-                      value={draft.phone}
-                      onChange={(e) => updateDraft({ phone: e.target.value })}
-                      placeholder="+1 (416) 555-0194"
-                      className="w-full px-4 py-3 rounded-xl bg-white border border-[#DEDED8] focus:border-[#C8A24D] text-sm text-[#141416] focus:outline-none"
-                    />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-xs font-semibold text-[#222226] mb-1.5">
-                      Flight Number (Optional)
-                    </label>
-                    <input
-                      type="text"
-                      value={draft.flightNumber}
-                      onChange={(e) =>
-                        updateDraft({ flightNumber: e.target.value })
-                      }
-                      placeholder="e.g. AC 857 / WS 652"
-                      className="w-full px-4 py-3 rounded-xl bg-white border border-[#DEDED8] focus:border-[#C8A24D] text-sm text-[#141416] focus:outline-none"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-semibold text-[#222226] mb-1.5">
-                      Pickup Sign / Notes (Optional)
-                    </label>
-                    <input
-                      type="text"
-                      value={draft.pickupSign}
-                      onChange={(e) =>
-                        updateDraft({ pickupSign: e.target.value })
-                      }
-                      placeholder="Name on greeting sign or special requests"
-                      className="w-full px-4 py-3 rounded-xl bg-white border border-[#DEDED8] focus:border-[#C8A24D] text-sm text-[#141416] focus:outline-none"
-                    />
-                  </div>
-                </div>
-
-                {/* Account Linking so every customer has isolated personal bookings */}
-                {!user && (
-                  <div className="rounded-xl bg-[#F7F6F2] border border-[#ECEAE2] p-5 space-y-4">
-                    <div className="flex flex-wrap items-center justify-between gap-2">
-                      <div className="flex items-center gap-2 text-xs sm:text-sm font-semibold text-[#141416]">
-                        <Lock className="w-4 h-4 text-[#C59B3F]" />
-                        Save Ride to Your LimoBlack Account
-                      </div>
-                      <div className="inline-flex rounded-full bg-white border border-[#E4E4DE] p-0.5 text-xs">
+                ) : (
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pb-6 border-b border-[#EFEFEB]">
+                    {(
+                      [
+                        {
+                          id: "guest",
+                          title: "Book as a Guest",
+                          desc: "Quick booking, no account required",
+                          icon: User,
+                        },
+                        {
+                          id: "login",
+                          title: "Log In to My Account",
+                          desc: "Book faster and manage your rides",
+                          icon: User,
+                        },
+                        {
+                          id: "signup",
+                          title: "Create an Account",
+                          desc: "Save details, view bookings & more",
+                          icon: UserPlus,
+                        },
+                      ] as const
+                    ).map((opt) => {
+                      const active = accountMode === opt.id;
+                      const Icon = opt.icon;
+                      return (
                         <button
+                          key={opt.id}
                           type="button"
                           onClick={() => {
-                            setAuthMode("signup");
+                            setAccountMode(opt.id);
                             setAuthError("");
                           }}
-                          className={`px-3 py-1 rounded-full font-medium ${
-                            authMode === "signup"
-                              ? "bg-[#111113] text-[#E2C278]"
-                              : "text-[#44444A]"
+                          className={`text-left rounded-xl px-3.5 py-3.5 transition-all flex items-start gap-2.5 ${
+                            active
+                              ? "bg-[#FAF6EC] border-[1.5px] border-[#CEAA56]"
+                              : "bg-[#FAFAFA] hover:bg-[#F6F5F0] border border-[#E6E6E2]"
                           }`}
                         >
-                          New Account
+                          <span
+                            className={`mt-0.5 w-[17px] h-[17px] rounded-full flex items-center justify-center shrink-0 ${
+                              active
+                                ? "bg-[#D8AF4F]"
+                                : "bg-white border-[1.5px] border-[#B8B8BE]"
+                            }`}
+                          >
+                            {active && (
+                              <span className="w-1.5 h-1.5 rounded-full bg-[#111113]" />
+                            )}
+                          </span>
+
+                          <Icon className="w-[18px] h-[18px] text-[#141416] shrink-0 mt-0.5 stroke-[1.9]" />
+
+                          <div className="min-w-0">
+                            <div className="text-[13px] font-bold text-[#111113] leading-snug">
+                              {opt.title}
+                            </div>
+                            <div className="text-[11px] text-[#5E5E65] leading-snug mt-0.5">
+                              {opt.desc}
+                            </div>
+                          </div>
                         </button>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setAuthMode("login");
-                            setAuthError("");
-                          }}
-                          className={`px-3 py-1 rounded-full font-medium ${
-                            authMode === "login"
-                              ? "bg-[#111113] text-[#E2C278]"
-                              : "text-[#44444A]"
-                          }`}
-                        >
-                          Existing Account
-                        </button>
-                      </div>
+                      );
+                    })}
+                  </div>
+                )}
+
+                {/* Section 1: Contact Information */}
+                <div className="space-y-4 pb-6 border-b border-[#EFEFEB]">
+                  <div className="flex items-center gap-2.5">
+                    <User className="w-5 h-5 text-[#141416] stroke-[1.9]" />
+                    <h2 className="text-[16.5px] font-bold text-[#111113]">
+                      Contact Information
+                    </h2>
+                  </div>
+
+                  {/* Full Name */}
+                  <div>
+                    <label className="block text-[12.5px] font-semibold text-[#1E1E22] mb-1.5">
+                      Full Name <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={fullName}
+                      onChange={(e) => handleFullNameChange(e.target.value)}
+                      placeholder="Enter full name"
+                      className="w-full px-4 py-3 rounded-lg bg-[#FCFCFB] border border-[#DFDFDB] focus:border-[#C8A24D] focus:bg-white text-sm text-[#141416] placeholder:text-[#8A8A92] focus:outline-none transition-colors"
+                    />
+                  </div>
+
+                  {/* Email + Phone Number with Canadian Flag Selector */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-[12.5px] font-semibold text-[#1E1E22] mb-1.5">
+                        Email <span className="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="email"
+                        required
+                        value={draft.email}
+                        onChange={(e) => updateDraft({ email: e.target.value })}
+                        placeholder="you@example.com"
+                        className="w-full px-4 py-3 rounded-lg bg-[#FCFCFB] border border-[#DFDFDB] focus:border-[#C8A24D] focus:bg-white text-sm text-[#141416] placeholder:text-[#8A8A92] focus:outline-none transition-colors"
+                      />
                     </div>
 
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-[12.5px] font-semibold text-[#1E1E22] mb-1.5">
+                        Phone Number <span className="text-red-500">*</span>
+                      </label>
+                      <div className="flex items-stretch rounded-lg bg-[#FCFCFB] border border-[#DFDFDB] focus-within:border-[#C8A24D] focus-within:bg-white overflow-hidden transition-colors">
+                        <div className="relative flex items-center gap-1.5 px-3 bg-white border-r border-[#E4E4DF] shrink-0">
+                          <CanadaFlagIcon />
+                          <ChevronDown className="w-3.5 h-3.5 text-[#55555B]" />
+                          <select
+                            aria-label="Country code"
+                            value={dialCountry}
+                            onChange={(e) =>
+                              setDialCountry(e.target.value as "CA" | "US")
+                            }
+                            className="absolute inset-0 opacity-0 cursor-pointer"
+                          >
+                            <option value="CA">Canada (+1)</option>
+                            <option value="US">United States (+1)</option>
+                          </select>
+                        </div>
+
+                        <input
+                          type="tel"
+                          required
+                          value={draft.phone}
+                          onChange={(e) =>
+                            updateDraft({ phone: e.target.value })
+                          }
+                          placeholder="+1 (416) 000-0000"
+                          className="flex-1 min-w-0 px-3.5 py-3 bg-transparent text-sm text-[#141416] placeholder:text-[#8A8A92] focus:outline-none"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Account Password Fields ONLY when Log In or Create Account is selected */}
+                  {!user && (accountMode === "login" || accountMode === "signup") && (
+                    <div className="pt-1 grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div>
-                        <label className="block text-xs font-medium text-[#44444A] mb-1.5">
-                          {authMode === "signup"
-                            ? "Create Password (Min. 6 chars) *"
-                            : "Account Password *"}
+                        <label className="block text-[12.5px] font-semibold text-[#1E1E22] mb-1.5">
+                          {accountMode === "signup"
+                            ? "Create Password (Min. 6 chars)"
+                            : "Account Password"}{" "}
+                          <span className="text-red-500">*</span>
                         </label>
                         <div className="relative">
                           <input
@@ -914,8 +1239,8 @@ export default function BookPage() {
                             minLength={6}
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
-                            placeholder="••••••••"
-                            className="w-full pl-4 pr-10 py-2.5 rounded-xl bg-white border border-[#DEDED8] focus:border-[#C8A24D] text-sm text-[#141416] focus:outline-none"
+                            placeholder="Enter password"
+                            className="w-full pl-4 pr-10 py-3 rounded-lg bg-[#FCFCFB] border border-[#DFDFDB] focus:border-[#C8A24D] focus:bg-white text-sm text-[#141416] focus:outline-none"
                           />
                           <button
                             type="button"
@@ -931,44 +1256,125 @@ export default function BookPage() {
                         </div>
                       </div>
 
-                      {authMode === "signup" && (
+                      {accountMode === "signup" && (
                         <div>
-                          <label className="block text-xs font-medium text-[#44444A] mb-1.5">
-                            Company Name (Optional)
+                          <label className="block text-[12.5px] font-semibold text-[#1E1E22] mb-1.5">
+                            Company Name{" "}
+                            <span className="font-normal text-[#66666B]">
+                              (Optional)
+                            </span>
                           </label>
                           <input
                             type="text"
                             value={companyName}
                             onChange={(e) => setCompanyName(e.target.value)}
-                            placeholder="For GST/HST receipt"
-                            className="w-full px-4 py-2.5 rounded-xl bg-white border border-[#DEDED8] focus:border-[#C8A24D] text-sm text-[#141416] focus:outline-none"
+                            placeholder="For GST/HST corporate receipt"
+                            className="w-full px-4 py-3 rounded-lg bg-[#FCFCFB] border border-[#DFDFDB] focus:border-[#C8A24D] focus:bg-white text-sm text-[#141416] focus:outline-none"
                           />
                         </div>
                       )}
                     </div>
+                  )}
 
-                    {authError && (
-                      <p className="text-xs font-medium text-red-600">
-                        {authError}
+                  {authError && (
+                    <p className="text-xs font-semibold text-red-600">
+                      {authError}
+                    </p>
+                  )}
+                </div>
+
+                {/* Section 2: Flight Details (Optional) */}
+                <div className="space-y-3.5 pb-6 border-b border-[#EFEFEB]">
+                  <div className="flex items-start gap-2.5">
+                    <Plane className="w-5 h-5 text-[#141416] stroke-[1.9] shrink-0 mt-0.5" />
+                    <div>
+                      <h2 className="text-[16.5px] font-bold text-[#111113] leading-snug">
+                        Flight Details{" "}
+                        <span className="text-[13.5px] font-normal text-[#55555A]">
+                          (Optional)
+                        </span>
+                      </h2>
+                      <p className="text-[12.5px] text-[#5E5E65] mt-0.5">
+                        For airport pickups, add your flight for real-time
+                        tracking.
                       </p>
-                    )}
+                    </div>
                   </div>
-                )}
 
-                <div className="pt-2 flex items-center justify-between gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-[12.5px] font-semibold text-[#1E1E22] mb-1.5">
+                        Airline
+                      </label>
+                      <input
+                        type="text"
+                        value={airline}
+                        onChange={(e) => setAirline(e.target.value)}
+                        placeholder="e.g., Air Canada"
+                        className="w-full px-4 py-3 rounded-lg bg-[#FCFCFB] border border-[#DFDFDB] focus:border-[#C8A24D] focus:bg-white text-sm text-[#141416] placeholder:text-[#8A8A92] focus:outline-none transition-colors"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-[12.5px] font-semibold text-[#1E1E22] mb-1.5">
+                        Flight Number
+                      </label>
+                      <input
+                        type="text"
+                        value={flightNumOnly}
+                        onChange={(e) => setFlightNumOnly(e.target.value)}
+                        placeholder="e.g., AC123"
+                        className="w-full px-4 py-3 rounded-lg bg-[#FCFCFB] border border-[#DFDFDB] focus:border-[#C8A24D] focus:bg-white text-sm text-[#141416] placeholder:text-[#8A8A92] focus:outline-none transition-colors"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Section 3: Special Requests (Optional) */}
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2.5">
+                    <MessageCircle className="w-5 h-5 text-[#141416] stroke-[1.9]" />
+                    <h2 className="text-[16.5px] font-bold text-[#111113]">
+                      Special Requests{" "}
+                      <span className="text-[13.5px] font-normal text-[#55555A]">
+                        (Optional)
+                      </span>
+                    </h2>
+                  </div>
+
+                  <div className="relative">
+                    <textarea
+                      rows={3}
+                      maxLength={250}
+                      value={specialRequests}
+                      onChange={(e) => setSpecialRequests(e.target.value)}
+                      placeholder="e.g., child seat, extra luggage, meet & greet, etc."
+                      className="w-full px-4 py-3 pb-7 rounded-lg bg-[#FCFCFB] border border-[#DFDFDB] focus:border-[#C8A24D] focus:bg-white text-sm text-[#141416] placeholder:text-[#8A8A92] focus:outline-none resize-none transition-colors"
+                    />
+                    <span className="absolute bottom-2.5 right-3.5 text-[11.5px] text-[#6E6E76] pointer-events-none">
+                      {specialRequests.length} / 250
+                    </span>
+                  </div>
+                </div>
+
+                {/* Bottom Action Buttons */}
+                <div className="pt-3 flex items-center justify-between gap-4">
                   <button
                     type="button"
-                    onClick={() => setStep(2)}
-                    className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-white border border-[#DEDED8] hover:border-[#141416] text-sm font-medium text-[#141416] transition-colors"
+                    onClick={() => {
+                      setStep(2);
+                      window.scrollTo({ top: 0, behavior: "smooth" });
+                    }}
+                    className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-white border border-[#C9A65B] hover:bg-[#FAF6EC] text-sm font-semibold text-[#141416] transition-colors"
                   >
-                    <ArrowLeft className="w-4 h-4" />
+                    <ArrowLeft className="w-4 h-4 text-[#B88E35]" />
                     Back
                   </button>
 
                   <button
                     type="submit"
                     disabled={submitting}
-                    className="inline-flex items-center gap-2 px-7 py-3 rounded-lg bg-gradient-to-b from-[#D4B26A] to-[#BE9644] hover:from-[#DCBC76] hover:to-[#C79F4E] text-sm font-semibold text-[#111113] transition-all disabled:opacity-60"
+                    className="inline-flex items-center justify-center gap-2 px-8 py-3.5 rounded-xl bg-gradient-to-b from-[#DFBC6A] to-[#C69838] hover:from-[#E6C577] hover:to-[#CF9F3E] text-[15px] font-bold text-[#111113] shadow-[0_4px_14px_rgba(198,152,56,0.28)] transition-all disabled:opacity-60"
                   >
                     {submitting && <Loader2 className="w-4 h-4 animate-spin" />}
                     Continue to Review
@@ -978,156 +1384,300 @@ export default function BookPage() {
               </form>
             )}
 
-            {/* STEP 4: REVIEW & PAY */}
+            {/* ============================================================= */}
+            {/* STEP 4: REVIEW & PAY (COHESIVE WITH STEP 3 CHECKOUT)          */}
+            {/* ============================================================= */}
             {step === 4 && (
-              <div className="rounded-2xl bg-white border border-[#EAEAE4] shadow-[0_2px_14px_rgba(0,0,0,0.03)] p-6 sm:p-8 space-y-6">
-                <div className="flex flex-col sm:flex-row sm:items-center gap-5 pb-6 border-b border-[#ECEAE2]">
-                  <div className="w-40 h-24 flex items-center justify-center shrink-0">
-                    <img
-                      src={selectedVehicle.image}
-                      alt={selectedVehicle.title}
-                      className="w-full h-full object-contain mix-blend-multiply"
-                    />
+              <form
+                onSubmit={handleConfirmBooking}
+                className="rounded-2xl bg-white border border-[#E6E6E2] shadow-[0_2px_16px_rgba(0,0,0,0.03)] p-6 sm:p-7 space-y-6"
+              >
+                {/* Passenger Verification Block */}
+                <div className="pb-6 border-b border-[#EFEFEB] space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2.5">
+                      <User className="w-5 h-5 text-[#141416] stroke-[1.9]" />
+                      <h2 className="text-[16.5px] font-bold text-[#111113]">
+                        Passenger Details
+                      </h2>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setStep(3)}
+                      className="text-xs font-semibold text-[#B88E35] hover:underline"
+                    >
+                      Edit
+                    </button>
                   </div>
-                  <div className="flex-1">
-                    <span className="text-xs font-semibold uppercase tracking-[0.16em] text-[#B8923B]">
-                      Selected Vehicle
-                    </span>
-                    <h3 className="text-xl font-bold text-[#111113] mt-0.5">
-                      {selectedVehicle.title}
-                    </h3>
-                    <p className="text-sm text-[#55555A] mt-0.5">
-                      {selectedVehicle.description}
-                    </p>
-                  </div>
-                  <div className="text-left sm:text-right">
-                    <span className="text-xs text-[#66666B] block">
-                      All-Inclusive Fare
-                    </span>
-                    <span className="text-2xl font-extrabold text-[#111113]">
-                      CAD ${selectedPriceCad}
-                    </span>
+
+                  <div className="rounded-xl bg-[#F9F8F5] border border-[#ECEAE2] p-4 grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
+                    <div>
+                      <span className="text-xs text-[#66666B] block">
+                        Full Name
+                      </span>
+                      <span className="font-semibold text-[#141416]">
+                        {fullName.trim() || user?.name || "VIP Guest"}
+                      </span>
+                    </div>
+                    <div>
+                      <span className="text-xs text-[#66666B] block">
+                        Contact
+                      </span>
+                      <span className="font-medium text-[#141416]">
+                        {draft.email || user?.email} · {draft.phone}
+                      </span>
+                    </div>
+                    {draft.flightNumber && (
+                      <div>
+                        <span className="text-xs text-[#66666B] block">
+                          Flight Tracking
+                        </span>
+                        <span className="font-medium text-[#141416]">
+                          {draft.flightNumber}
+                        </span>
+                      </div>
+                    )}
+                    {specialRequests.trim() && (
+                      <div className="sm:col-span-2">
+                        <span className="text-xs text-[#66666B] block">
+                          Special Requests
+                        </span>
+                        <span className="font-medium text-[#141416]">
+                          {specialRequests}
+                        </span>
+                      </div>
+                    )}
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
-                  <div className="rounded-xl bg-[#F7F6F2] p-4 space-y-1">
-                    <span className="text-xs text-[#66666B]">Passenger</span>
-                    <p className="font-semibold text-[#141416]">
-                      {`${draft.firstName} ${draft.lastName}`.trim() ||
-                        user?.name ||
-                        "VIP Guest"}
-                    </p>
-                    <p className="text-xs text-[#55555A]">
-                      {draft.email || user?.email} · {draft.phone}
-                    </p>
+                {/* Payment Method Block */}
+                <div className="space-y-4">
+                  <div className="flex items-center gap-2.5">
+                    <CreditCard className="w-5 h-5 text-[#141416] stroke-[1.9]" />
+                    <h2 className="text-[16.5px] font-bold text-[#111113]">
+                      Payment Method
+                    </h2>
                   </div>
 
-                  <div className="rounded-xl bg-[#F7F6F2] p-4 space-y-1">
-                    <span className="text-xs text-[#66666B]">
-                      Included Complimentary
-                    </span>
-                    <p className="font-semibold text-[#141416]">
-                      All Taxes (HST/GST) &amp; Tolls Included
-                    </p>
-                    <p className="text-xs text-[#55555A]">
-                      60 min airport wait · Free cancellation up to 1 hr prior
-                    </p>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <button
+                      type="button"
+                      onClick={() => setPaymentMethod("card")}
+                      className={`text-left rounded-xl px-4 py-3.5 flex items-center gap-3 transition-all ${
+                        paymentMethod === "card"
+                          ? "bg-[#FAF6EC] border-[1.5px] border-[#CEAA56]"
+                          : "bg-[#FAFAFA] border border-[#E6E6E2]"
+                      }`}
+                    >
+                      <span
+                        className={`w-[17px] h-[17px] rounded-full flex items-center justify-center shrink-0 ${
+                          paymentMethod === "card"
+                            ? "bg-[#D8AF4F]"
+                            : "bg-white border-[1.5px] border-[#B8B8BE]"
+                        }`}
+                      >
+                        {paymentMethod === "card" && (
+                          <span className="w-1.5 h-1.5 rounded-full bg-[#111113]" />
+                        )}
+                      </span>
+                      <div>
+                        <div className="text-[13.5px] font-bold text-[#111113]">
+                          Credit or Debit Card
+                        </div>
+                        <div className="text-[11.5px] text-[#5E5E65]">
+                          Visa, Mastercard, Amex (CAD)
+                        </div>
+                      </div>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => setPaymentMethod("corporate")}
+                      className={`text-left rounded-xl px-4 py-3.5 flex items-center gap-3 transition-all ${
+                        paymentMethod === "corporate"
+                          ? "bg-[#FAF6EC] border-[1.5px] border-[#CEAA56]"
+                          : "bg-[#FAFAFA] border border-[#E6E6E2]"
+                      }`}
+                    >
+                      <span
+                        className={`w-[17px] h-[17px] rounded-full flex items-center justify-center shrink-0 ${
+                          paymentMethod === "corporate"
+                            ? "bg-[#D8AF4F]"
+                            : "bg-white border-[1.5px] border-[#B8B8BE]"
+                        }`}
+                      >
+                        {paymentMethod === "corporate" && (
+                          <span className="w-1.5 h-1.5 rounded-full bg-[#111113]" />
+                        )}
+                      </span>
+                      <div>
+                        <div className="text-[13.5px] font-bold text-[#111113]">
+                          Corporate / Direct Billing
+                        </div>
+                        <div className="text-[11.5px] text-[#5E5E65]">
+                          Pay on arrival or corporate account
+                        </div>
+                      </div>
+                    </button>
                   </div>
+
+                  {paymentMethod === "card" && (
+                    <div className="space-y-4 pt-1">
+                      <div>
+                        <label className="block text-[12.5px] font-semibold text-[#1E1E22] mb-1.5">
+                          Cardholder Name{" "}
+                          <span className="text-red-500">*</span>
+                        </label>
+                        <input
+                          type="text"
+                          required
+                          value={cardHolder || fullName}
+                          onChange={(e) => setCardHolder(e.target.value)}
+                          placeholder="Name on card"
+                          className="w-full px-4 py-3 rounded-lg bg-[#FCFCFB] border border-[#DFDFDB] focus:border-[#C8A24D] focus:bg-white text-sm text-[#141416] focus:outline-none"
+                        />
+                      </div>
+
+                      <div className="grid grid-cols-1 sm:grid-cols-12 gap-4">
+                        <div className="sm:col-span-6">
+                          <label className="block text-[12.5px] font-semibold text-[#1E1E22] mb-1.5">
+                            Card Number <span className="text-red-500">*</span>
+                          </label>
+                          <input
+                            type="text"
+                            required
+                            value={cardNumber}
+                            onChange={(e) => setCardNumber(e.target.value)}
+                            placeholder="4532 •••• •••• ••••"
+                            className="w-full px-4 py-3 rounded-lg bg-[#FCFCFB] border border-[#DFDFDB] focus:border-[#C8A24D] focus:bg-white text-sm text-[#141416] focus:outline-none"
+                          />
+                        </div>
+                        <div className="sm:col-span-3">
+                          <label className="block text-[12.5px] font-semibold text-[#1E1E22] mb-1.5">
+                            Expiry <span className="text-red-500">*</span>
+                          </label>
+                          <input
+                            type="text"
+                            required
+                            value={cardExpiry}
+                            onChange={(e) => setCardExpiry(e.target.value)}
+                            placeholder="MM / YY"
+                            className="w-full px-4 py-3 rounded-lg bg-[#FCFCFB] border border-[#DFDFDB] focus:border-[#C8A24D] focus:bg-white text-sm text-[#141416] focus:outline-none"
+                          />
+                        </div>
+                        <div className="sm:col-span-3">
+                          <label className="block text-[12.5px] font-semibold text-[#1E1E22] mb-1.5">
+                            CVC <span className="text-red-500">*</span>
+                          </label>
+                          <input
+                            type="text"
+                            required
+                            value={cardCvc}
+                            onChange={(e) => setCardCvc(e.target.value)}
+                            placeholder="123"
+                            className="w-full px-4 py-3 rounded-lg bg-[#FCFCFB] border border-[#DFDFDB] focus:border-[#C8A24D] focus:bg-white text-sm text-[#141416] focus:outline-none"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
 
-                <div className="pt-2 flex items-center justify-between gap-4">
+                <div className="pt-3 flex items-center justify-between gap-4">
                   <button
                     type="button"
-                    onClick={() => setStep(3)}
-                    className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-white border border-[#DEDED8] hover:border-[#141416] text-sm font-medium text-[#141416] transition-colors"
+                    onClick={() => {
+                      setStep(3);
+                      window.scrollTo({ top: 0, behavior: "smooth" });
+                    }}
+                    className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-white border border-[#C9A65B] hover:bg-[#FAF6EC] text-sm font-semibold text-[#141416] transition-colors"
                   >
-                    <ArrowLeft className="w-4 h-4" />
+                    <ArrowLeft className="w-4 h-4 text-[#B88E35]" />
                     Back
                   </button>
 
                   <button
-                    type="button"
-                    onClick={handleConfirmBooking}
-                    className="inline-flex items-center gap-2 px-8 py-3 rounded-lg bg-gradient-to-b from-[#D4B26A] to-[#BE9644] hover:from-[#DCBC76] hover:to-[#C79F4E] text-sm font-semibold text-[#111113] shadow-sm transition-all"
+                    type="submit"
+                    className="inline-flex items-center justify-center gap-2 px-8 py-3.5 rounded-xl bg-gradient-to-b from-[#DFBC6A] to-[#C69838] hover:from-[#E6C577] hover:to-[#CF9F3E] text-[15px] font-bold text-[#111113] shadow-[0_4px_14px_rgba(198,152,56,0.28)] transition-all"
                   >
-                    Confirm &amp; Pay • CAD ${selectedPriceCad}
-                    <ShieldCheck className="w-4 h-4" />
+                    Confirm &amp; Pay CAD ${selectedPriceCad}
+                    <ArrowRight className="w-4 h-4" />
                   </button>
                 </div>
-              </div>
+              </form>
             )}
           </div>
 
           {/* =============================================================== */}
-          {/* RIGHT COLUMN: TRIP SUMMARY CARD (4 Cols — Exact Match)          */}
+          {/* RIGHT COLUMN (4 Cols):                                          */}
+          {/* - "Your Booking" Photo Card on Steps 3 & 4                      */}
+          {/* - Clean "Trip Summary" Card on Steps 1 & 2                      */}
           {/* =============================================================== */}
-          <aside className="lg:col-span-4 lg:mt-2">
-            <div className="rounded-2xl bg-[#F7F6F2] border border-[#ECEAE2] p-6 sm:p-7">
-              <h2 className="text-[18px] font-bold text-[#141416] mb-5">
-                Trip Summary
-              </h2>
+          <aside className={`lg:col-span-4 ${isCheckoutStage ? "" : "lg:mt-2"}`}>
+            {isCheckoutStage ? (
+              renderYourBookingSidebar()
+            ) : (
+              <div className="rounded-2xl bg-[#F7F6F2] border border-[#ECEAE2] p-6 sm:p-7">
+                <h2 className="text-[18px] font-bold text-[#141416] mb-5">
+                  Trip Summary
+                </h2>
 
-              <div className="space-y-4 text-[14px] text-[#1E1E22]">
-                {/* Pickup + Dashed Connector + Destination */}
-                <div>
-                  <div className="flex items-start gap-3.5">
-                    <MapPin className="w-[18px] h-[18px] text-[#1E1E22] shrink-0 mt-0.5 stroke-[1.9]" />
-                    <span className="font-medium leading-snug">
-                      {pickupSummary}
-                    </span>
-                  </div>
-
-                  <div className="flex items-start gap-3.5 mt-1">
-                    <div className="w-[18px] flex justify-center shrink-0 py-0.5">
-                      <span className="h-5 border-l-[1.5px] border-dashed border-[#2A2A2E]" />
+                <div className="space-y-4 text-[14px] text-[#1E1E22]">
+                  <div>
+                    <div className="flex items-start gap-3.5">
+                      <MapPin className="w-[18px] h-[18px] text-[#1E1E22] shrink-0 mt-0.5 stroke-[1.9]" />
+                      <span className="font-medium leading-snug">
+                        {pickupSummary}
+                      </span>
                     </div>
-                    <span className="font-medium leading-snug pt-1.5">
-                      {dropoffSummary}
+
+                    <div className="flex items-start gap-3.5 mt-1">
+                      <div className="w-[18px] flex justify-center shrink-0 py-0.5">
+                        <span className="h-5 border-l-[1.5px] border-dashed border-[#2A2A2E]" />
+                      </div>
+                      <span className="font-medium leading-snug pt-1.5">
+                        {dropoffSummary}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-3.5 pt-1">
+                    <Calendar className="w-[18px] h-[18px] text-[#1E1E22] shrink-0 stroke-[1.9]" />
+                    <span className="font-medium">
+                      {formatDisplayDate(draft.date)}
+                    </span>
+                  </div>
+
+                  <div className="flex items-center gap-3.5">
+                    <Clock className="w-[18px] h-[18px] text-[#1E1E22] shrink-0 stroke-[1.9]" />
+                    <span className="font-medium">
+                      {formatDisplayTime(draft.time)}
+                    </span>
+                  </div>
+
+                  <div className="flex items-center gap-3.5">
+                    <Users className="w-[18px] h-[18px] text-[#1E1E22] shrink-0 stroke-[1.9]" />
+                    <span className="font-medium">
+                      {draft.passengersCount || 1}{" "}
+                      {(draft.passengersCount || 1) === 1
+                        ? "Passenger"
+                        : "Passengers"}
                     </span>
                   </div>
                 </div>
 
-                {/* Date */}
-                <div className="flex items-center gap-3.5 pt-1">
-                  <Calendar className="w-[18px] h-[18px] text-[#1E1E22] shrink-0 stroke-[1.9]" />
-                  <span className="font-medium">
-                    {formatDisplayDate(draft.date)}
-                  </span>
-                </div>
-
-                {/* Time */}
-                <div className="flex items-center gap-3.5">
-                  <Clock className="w-[18px] h-[18px] text-[#1E1E22] shrink-0 stroke-[1.9]" />
-                  <span className="font-medium">
-                    {formatDisplayTime(draft.time)}
-                  </span>
-                </div>
-
-                {/* Passengers */}
-                <div className="flex items-center gap-3.5">
-                  <Users className="w-[18px] h-[18px] text-[#1E1E22] shrink-0 stroke-[1.9]" />
-                  <span className="font-medium">
-                    {draft.passengersCount || 1}{" "}
-                    {(draft.passengersCount || 1) === 1
-                      ? "Passenger"
-                      : "Passengers"}
-                  </span>
+                <div className="mt-6 flex justify-center">
+                  <button
+                    type="button"
+                    onClick={() => setStep(1)}
+                    className="inline-flex items-center justify-center gap-2 px-7 py-2.5 rounded-lg bg-white border border-[#C9A65B] hover:bg-[#FAF6EC] text-[13.5px] font-medium text-[#141416] transition-colors w-full max-w-[195px]"
+                  >
+                    <Pencil className="w-3.5 h-3.5 text-[#C59B3F]" />
+                    Edit Trip
+                  </button>
                 </div>
               </div>
-
-              {/* Centered Gold-Bordered Edit Trip Button */}
-              <div className="mt-6 flex justify-center">
-                <button
-                  type="button"
-                  onClick={() => setStep(1)}
-                  className="inline-flex items-center justify-center gap-2 px-7 py-2.5 rounded-lg bg-white border border-[#C9A65B] hover:bg-[#FAF6EC] text-[13.5px] font-medium text-[#141416] transition-colors w-full max-w-[195px]"
-                >
-                  <Pencil className="w-3.5 h-3.5 text-[#C59B3F]" />
-                  Edit Trip
-                </button>
-              </div>
-            </div>
+            )}
           </aside>
         </div>
       </div>
