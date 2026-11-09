@@ -8,6 +8,7 @@ import {
   Briefcase,
   Calendar,
   CalendarCheck,
+  CarFront,
   Check,
   CheckCircle2,
   ChevronDown,
@@ -18,6 +19,7 @@ import {
   FileText,
   Headphones,
   Loader2,
+  Lock,
   MapPin,
   MessageCircle,
   Pencil,
@@ -251,14 +253,11 @@ export default function BookPage() {
   const [authError, setAuthError] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
-  // Step 4 payment method state
-  const [paymentMethod, setPaymentMethod] = useState<"card" | "corporate">(
-    "card"
-  );
-  const [cardHolder, setCardHolder] = useState("");
-  const [cardNumber, setCardNumber] = useState("");
-  const [cardExpiry, setCardExpiry] = useState("");
-  const [cardCvc, setCardCvc] = useState("");
+  // Step 4 payment method & terms states matching Review & Pay reference
+  const [paymentMethod, setPaymentMethod] = useState<
+    "card" | "paypal" | "gpay"
+  >("card");
+  const [agreedTerms, setAgreedTerms] = useState(true);
 
   // Confirmed reservation state
   const [confirmed, setConfirmed] = useState<ConfirmedBooking | null>(null);
@@ -554,21 +553,25 @@ export default function BookPage() {
             <h3 className="text-[18px] font-bold text-white leading-snug">
               {selectedVehicle.title}
             </h3>
-            <p className="text-[12.5px] text-white/80 mt-0.5">
-              {selectedVehicle.modelSubtitle}
-            </p>
+            {step === 3 && (
+              <>
+                <p className="text-[12.5px] text-white/80 mt-0.5">
+                  {selectedVehicle.modelSubtitle}
+                </p>
 
-            <div className="flex items-center gap-3.5 mt-2.5 text-[12.5px] font-medium text-white/95">
-              <span className="inline-flex items-center gap-1.5">
-                <User className="w-3.5 h-3.5 stroke-[2]" />
-                {selectedVehicle.passengersLabel}
-              </span>
-              <span className="h-3.5 w-px bg-white/25" />
-              <span className="inline-flex items-center gap-1.5">
-                <Briefcase className="w-3.5 h-3.5 stroke-[2]" />
-                {selectedVehicle.luggageLabel}
-              </span>
-            </div>
+                <div className="flex items-center gap-3.5 mt-2.5 text-[12.5px] font-medium text-white/95">
+                  <span className="inline-flex items-center gap-1.5">
+                    <User className="w-3.5 h-3.5 stroke-[2]" />
+                    {selectedVehicle.passengersLabel}
+                  </span>
+                  <span className="h-3.5 w-px bg-white/25" />
+                  <span className="inline-flex items-center gap-1.5">
+                    <Briefcase className="w-3.5 h-3.5 stroke-[2]" />
+                    {selectedVehicle.luggageLabel}
+                  </span>
+                </div>
+              </>
+            )}
           </div>
         </div>
       </div>
@@ -610,41 +613,68 @@ export default function BookPage() {
         </div>
       </div>
 
-      {/* Total Price Row */}
-      <div className="px-6 py-5 border-b border-[#E8E6DF] flex items-center justify-between gap-4">
-        <div>
-          <div className="text-[17px] font-bold text-[#111113] leading-snug">
-            Total Price
+      {/* Price Breakdown:
+          - Step 4: Trip Fare + Warm Cream Total (CAD) Box
+          - Step 3: Total Price + All-inclusive note */}
+      {step === 4 ? (
+        <div className="px-6 py-5 border-b border-[#E8E6DF] space-y-3">
+          <div className="flex items-center justify-between text-[14px]">
+            <span className="font-bold text-[#141416]">Trip Fare</span>
+            <span className="font-extrabold text-[#111113]">
+              CAD ${selectedPriceCad}
+            </span>
           </div>
-          <div className="text-[12px] text-[#66666C] mt-0.5">
-            All-inclusive (taxes &amp; fees included)
+
+          <div className="rounded-xl bg-[#F5EFE1] px-4 py-3.5 flex items-center justify-between gap-3">
+            <span className="text-[16px] font-bold text-[#111113]">
+              Total (CAD)
+            </span>
+            <div className="flex items-baseline gap-1 text-[#111113]">
+              <span className="text-[16px] font-extrabold tracking-tight">
+                CAD
+              </span>
+              <span className="text-[27px] font-extrabold leading-none tracking-tight">
+                ${selectedPriceCad}
+              </span>
+            </div>
           </div>
         </div>
-        <div className="flex items-baseline gap-1 text-[#111113] shrink-0">
-          <span className="text-[15px] font-bold tracking-tight">CAD</span>
-          <span className="text-[28px] font-extrabold leading-none tracking-tight">
-            ${selectedPriceCad}
-          </span>
+      ) : (
+        <div className="px-6 py-5 border-b border-[#E8E6DF] flex items-center justify-between gap-4">
+          <div>
+            <div className="text-[17px] font-bold text-[#111113] leading-snug">
+              Total Price
+            </div>
+            <div className="text-[12px] text-[#66666C] mt-0.5">
+              All-inclusive (taxes &amp; fees included)
+            </div>
+          </div>
+          <div className="flex items-baseline gap-1 text-[#111113] shrink-0">
+            <span className="text-[15px] font-bold tracking-tight">CAD</span>
+            <span className="text-[28px] font-extrabold leading-none tracking-tight">
+              ${selectedPriceCad}
+            </span>
+          </div>
         </div>
-      </div>
+      )}
 
       {/* 3 Gold Trust Badges Strip */}
       <div className="px-3 py-4 grid grid-cols-3 divide-x divide-[#E6E4DC] text-center bg-[#F9F8F5]">
         <div className="px-1 flex flex-col items-center justify-center gap-1.5">
           <ShieldCheck className="w-5 h-5 text-[#C89B3C] stroke-[1.9]" />
-          <span className="text-[11.5px] font-medium text-[#2A2A2E]">
-            Secure Booking
+          <span className="text-[11.5px] font-medium text-[#2A2A2E] leading-tight">
+            {step === 4 ? "Secure Payment" : "Secure Booking"}
           </span>
         </div>
         <div className="px-1 flex flex-col items-center justify-center gap-1.5">
           <CalendarCheck className="w-5 h-5 text-[#C89B3C] stroke-[1.9]" />
-          <span className="text-[11.5px] font-medium text-[#2A2A2E]">
+          <span className="text-[11.5px] font-medium text-[#2A2A2E] leading-tight">
             Free Changes
           </span>
         </div>
         <div className="px-1 flex flex-col items-center justify-center gap-1.5">
           <Headphones className="w-5 h-5 text-[#C89B3C] stroke-[1.9]" />
-          <span className="text-[11.5px] font-medium text-[#2A2A2E]">
+          <span className="text-[11.5px] font-medium text-[#2A2A2E] leading-tight">
             24/7 Support
           </span>
         </div>
@@ -777,7 +807,7 @@ export default function BookPage() {
           <p className="text-sm sm:text-[15.5px] text-[#4E4E54] mt-1.5">
             {step === 3
               ? "Provide your details to confirm the booking."
-              : "Review your booking summary and complete your reservation."}
+              : "Confirm your trip details and complete your booking securely."}
           </p>
         </div>
       ) : (
@@ -1385,224 +1415,370 @@ export default function BookPage() {
             )}
 
             {/* ============================================================= */}
-            {/* STEP 4: REVIEW & PAY (COHESIVE WITH STEP 3 CHECKOUT)          */}
+            {/* STEP 4: REVIEW & PAY (EXACT 3-CARD LAYOUT MATCHING REFERENCE) */}
             {/* ============================================================= */}
             {step === 4 && (
-              <form
-                onSubmit={handleConfirmBooking}
-                className="rounded-2xl bg-white border border-[#E6E6E2] shadow-[0_2px_16px_rgba(0,0,0,0.03)] p-6 sm:p-7 space-y-6"
-              >
-                {/* Passenger Verification Block */}
-                <div className="pb-6 border-b border-[#EFEFEB] space-y-3">
-                  <div className="flex items-center justify-between">
+              <form onSubmit={handleConfirmBooking} className="space-y-4">
+                {/* CARD 1: Trip Details */}
+                <div className="rounded-2xl bg-white border border-[#E6E6E2] shadow-[0_2px_12px_rgba(0,0,0,0.025)] px-6 py-5">
+                  <div className="flex items-center justify-between pb-3.5 border-b border-[#F2F2EE]">
                     <div className="flex items-center gap-2.5">
-                      <User className="w-5 h-5 text-[#141416] stroke-[1.9]" />
+                      <Calendar className="w-5 h-5 text-[#141416] stroke-[1.9]" />
                       <h2 className="text-[16.5px] font-bold text-[#111113]">
-                        Passenger Details
+                        Trip Details
                       </h2>
                     </div>
                     <button
                       type="button"
-                      onClick={() => setStep(3)}
-                      className="text-xs font-semibold text-[#B88E35] hover:underline"
+                      onClick={() => {
+                        setStep(1);
+                        window.scrollTo({ top: 0, behavior: "smooth" });
+                      }}
+                      className="inline-flex items-center gap-1.5 text-[13.5px] font-semibold text-[#B3882E] hover:text-[#966F1E] transition-colors"
                     >
-                      Edit
+                      <span>Edit</span>
+                      <Pencil className="w-3.5 h-3.5" />
                     </button>
                   </div>
 
-                  <div className="rounded-xl bg-[#F9F8F5] border border-[#ECEAE2] p-4 grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
-                    <div>
-                      <span className="text-xs text-[#66666B] block">
-                        Full Name
-                      </span>
-                      <span className="font-semibold text-[#141416]">
-                        {fullName.trim() || user?.name || "VIP Guest"}
-                      </span>
-                    </div>
-                    <div>
-                      <span className="text-xs text-[#66666B] block">
-                        Contact
-                      </span>
-                      <span className="font-medium text-[#141416]">
-                        {draft.email || user?.email} · {draft.phone}
-                      </span>
-                    </div>
-                    {draft.flightNumber && (
-                      <div>
-                        <span className="text-xs text-[#66666B] block">
-                          Flight Tracking
-                        </span>
-                        <span className="font-medium text-[#141416]">
-                          {draft.flightNumber}
-                        </span>
-                      </div>
-                    )}
-                    {specialRequests.trim() && (
-                      <div className="sm:col-span-2">
-                        <span className="text-xs text-[#66666B] block">
-                          Special Requests
-                        </span>
-                        <span className="font-medium text-[#141416]">
-                          {specialRequests}
-                        </span>
-                      </div>
-                    )}
+                  {/* Route Row */}
+                  <div className="py-3.5 border-b border-[#F2F2EE] flex flex-wrap items-center gap-3 sm:gap-6 text-[14.5px] font-bold text-[#111113]">
+                    <span className="inline-flex items-center gap-2">
+                      <MapPin className="w-[18px] h-[18px] text-[#141416] stroke-[1.9] shrink-0" />
+                      {pickupSummary}
+                    </span>
+
+                    <ArrowRight className="w-4 h-4 text-[#44444A] shrink-0" />
+
+                    <span className="inline-flex items-center gap-2">
+                      <MapPin className="w-[18px] h-[18px] text-[#141416] stroke-[1.9] shrink-0" />
+                      {dropoffSummary}
+                    </span>
+                  </div>
+
+                  {/* Date, Time & Passengers Row */}
+                  <div className="pt-3.5 flex flex-wrap items-center justify-between gap-4 text-[13.5px] font-medium text-[#1E1E22]">
+                    <span className="inline-flex items-center gap-2">
+                      <Calendar className="w-[17px] h-[17px] text-[#252529] stroke-[1.9]" />
+                      {formatDisplayDate(draft.date)}
+                    </span>
+
+                    <span className="inline-flex items-center gap-2">
+                      <Clock className="w-[17px] h-[17px] text-[#252529] stroke-[1.9]" />
+                      {formatDisplayTime(draft.time)}
+                    </span>
+
+                    <span className="inline-flex items-center gap-2 sm:pr-8">
+                      <Users className="w-[17px] h-[17px] text-[#252529] stroke-[1.9]" />
+                      {draft.passengersCount || 1}{" "}
+                      {(draft.passengersCount || 1) === 1
+                        ? "Passenger"
+                        : "Passengers"}
+                    </span>
                   </div>
                 </div>
 
-                {/* Payment Method Block */}
-                <div className="space-y-4">
-                  <div className="flex items-center gap-2.5">
+                {/* CARD 2: Selected Vehicle */}
+                <div className="rounded-2xl bg-white border border-[#E6E6E2] shadow-[0_2px_12px_rgba(0,0,0,0.025)] px-6 py-5">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center gap-2.5">
+                      <CarFront className="w-5 h-5 text-[#141416] stroke-[1.9]" />
+                      <h2 className="text-[16.5px] font-bold text-[#111113]">
+                        Selected Vehicle
+                      </h2>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setStep(2);
+                        window.scrollTo({ top: 0, behavior: "smooth" });
+                      }}
+                      className="inline-flex items-center gap-1.5 text-[13.5px] font-semibold text-[#B3882E] hover:text-[#966F1E] transition-colors"
+                    >
+                      <span>Edit</span>
+                      <Pencil className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-5">
+                    <div className="w-full sm:w-[205px] h-[98px] flex items-center justify-center shrink-0">
+                      <img
+                        src={selectedVehicle.image}
+                        alt={selectedVehicle.title}
+                        className="w-full h-full object-contain mix-blend-multiply"
+                      />
+                    </div>
+
+                    <div>
+                      <h3 className="text-[16.5px] font-bold text-[#111113] leading-snug">
+                        {selectedVehicle.title}
+                      </h3>
+                      <p className="text-[13.5px] text-[#55555B] mt-0.5">
+                        {selectedVehicle.modelSubtitle}
+                      </p>
+
+                      <div className="flex items-center gap-5 mt-3 text-[13.5px] font-medium text-[#1A1A1E]">
+                        <span className="inline-flex items-center gap-1.5">
+                          <User className="w-4 h-4 text-[#252529] stroke-[1.9]" />
+                          {selectedVehicle.passengersLabel}
+                        </span>
+                        <span className="inline-flex items-center gap-1.5">
+                          <Briefcase className="w-4 h-4 text-[#252529] stroke-[1.9]" />
+                          {selectedVehicle.luggageLabel}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* CARD 3: Payment Method */}
+                <div className="rounded-2xl bg-white border border-[#E6E6E2] shadow-[0_2px_12px_rgba(0,0,0,0.025)] p-6">
+                  <div className="flex items-center gap-2.5 mb-4">
                     <CreditCard className="w-5 h-5 text-[#141416] stroke-[1.9]" />
                     <h2 className="text-[16.5px] font-bold text-[#111113]">
                       Payment Method
                     </h2>
                   </div>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <button
-                      type="button"
-                      onClick={() => setPaymentMethod("card")}
-                      className={`text-left rounded-xl px-4 py-3.5 flex items-center gap-3 transition-all ${
-                        paymentMethod === "card"
-                          ? "bg-[#FAF6EC] border-[1.5px] border-[#CEAA56]"
-                          : "bg-[#FAFAFA] border border-[#E6E6E2]"
-                      }`}
-                    >
-                      <span
-                        className={`w-[17px] h-[17px] rounded-full flex items-center justify-center shrink-0 ${
+                  <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-start">
+                    {/* Left: 3 Payment Radio Rows */}
+                    <div className="md:col-span-8 space-y-2.5">
+                      {/* Option 1: Credit / Debit Card */}
+                      <button
+                        type="button"
+                        onClick={() => setPaymentMethod("card")}
+                        className={`w-full text-left rounded-xl px-4 py-3.5 flex items-center justify-between gap-3 transition-all ${
                           paymentMethod === "card"
-                            ? "bg-[#D8AF4F]"
-                            : "bg-white border-[1.5px] border-[#B8B8BE]"
+                            ? "bg-[#FAF6EC] border-[1.5px] border-[#CEAA56]"
+                            : "bg-[#FAFAFA] hover:bg-[#F6F5F0] border border-[#EAEAE6]"
                         }`}
                       >
-                        {paymentMethod === "card" && (
-                          <span className="w-1.5 h-1.5 rounded-full bg-[#111113]" />
-                        )}
-                      </span>
-                      <div>
-                        <div className="text-[13.5px] font-bold text-[#111113]">
-                          Credit or Debit Card
+                        <div className="flex items-center gap-3">
+                          <span
+                            className={`w-[18px] h-[18px] rounded-full flex items-center justify-center shrink-0 ${
+                              paymentMethod === "card"
+                                ? "bg-[#D8AF4F]"
+                                : "bg-white border-[1.5px] border-[#B8B8BE]"
+                            }`}
+                          >
+                            {paymentMethod === "card" && (
+                              <span className="w-2 h-2 rounded-full bg-[#111113]" />
+                            )}
+                          </span>
+                          <CreditCard className="w-5 h-5 text-[#141416] stroke-[1.9] shrink-0" />
+                          <span className="text-[14px] font-semibold text-[#111113]">
+                            Credit / Debit Card
+                          </span>
                         </div>
-                        <div className="text-[11.5px] text-[#5E5E65]">
-                          Visa, Mastercard, Amex (CAD)
-                        </div>
-                      </div>
-                    </button>
 
-                    <button
-                      type="button"
-                      onClick={() => setPaymentMethod("corporate")}
-                      className={`text-left rounded-xl px-4 py-3.5 flex items-center gap-3 transition-all ${
-                        paymentMethod === "corporate"
-                          ? "bg-[#FAF6EC] border-[1.5px] border-[#CEAA56]"
-                          : "bg-[#FAFAFA] border border-[#E6E6E2]"
-                      }`}
-                    >
-                      <span
-                        className={`w-[17px] h-[17px] rounded-full flex items-center justify-center shrink-0 ${
-                          paymentMethod === "corporate"
-                            ? "bg-[#D8AF4F]"
-                            : "bg-white border-[1.5px] border-[#B8B8BE]"
+                        {/* Visa, Mastercard, Amex, Apple Pay Badges */}
+                        <div className="flex items-center gap-2 shrink-0">
+                          <span className="text-[12px] font-extrabold italic tracking-tight text-[#1A1F71]">
+                            VISA
+                          </span>
+                          <svg
+                            viewBox="0 0 28 18"
+                            className="w-6 h-4"
+                            aria-hidden="true"
+                          >
+                            <circle cx="10" cy="9" r="7" fill="#EB001B" />
+                            <circle
+                              cx="18"
+                              cy="9"
+                              r="7"
+                              fill="#F79E1B"
+                              fillOpacity="0.9"
+                            />
+                          </svg>
+                          <span className="px-1.5 py-0.5 rounded-[3px] bg-[#006FCF] text-white text-[9px] font-extrabold tracking-tight leading-none">
+                            AMEX
+                          </span>
+                          <span className="text-[11.5px] font-bold text-[#111113] tracking-tight hidden sm:inline">
+                             Pay
+                          </span>
+                        </div>
+                      </button>
+
+                      {/* Option 2: PayPal */}
+                      <button
+                        type="button"
+                        onClick={() => setPaymentMethod("paypal")}
+                        className={`w-full text-left rounded-xl px-4 py-3.5 flex items-center gap-3 transition-all ${
+                          paymentMethod === "paypal"
+                            ? "bg-[#FAF6EC] border-[1.5px] border-[#CEAA56]"
+                            : "bg-[#FAFAFA] hover:bg-[#F6F5F0] border border-[#EAEAE6]"
                         }`}
                       >
-                        {paymentMethod === "corporate" && (
-                          <span className="w-1.5 h-1.5 rounded-full bg-[#111113]" />
-                        )}
-                      </span>
-                      <div>
-                        <div className="text-[13.5px] font-bold text-[#111113]">
-                          Corporate / Direct Billing
-                        </div>
-                        <div className="text-[11.5px] text-[#5E5E65]">
-                          Pay on arrival or corporate account
-                        </div>
-                      </div>
-                    </button>
-                  </div>
+                        <span
+                          className={`w-[18px] h-[18px] rounded-full flex items-center justify-center shrink-0 ${
+                            paymentMethod === "paypal"
+                              ? "bg-[#D8AF4F]"
+                              : "bg-white border-[1.5px] border-[#B8B8BE]"
+                          }`}
+                        >
+                          {paymentMethod === "paypal" && (
+                            <span className="w-2 h-2 rounded-full bg-[#111113]" />
+                          )}
+                        </span>
 
-                  {paymentMethod === "card" && (
-                    <div className="space-y-4 pt-1">
+                        <svg
+                          viewBox="0 0 20 22"
+                          className="w-4 h-4 shrink-0"
+                          aria-hidden="true"
+                        >
+                          <path
+                            d="M6.2 2h6.1c3.1 0 5 1.5 4.6 4.4-.5 3.3-2.7 4.9-6 4.9H8.6L7.4 19H3.8L6.2 2z"
+                            fill="#003087"
+                          />
+                          <path
+                            d="M8.5 6.2h5.2c2.5 0 4 1.3 3.6 3.8-.4 2.8-2.3 4.2-5.1 4.2h-2l-1 6.8H6.1l2.4-14.8z"
+                            fill="#009CDE"
+                            fillOpacity="0.85"
+                          />
+                        </svg>
+
+                        <span className="text-[14px] font-medium text-[#141416]">
+                          PayPal
+                        </span>
+                      </button>
+
+                      {/* Option 3: Google Pay */}
+                      <button
+                        type="button"
+                        onClick={() => setPaymentMethod("gpay")}
+                        className={`w-full text-left rounded-xl px-4 py-3.5 flex items-center gap-3 transition-all ${
+                          paymentMethod === "gpay"
+                            ? "bg-[#FAF6EC] border-[1.5px] border-[#CEAA56]"
+                            : "bg-[#FAFAFA] hover:bg-[#F6F5F0] border border-[#EAEAE6]"
+                        }`}
+                      >
+                        <span
+                          className={`w-[18px] h-[18px] rounded-full flex items-center justify-center shrink-0 ${
+                            paymentMethod === "gpay"
+                              ? "bg-[#D8AF4F]"
+                              : "bg-white border-[1.5px] border-[#B8B8BE]"
+                          }`}
+                        >
+                          {paymentMethod === "gpay" && (
+                            <span className="w-2 h-2 rounded-full bg-[#111113]" />
+                          )}
+                        </span>
+
+                        <span className="inline-flex items-center gap-1 font-bold text-[13px] text-[#202124]">
+                          <svg
+                            viewBox="0 0 24 24"
+                            className="w-4 h-4 shrink-0"
+                            aria-hidden="true"
+                          >
+                            <path
+                              fill="#4285F4"
+                              d="M23.5 12.3c0-.8-.1-1.6-.2-2.3H12v4.5h6.5c-.3 1.5-1.1 2.8-2.4 3.6v3h3.9c2.3-2.1 3.5-5.2 3.5-8.8z"
+                            />
+                            <path
+                              fill="#34A853"
+                              d="M12 24c3.2 0 6-1.1 8-2.9l-3.9-3c-1.1.7-2.5 1.2-4.1 1.2-3.1 0-5.8-2.1-6.7-5H1.3v3.1C3.3 21.4 7.4 24 12 24z"
+                            />
+                            <path
+                              fill="#FBBC05"
+                              d="M5.3 14.3c-.2-.7-.4-1.5-.4-2.3s.2-1.6.4-2.3V6.6H1.3C.5 8.2 0 10.1 0 12s.5 3.8 1.3 5.4l4-3.1z"
+                            />
+                            <path
+                              fill="#EA4335"
+                              d="M12 4.8c1.8 0 3.3.6 4.6 1.8l3.4-3.4C17.9 1.2 15.2 0 12 0 7.4 0 3.3 2.6 1.3 6.6l4 3.1c.9-2.9 3.6-4.9 6.7-4.9z"
+                            />
+                          </svg>
+                          <span>Pay</span>
+                        </span>
+
+                        <span className="text-[14px] font-medium text-[#141416]">
+                          Google Pay
+                        </span>
+                      </button>
+                    </div>
+
+                    {/* Right: Secure Payment & PCI DSS Badge */}
+                    <div className="md:col-span-4 space-y-4 pt-1">
                       <div>
-                        <label className="block text-[12.5px] font-semibold text-[#1E1E22] mb-1.5">
-                          Cardholder Name{" "}
-                          <span className="text-red-500">*</span>
-                        </label>
-                        <input
-                          type="text"
-                          required
-                          value={cardHolder || fullName}
-                          onChange={(e) => setCardHolder(e.target.value)}
-                          placeholder="Name on card"
-                          className="w-full px-4 py-3 rounded-lg bg-[#FCFCFB] border border-[#DFDFDB] focus:border-[#C8A24D] focus:bg-white text-sm text-[#141416] focus:outline-none"
-                        />
+                        <div className="flex items-center gap-2 text-[13.5px] font-bold text-[#111113]">
+                          <Lock className="w-4 h-4 text-[#141416] stroke-[2]" />
+                          <span>Secure Payment</span>
+                        </div>
+                        <p className="text-[12px] text-[#5A5A62] leading-relaxed mt-1.5">
+                          Your payment information is encrypted and processed
+                          securely.
+                        </p>
                       </div>
 
-                      <div className="grid grid-cols-1 sm:grid-cols-12 gap-4">
-                        <div className="sm:col-span-6">
-                          <label className="block text-[12.5px] font-semibold text-[#1E1E22] mb-1.5">
-                            Card Number <span className="text-red-500">*</span>
-                          </label>
-                          <input
-                            type="text"
-                            required
-                            value={cardNumber}
-                            onChange={(e) => setCardNumber(e.target.value)}
-                            placeholder="4532 •••• •••• ••••"
-                            className="w-full px-4 py-3 rounded-lg bg-[#FCFCFB] border border-[#DFDFDB] focus:border-[#C8A24D] focus:bg-white text-sm text-[#141416] focus:outline-none"
-                          />
-                        </div>
-                        <div className="sm:col-span-3">
-                          <label className="block text-[12.5px] font-semibold text-[#1E1E22] mb-1.5">
-                            Expiry <span className="text-red-500">*</span>
-                          </label>
-                          <input
-                            type="text"
-                            required
-                            value={cardExpiry}
-                            onChange={(e) => setCardExpiry(e.target.value)}
-                            placeholder="MM / YY"
-                            className="w-full px-4 py-3 rounded-lg bg-[#FCFCFB] border border-[#DFDFDB] focus:border-[#C8A24D] focus:bg-white text-sm text-[#141416] focus:outline-none"
-                          />
-                        </div>
-                        <div className="sm:col-span-3">
-                          <label className="block text-[12.5px] font-semibold text-[#1E1E22] mb-1.5">
-                            CVC <span className="text-red-500">*</span>
-                          </label>
-                          <input
-                            type="text"
-                            required
-                            value={cardCvc}
-                            onChange={(e) => setCardCvc(e.target.value)}
-                            placeholder="123"
-                            className="w-full px-4 py-3 rounded-lg bg-[#FCFCFB] border border-[#DFDFDB] focus:border-[#C8A24D] focus:bg-white text-sm text-[#141416] focus:outline-none"
-                          />
+                      <div className="flex items-center gap-2.5 pt-2">
+                        <ShieldCheck className="w-7 h-7 text-[#6E6E77] stroke-[1.6] shrink-0" />
+                        <div className="leading-tight">
+                          <span className="block text-[12px] font-bold text-[#222226]">
+                            PCI DSS
+                          </span>
+                          <span className="block text-[11.5px] text-[#5A5A62]">
+                            Compliant
+                          </span>
                         </div>
                       </div>
                     </div>
-                  )}
-                </div>
+                  </div>
 
-                <div className="pt-3 flex items-center justify-between gap-4">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setStep(3);
-                      window.scrollTo({ top: 0, behavior: "smooth" });
-                    }}
-                    className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-white border border-[#C9A65B] hover:bg-[#FAF6EC] text-sm font-semibold text-[#141416] transition-colors"
-                  >
-                    <ArrowLeft className="w-4 h-4 text-[#B88E35]" />
-                    Back
-                  </button>
+                  {/* Terms & Cancellation Agreement Checkbox */}
+                  <label className="mt-5 inline-flex items-center gap-2.5 cursor-pointer select-none">
+                    <input
+                      type="checkbox"
+                      required
+                      checked={agreedTerms}
+                      onChange={(e) => setAgreedTerms(e.target.checked)}
+                      className="sr-only"
+                    />
+                    <span
+                      className={`w-[18px] h-[18px] rounded-[4px] flex items-center justify-center transition-colors shrink-0 ${
+                        agreedTerms
+                          ? "bg-[#D8AF4F] text-[#111113]"
+                          : "bg-white border border-[#B8B8BE]"
+                      }`}
+                    >
+                      {agreedTerms && (
+                        <Check className="w-3.5 h-3.5 stroke-[2.8]" />
+                      )}
+                    </span>
+                    <span className="text-[13px] text-[#222226]">
+                      I agree to the{" "}
+                      <span className="underline underline-offset-2 font-medium text-[#111113]">
+                        Terms of Service
+                      </span>{" "}
+                      and{" "}
+                      <span className="underline underline-offset-2 font-medium text-[#111113]">
+                        Cancellation Policy
+                      </span>
+                      .
+                    </span>
+                  </label>
 
-                  <button
-                    type="submit"
-                    className="inline-flex items-center justify-center gap-2 px-8 py-3.5 rounded-xl bg-gradient-to-b from-[#DFBC6A] to-[#C69838] hover:from-[#E6C577] hover:to-[#CF9F3E] text-[15px] font-bold text-[#111113] shadow-[0_4px_14px_rgba(198,152,56,0.28)] transition-all"
-                  >
-                    Confirm &amp; Pay CAD ${selectedPriceCad}
-                    <ArrowRight className="w-4 h-4" />
-                  </button>
+                  {/* Bottom Back + Confirm & Pay Buttons */}
+                  <div className="mt-6 flex items-center justify-between gap-4">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setStep(3);
+                        window.scrollTo({ top: 0, behavior: "smooth" });
+                      }}
+                      className="inline-flex items-center justify-center gap-2 px-7 py-3 rounded-xl bg-white border border-[#C9A65B] hover:bg-[#FAF6EC] text-sm font-semibold text-[#141416] transition-colors"
+                    >
+                      <ArrowLeft className="w-4 h-4 text-[#B88E35]" />
+                      Back
+                    </button>
+
+                    <button
+                      type="submit"
+                      disabled={!agreedTerms}
+                      className="inline-flex items-center justify-center gap-2.5 px-9 py-3.5 rounded-xl bg-gradient-to-b from-[#DFBC6A] to-[#C69838] hover:from-[#E6C577] hover:to-[#CF9F3E] text-[15px] font-bold text-[#111113] shadow-[0_4px_14px_rgba(198,152,56,0.28)] transition-all disabled:opacity-50"
+                    >
+                      <Lock className="w-4 h-4 text-[#111113] stroke-[2.3]" />
+                      Confirm &amp; Pay CAD ${selectedPriceCad}
+                    </button>
+                  </div>
                 </div>
               </form>
             )}
