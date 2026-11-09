@@ -362,6 +362,7 @@ export type FleetClassId =
   | "electric"
   | "first"
   | "suv"
+  | "van"
   | "limousine";
 
 export interface FleetClass {
@@ -483,6 +484,30 @@ export const FLEET_CLASSES: FleetClass[] = [
       "Heated second-row captain chairs & tri-zone climate control",
     ],
     idealFor: ["Whistler & Banff Ski", "Group Airport Runs", "Muskoka Retreats"],
+  },
+  {
+    id: "van",
+    name: "Executive Van",
+    badge: "Executive Group Sprinter",
+    tagline: "Premium group travel with extra space and comfort for 7 to 14 guests.",
+    vehicles: "Mercedes-Benz Sprinter Executive Van, or similar",
+    maxPassengers: 14,
+    maxCarryOn: 10,
+    maxCheckIn: 10,
+    baseFareCad: 229,
+    perKmCad: 4.5,
+    hourlyRateCad: 235,
+    image: "/images/book-van-executive.jpg",
+    cabinImage: "/images/service-corporate.jpg",
+    description:
+      "Stand-up high-roof Mercedes-Benz Sprinter cabin configured with leather captain seating, full luggage bay for up to 10 large suitcases, and high-speed cabin Wi-Fi for corporate teams and family groups.",
+    highlights: [
+      "Accommodates 7 to 14 passengers and up to 10 large suitcases comfortably",
+      "High-roof executive leather interior with individual USB-C charging ports",
+      "60 minutes complimentary airport wait at YYZ, YTZ & all Canadian hubs",
+      "All HST/GST taxes, highway tolls & professional chauffeur included",
+    ],
+    idealFor: ["Corporate Delegations", "Group Airport Transfers", "Events & Roadshows"],
   },
   {
     id: "limousine",

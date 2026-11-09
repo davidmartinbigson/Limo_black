@@ -43,7 +43,7 @@ export default function Navbar() {
 
   return (
     <header
-      className={`fixed top-0 inset-x-0 z-50 transition-all duration-200 bg-[#0B0B0D]/95 backdrop-blur-xl border-b border-white/[0.08] ${
+      className={`fixed top-0 inset-x-0 z-50 transition-all duration-200 bg-[#0B0B0D] border-b border-white/[0.08] ${
         scrolled ? "shadow-2xl" : ""
       }`}
     >
@@ -139,6 +139,15 @@ export default function Navbar() {
           >
             Chauffeurs
           </Link>
+
+          {pathname === "/book" && (
+            <Link
+              href="/#faq"
+              className="text-sm font-medium text-white/90 hover:text-[#DFBE6F] whitespace-nowrap transition-colors"
+            >
+              Help
+            </Link>
+          )}
 
           {user && (
             <Link

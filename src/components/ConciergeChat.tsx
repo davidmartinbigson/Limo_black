@@ -64,7 +64,7 @@ export default function ConciergeChat() {
     },
   ]);
 
-  if (pathname === "/") {
+  if (pathname === "/" || pathname === "/book") {
     return null;
   }
 
