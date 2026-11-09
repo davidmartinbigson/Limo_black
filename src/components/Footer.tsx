@@ -2,12 +2,18 @@
 
 import React from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { Mail, MapPin, User } from "lucide-react";
 import { useBooking } from "@/context/BookingContext";
 import BrandLogo from "@/components/BrandLogo";
 
 export default function Footer() {
+  const pathname = usePathname();
   const { user, setAuthModalOpen } = useBooking();
+
+  if (pathname === "/book") {
+    return null;
+  }
 
   return (
     <footer className="bg-[#070709] text-white border-t border-white/10 py-14 sm:py-16">
