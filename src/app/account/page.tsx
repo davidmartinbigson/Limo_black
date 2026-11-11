@@ -115,6 +115,14 @@ export default function AccountDashboardPage() {
     setPrefTemp(user.defaultCabin?.temperature || "21°C Balanced"); setPrefDrink(user.defaultCabin?.refreshment || "Still Artisan Water"); setPrefConv(user.defaultCabin?.conversation || "Discreet Silence"); setPrefLang(user.preferredLanguage || "English");
   }, [user]);
 
+  useEffect(() => {
+    if (user?.role === "admin") router.replace("/admin");
+  }, [router, user?.role]);
+
+  if (user?.role === "admin") {
+    return <div className="min-h-screen bg-[#090a0c] px-5 pt-32 text-center text-white">Opening owner dashboard… <Link className="text-[#e6b541] underline" href="/admin">Continue</Link></div>;
+  }
+
   if (!user) {
     return (
       <div className="min-h-screen bg-canvas pt-32 pb-24 px-4 flex items-center justify-center">
@@ -294,14 +302,6 @@ export default function AccountDashboardPage() {
                       <Building2 className="w-3.5 h-3.5 text-accent" />
                       {user.company}
                     </span>
-                  )}
-                  {user.role === "admin" && (
-                    <Link
-                      href="/admin"
-                      className="px-2.5 py-0.5 rounded-full bg-emerald-500/15 border border-emerald-500/35 text-[10px] uppercase tracking-wider text-emerald-600 dark:text-emerald-300 font-bold"
-                    >
-                      Open Admin Dispatch →
-                    </Link>
                   )}
                 </div>
                 <h1 className="font-serif text-2xl sm:text-4xl text-ink font-semibold">
