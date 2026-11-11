@@ -149,7 +149,7 @@ export default function Navbar() {
             </Link>
           )}
 
-          {user && (
+          {user && user.role !== "admin" && (
             <Link
               href="/account"
               className={`flex items-center gap-1.5 text-sm font-medium whitespace-nowrap transition-colors ${
@@ -183,7 +183,7 @@ export default function Navbar() {
           {user ? (
             <div className="flex items-center gap-2 px-3.5 py-2 rounded-xl border border-[#C9A55C]/60 bg-white/[0.03] text-white">
               <Link
-                href="/account"
+                href={user.role === "admin" ? "/admin" : "/account"}
                 className="flex items-center gap-2 text-xs sm:text-sm font-medium hover:text-[#DFBE6F] max-w-[130px] truncate"
               >
                 <User className="w-4 h-4 text-[#DFBE6F] shrink-0" />
@@ -272,10 +272,10 @@ export default function Navbar() {
                   Chauffeurs
                 </Link>
                 <Link
-                  href={user ? "/account" : "/bookings"}
+                  href={user?.role === "admin" ? "/admin" : user ? "/account" : "/bookings"}
                   className="block px-3 py-2 rounded-lg text-sm font-semibold text-[#DFBE6F]"
                 >
-                  {user ? `My Account (${user.name})` : "Manage Rides"}
+                  {user?.role === "admin" ? "Owner Dashboard" : user ? `My Account (${user.name})` : "Manage Rides"}
                 </Link>
               </div>
 

@@ -142,7 +142,7 @@ export default function Footer() {
                 </li>
                 <li>
                   <Link
-                    href={user ? "/account" : "/bookings"}
+                    href={user?.role === "admin" ? "/admin" : user ? "/account" : "/bookings"}
                     className="hover:text-[#DFBE6F] transition-colors"
                   >
                     Manage Rides
@@ -193,11 +193,11 @@ export default function Footer() {
 
             {user ? (
               <Link
-                href="/account"
+                href={user.role === "admin" ? "/admin" : "/account"}
                 className="flex items-center gap-3 hover:text-[#DFBE6F] transition-colors pt-0.5"
               >
                 <User className="w-4 h-4 text-[#DFBE6F] shrink-0" />
-                <span>My Account ({user.name.split(" ")[0]})</span>
+                <span>{user.role === "admin" ? "Owner Dashboard" : `My Account (${user.name.split(" ")[0]})`}</span>
               </Link>
             ) : (
               <button
