@@ -10,8 +10,6 @@ import {
   Eye,
   EyeOff,
   Loader2,
-  ShieldCheck,
-  Sparkles,
 } from "lucide-react";
 import { useBooking } from "@/context/BookingContext";
 import BrandLogo from "@/components/BrandLogo";
@@ -37,16 +35,6 @@ export default function LoginPage() {
       return;
     }
     router.push(res.user?.role === "admin" ? "/admin" : "/account");
-  };
-
-  const handleDemo = async (e: string, p: string) => {
-    setError("");
-    setLoading(true);
-    const res = await loginAccount(e, p);
-    setLoading(false);
-    if (res.ok) {
-      router.push(res.user?.role === "admin" ? "/admin" : "/account");
-    }
   };
 
   return (
@@ -75,10 +63,11 @@ export default function LoginPage() {
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label className="block text-xs text-muted mb-1.5">
-              Email Address
+              Email Address or Owner Username
             </label>
             <input
-              type="email"
+              type="text"
+              autoComplete="username"
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
@@ -121,30 +110,6 @@ export default function LoginPage() {
             Sign In <ArrowRight className="w-4 h-4" />
           </button>
         </form>
-
-        <div className="pt-4 border-t border-line/10 space-y-3">
-          <p className="text-[11px] uppercase tracking-wider text-subtle text-center font-semibold">
-            Quick Demo Logins
-          </p>
-          <div className="grid grid-cols-2 gap-2.5">
-            <button
-              type="button"
-              onClick={() =>
-                handleDemo("d.macleod@baystreetcapital.ca", "Canada123!")
-              }
-              className="py-2.5 px-3 rounded-xl bg-field hover:bg-line/[0.08] border border-champagne-500/30 text-xs font-semibold text-accent flex items-center justify-center gap-1.5"
-            >
-              <Sparkles className="w-3.5 h-3.5" /> VIP Client
-            </button>
-            <button
-              type="button"
-              onClick={() => handleDemo("admin@limoblack.ca", "Admin123!")}
-              className="py-2.5 px-3 rounded-xl bg-field hover:bg-line/[0.08] border border-line/15 text-xs font-semibold text-ink flex items-center justify-center gap-1.5"
-            >
-              <ShieldCheck className="w-3.5 h-3.5 text-accent" /> Owner Admin
-            </button>
-          </div>
-        </div>
 
         <p className="text-center text-xs text-muted">
           New to Limo Black Canada?{" "}

@@ -22,12 +22,14 @@ export async function POST(req: Request) {
       );
     }
 
-    if (password.length < 6) {
+    if (password.length < 8 || Buffer.byteLength(password, "utf8") > 72) {
       return NextResponse.json(
-        { error: "Password must be at least 6 characters long." },
+        { error: "Password must be at least 8 characters and no more than 72 bytes." },
         { status: 400 }
       );
     }
+
+    if (email === "owner@limoblack.invalid") return NextResponse.json({ error: "This email cannot be used." }, { status: 400 });
 
     const existing = await findUserByEmail(email);
     if (existing) {
@@ -76,15 +78,16 @@ export async function POST(req: Request) {
 
     res.cookies.set(SESSION_COOKIE_NAME, token, {
       httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
       sameSite: "lax",
       path: "/",
       maxAge: 60 * 60 * 24 * 30,
     });
 
     return res;
-  } catch (err) {
+  } catch {
     return NextResponse.json(
-      { error: (err as Error)?.message || "Unable to create account." },
+      { error: "Account service unavailable. Please try again later." },
       { status: 500 }
     );
   }

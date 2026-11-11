@@ -10,10 +10,7 @@ import "@fontsource/plus-jakarta-sans/700.css";
 import "./globals.css";
 
 import { BookingProvider } from "@/context/BookingContext";
-import Navbar from "@/components/Navbar";
-import Footer from "@/components/Footer";
-import AuthModal from "@/components/AuthModal";
-import ConciergeChat from "@/components/ConciergeChat";
+import SiteChrome from "@/components/SiteChrome";
 
 export const metadata: Metadata = {
   title: "LimoBlack Canada | Premium Limousine & Executive Chauffeur Service",
@@ -30,11 +27,7 @@ export default function RootLayout({
     <html lang="en-CA" suppressHydrationWarning>
       <body className="min-h-screen flex flex-col bg-canvas text-ink font-sans">
         <BookingProvider>
-          <Navbar />
-          <AuthModal />
-          <main className="flex-1">{children}</main>
-          <Footer />
-          <ConciergeChat />
+          <SiteChrome>{children}</SiteChrome>
         </BookingProvider>
       </body>
     </html>

@@ -2,6 +2,9 @@ import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import {
   findUserByEmail,
+  bootstrapOwner,
+  consumeLoginAttempt,
+  clearLoginAttempts,
   getPostgresUrl,
   listBookingsForUser,
 } from "@/lib/serverDb";
@@ -20,13 +23,15 @@ export async function POST(req: Request) {
       );
     }
 
-    const found = await findUserByEmail(email);
+    if (!(await consumeLoginAttempt(email))) return NextResponse.json({ error: "Too many attempts. Try again in 15 minutes." }, { status: 429 });
+    const isOwnerLogin = email === "muhammadzubair";
+    let found = await findUserByEmail(isOwnerLogin ? "owner@limoblack.invalid" : email);
+    if (!found && isOwnerLogin) found = await bootstrapOwner(password);
+    if (isOwnerLogin && found?.role !== "admin") found = null;
     if (!found) {
       return NextResponse.json(
         {
-          error:
-            "No account found on server for this email, or please check your credentials.",
-          code: "USER_NOT_FOUND",
+          error: "Invalid email or password.",
         },
         { status: 401 }
       );
@@ -35,11 +40,12 @@ export async function POST(req: Request) {
     const valid = await bcrypt.compare(password, found.passwordHash);
     if (!valid) {
       return NextResponse.json(
-        { error: "Incorrect password. Please try again." },
+        { error: "Invalid email or password." },
         { status: 401 }
       );
     }
 
+    await clearLoginAttempts(email);
     const token = await signSessionToken({
       id: found.id,
       name: found.name,
@@ -74,15 +80,16 @@ export async function POST(req: Request) {
 
     res.cookies.set(SESSION_COOKIE_NAME, token, {
       httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
       sameSite: "lax",
       path: "/",
       maxAge: 60 * 60 * 24 * 30,
     });
 
     return res;
-  } catch (err) {
+  } catch {
     return NextResponse.json(
-      { error: (err as Error)?.message || "Authentication failed." },
+      { error: "Authentication service unavailable. Please try again later." },
       { status: 500 }
     );
   }

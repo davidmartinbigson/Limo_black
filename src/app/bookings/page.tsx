@@ -131,12 +131,7 @@ export default function BookingsPage() {
               </h2>
               <p className="text-xs text-muted">
                 For privacy, reservations are visible only to the account holder
-                or via verified Reference Code + Email (try Demo:{" "}
-                <code className="text-accent">LB-904812</code> +{" "}
-                <code className="text-accent">
-                  d.macleod@baystreetcapital.ca
-                </code>
-                ).
+                when signed in. Guest lookup is not available yet.
               </p>
               {lookupError && (
                 <p className="text-xs text-rose-500 font-medium">
@@ -163,6 +158,8 @@ export default function BookingsPage() {
               </div>
               <button
                 type="submit"
+                disabled
+                title="Guest lookup is not available yet"
                 className="px-6 py-3.5 rounded-xl bg-gold-gradient text-obsidian-950 font-bold text-xs uppercase tracking-[0.15em] flex items-center gap-2"
               >
                 <Search className="w-4 h-4" /> Find My Reservation
@@ -253,7 +250,7 @@ export default function BookingsPage() {
                     <div className="flex items-center gap-4">
                       <button
                         type="button"
-                        onClick={() => setInvoiceBooking(b)}
+                        disabled title="Receipts are unavailable until payment is connected"
                         className="px-3.5 py-2 rounded-xl bg-field border border-line/15 text-xs font-semibold text-ink flex items-center gap-1.5"
                       >
                         <FileText className="w-3.5 h-3.5 text-accent" />
@@ -393,7 +390,7 @@ export default function BookingsPage() {
                     <div className="flex flex-wrap items-center justify-between gap-3 pt-4 border-t border-line/10">
                       <button
                         type="button"
-                        onClick={() => advanceBookingStatus(b.reference)}
+                        disabled title="Live dispatch is not connected"
                         className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-champagne-500/15 hover:bg-champagne-500/25 border border-champagne-500/35 text-xs font-semibold text-accent transition-colors"
                       >
                         <Sparkles className="w-3.5 h-3.5" />

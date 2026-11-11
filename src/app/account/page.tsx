@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
@@ -8,6 +8,13 @@ import {
   Bookmark,
   Building2,
   Calendar,
+  ArrowRight,
+  ChevronRight,
+  Copy,
+  CreditCard,
+  Heart,
+  Home,
+  User,
   Car,
   CheckCircle2,
   Clock,
@@ -59,8 +66,8 @@ export default function AccountDashboardPage() {
     rateBooking,
   } = useBooking();
 
-  const [activeTab, setActiveTab] = useState<"rides" | "places" | "profile">(
-    "rides"
+  const [activeTab, setActiveTab] = useState<"dashboard" | "rides" | "places" | "profile" | "payments">(
+    "dashboard"
   );
   const [invoiceBooking, setInvoiceBooking] = useState<ConfirmedBooking | null>(
     null
@@ -101,6 +108,12 @@ export default function AccountDashboardPage() {
     "English" | "Français" | "Bilingual EN/FR"
   >(user?.preferredLanguage || "English");
   const [profileSaved, setProfileSaved] = useState(false);
+
+  useEffect(() => {
+    if (!user) return;
+    setProfName(user.name); setProfPhone(user.phone); setProfCompany(user.company || "");
+    setPrefTemp(user.defaultCabin?.temperature || "21°C Balanced"); setPrefDrink(user.defaultCabin?.refreshment || "Still Artisan Water"); setPrefConv(user.defaultCabin?.conversation || "Discreet Silence"); setPrefLang(user.preferredLanguage || "English");
+  }, [user]);
 
   if (!user) {
     return (
@@ -163,7 +176,7 @@ export default function AccountDashboardPage() {
     router.push("/book");
   };
 
-  const handleSaveProfile = (e: React.FormEvent) => {
+  const handleSaveProfile = async (e: React.FormEvent) => {
     e.preventDefault();
     const nextCabin: CabinPreferences = {
       temperature: prefTemp,
@@ -172,13 +185,14 @@ export default function AccountDashboardPage() {
       childSeat: user.defaultCabin?.childSeat || "None",
       notes: user.defaultCabin?.notes || "",
     };
-    updateUserProfile({
+    const saved = await updateUserProfile({
       name: profName,
       phone: profPhone,
       company: profCompany,
       preferredLanguage: prefLang,
       defaultCabin: nextCabin,
     });
+    if (!saved) return;
     const parts = profName.trim().split(" ");
     updateDraft({
       firstName: parts[0] || "",
@@ -189,6 +203,69 @@ export default function AccountDashboardPage() {
     setProfileSaved(true);
     setTimeout(() => setProfileSaved(false), 3000);
   };
+
+  // The dashboard uses only the signed-in customer's rides, including for admin accounts.
+  const personalBookings = bookings.filter((b) => b.ownerEmail?.trim().toLowerCase() === user.email.trim().toLowerCase());
+  const upcoming = personalBookings.filter((b) => b.status !== "Cancelled" && b.status !== "Completed").sort((a, b) => `${a.date}T${a.time}`.localeCompare(`${b.date}T${b.time}`))[0];
+  const past = personalBookings.filter((b) => b.status === "Completed" || b.status === "Cancelled").sort ( (a, b) => `${b.date}T${b.time}`.localeCompare(`${a.date}T${a.time}`));
+  const vehicleDetails = (id: ConfirmedBooking["selectedClassId"]) => {
+    const options: Record<string, { name: string; image: string }> = {
+      business: { name: "Business Class Sedan", image: "/images/checkout-banner-sedan.jpg" },
+      first: { name: "First Class Sedan", image: "/images/checkout-banner-first.jpg" },
+      suv: { name: "Business SUV", image: "/images/checkout-banner-suv.jpg" },
+      van: { name: "Executive Van", image: "/images/checkout-banner-van.jpg" },
+    };
+    return options[id] || { name: FLEET_CLASSES.find((v) => v.id === id)?.name || "Chauffeur vehicle", image: "/images/checkout-banner-sedan.jpg" };
+  };
+  const displayDate = (date: string) => {
+    if (!date) return "Date not set";
+    const parsed = new Date(`${date}T12:00:00`);
+    return Number.isNaN(parsed.getTime()) ? date : parsed.toLocaleDateString("en-CA", { weekday: "short", month: "short", day: "numeric", year: "numeric" });
+  };
+  const displayTime = (time: string) => {
+    if (!time) return "Time not set";
+    const parsed = new Date(`2000-01-01T${time}`);
+    return Number.isNaN(parsed.getTime()) ? time : parsed.toLocaleTimeString("en-CA", { hour: "numeric", minute: "2-digit", hour12: true });
+  };
+  const initials = user.name.trim().split(/\s+/).map((part) => part[0]).join("").slice(0, 2).toUpperCase();
+  const goToEdit = (b: ConfirmedBooking) => {
+    setEditingRef(b.reference);
+    setEditTime(b.time);
+    setEditNotes(b.cabin?.notes || "");
+    setActiveTab("rides");
+  };
+
+  if (activeTab === "dashboard" || activeTab === "payments") {
+    const stageIndex = upcoming ? ({ "Confirmed": 0, "Chauffeur Assigned": 1, "Chauffeur En Route": 2, "Chauffeur Arrived": 2, "Completed": 3, "Cancelled": -1 }[upcoming.status] ?? 0) : 0;
+    const dashboardButton = "flex min-h-[55px] items-center justify-center gap-3 rounded-xl border border-white/25 bg-[#101113] px-4 text-sm font-semibold text-white hover:border-[#e6b341] transition-colors";
+    return (
+      <div className="min-h-screen bg-[#08090a] pt-16 text-white sm:pt-[74px] lg:flex">
+        <aside className="border-b border-white/10 bg-[#0b0c0d] p-5 lg:min-h-[calc(100vh-74px)] lg:w-[280px] lg:shrink-0 lg:border-b-0 lg:border-r lg:px-5 lg:py-10">
+          <div className="mb-8 flex items-center gap-4 px-2"><div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-gradient-to-b from-[#ffce62] to-[#d7961d] text-lg font-semibold text-white">{initials}</div><div className="min-w-0"><p className="truncate font-bold">{user.name}</p><p className="truncate text-sm text-white/75">{user.email}</p></div></div>
+          <nav aria-label="Account navigation" className="grid grid-cols-2 gap-1 sm:grid-cols-3 lg:grid-cols-1">
+            {([{id:"dashboard", label:"Dashboard", icon:Home}, {id:"rides", label:"My Bookings", icon:Calendar}, {id:"places", label:"Saved Locations", icon:MapPin}, {id:"payments", label:"Payment Methods", icon:CreditCard}, {id:"profile", label:"Profile Settings", icon:User}] as const).map((item) => <button key={item.id} type="button" onClick={() => setActiveTab(item.id)} className={`flex items-center gap-4 rounded-lg px-4 py-3 text-left text-sm font-semibold ${activeTab === item.id ? "bg-[#664b18] text-[#ffdb78]" : "text-white hover:bg-white/10"}`}><item.icon className="h-5 w-5 shrink-0" />{item.label}</button>)}
+            <button type="button" onClick={async () => { await signOut(); router.push("/"); }} className="flex items-center gap-4 rounded-lg px-4 py-3 text-left text-sm font-semibold text-white hover:bg-white/10 lg:mt-3 lg:border-t lg:border-white/20"><LogOut className="h-5 w-5" />Log Out</button>
+          </nav>
+        </aside>
+        <main className="min-w-0 flex-1">
+          <div className="relative overflow-hidden px-5 py-10 sm:px-9"><img src="/images/checkout-banner-sedan.jpg" alt="" className="absolute inset-0 h-full w-full object-cover object-right opacity-60" /><div className="absolute inset-0 bg-gradient-to-r from-[#08090a] via-[#08090a]/90 to-transparent" /><div className="relative"><h1 className="text-3xl font-bold tracking-tight sm:text-4xl">Welcome back, {user.name.split(" ")[0]}</h1><p className="mt-2 text-sm text-white/80 sm:text-base">Manage your bookings, track your rides and update your preferences.</p><p className="mt-2 text-xs text-white/60">Driver and ride status details are currently demonstration data.</p></div></div>
+          <div className="px-5 pb-16 sm:px-9">
+            <div className="grid grid-cols-2 gap-3 xl:grid-cols-4"><Link href="/book" className={`${dashboardButton} border-[#e8b13d] bg-gradient-to-b from-[#ffce60] to-[#d99a21] !text-black`}><Car className="h-6 w-6" />Book a Ride</Link><button onClick={() => setActiveTab("rides")} className={dashboardButton}><Calendar className="h-6 w-6" />My Bookings</button><button onClick={() => setActiveTab("places")} className={dashboardButton}><Heart className="h-6 w-6" />Saved Locations</button><button onClick={() => setActiveTab("payments")} className={dashboardButton}><CreditCard className="h-6 w-6" />Payment Methods</button></div>
+            {activeTab === "payments" ? <section className="mt-8 rounded-2xl border border-white/20 bg-[#111214] p-7"><h2 className="text-xl font-bold">Payment Methods</h2><p className="mt-3 text-sm text-white/70">Payment methods will be available when payment processing is connected.</p></section> : <>
+            <div className="mt-8 flex flex-wrap items-center justify-between gap-3"><h2 className="text-xl font-bold sm:text-2xl">Your Upcoming Booking</h2><button onClick={() => setActiveTab("rides")} className="flex items-center gap-2 text-sm font-semibold text-[#edc451]">View All Bookings <ArrowRight className="h-5 w-5" /></button></div>
+            {upcoming ? <section className="mt-4 rounded-2xl border border-white/25 bg-gradient-to-br from-[#151619] to-[#0b0c0d] p-5">
+              <div className="grid gap-5 xl:grid-cols-[220px_1fr]"><img src={vehicleDetails(upcoming.selectedClassId).image} alt={vehicleDetails(upcoming.selectedClassId).name} className="h-32 w-full rounded-lg object-cover" /><div><div className="flex flex-wrap justify-between gap-5"><div><h3 className="text-xl font-bold">{vehicleDetails(upcoming.selectedClassId).name}</h3><p className="mt-1 text-sm text-white/75">Booking #: <strong className="text-white">{upcoming.reference}</strong> <button type="button" aria-label="Copy booking reference" onClick={() => { void navigator.clipboard?.writeText(upcoming.reference); }} className="ml-2 align-middle text-[#f4c748]"><Copy className="h-4 w-4" /></button></p></div><div className="flex flex-wrap gap-3 text-center text-xs">{["Request Received", "Driver Assigned", "On the Way", "Ride Completed"].map((label, i) => <div key={label} className="w-20"><div className={`mx-auto mb-2 flex h-7 w-7 items-center justify-center rounded-full border-2 ${i <= stageIndex ? "border-[#ecc04c] bg-[#eeb53c] text-black" : "border-white/50 text-white/60"}`}>{i < stageIndex ? "✓" : i + 1}</div>{label}</div>)}</div></div>
+              <div className="mt-5 flex flex-wrap gap-x-6 gap-y-3 border-t border-white/15 pt-4 text-sm"><span className="flex items-center gap-2"><Calendar className="h-5 w-5" />{displayDate(upcoming.date)} · {displayTime(upcoming.time)}</span><span className="flex items-center gap-2"><MapPin className="h-5 w-5" />{upcoming.pickup || "Pickup not set"} <ArrowRight className="h-4 w-4" /> {upcoming.rideType === "hourly" ? `${upcoming.durationHours} hour charter` : upcoming.dropoff || "Destination not set"}</span><span className="flex items-center gap-2"><User className="h-5 w-5" />{upcoming.passengersCount || 1} Passenger{(upcoming.passengersCount || 1) === 1 ? "" : "s"}</span></div></div></div>
+              <div className="mt-5 grid gap-4 rounded-xl border border-white/20 bg-white/[0.02] p-4 sm:grid-cols-3 sm:items-center"><div><p className="text-xs text-white/65">Your Driver</p><p className="font-semibold">{upcoming.chauffeur?.name || "Not assigned yet"}</p>{upcoming.chauffeur?.rating && <p className="mt-1 text-sm text-[#edc451]">★ {upcoming.chauffeur.rating}</p>}</div><div><p className="text-xs text-white/65">Vehicle</p><p className="text-sm font-semibold">{upcoming.chauffeur?.vehicleModel || vehicleDetails(upcoming.selectedClassId).name}</p></div><button type="button" disabled title="Driver contact will be available when dispatch is connected" className={`${dashboardButton} cursor-not-allowed opacity-50`}><Phone className="h-5 w-5 text-[#edc451]" />Contact Driver</button></div>
+              <div className="mt-4 grid gap-3 sm:grid-cols-3"><button onClick={() => setActiveTab("rides")} className={`${dashboardButton} !min-h-[46px] !border-[#d8ad3b] !text-[#edc451]`}><FileText className="h-5 w-5" />View Details</button><button onClick={() => goToEdit(upcoming)} className={`${dashboardButton} !min-h-[46px]`}><Edit3 className="h-5 w-5" />Modify Booking</button><button onClick={() => { if (window.confirm("Are you sure you want to cancel this booking?")) cancelBooking(upcoming.reference); }} className={`${dashboardButton} !min-h-[46px]`}><XCircle className="h-5 w-5" />Cancel Booking</button></div>
+            </section> : <div className="mt-4 rounded-2xl border border-white/20 bg-[#111214] p-8 text-center"><p className="font-semibold">No upcoming bookings</p><p className="mt-2 text-sm text-white/60">Your upcoming rides will appear here.</p><Link href="/book" className="mt-4 inline-block text-sm font-bold text-[#edc451]">Book a Ride →</Link></div>}
+            <h2 className="mt-8 text-xl font-bold sm:text-2xl">Past Bookings</h2><div className="mt-4 overflow-x-auto rounded-xl border border-white/25"><table className="w-full min-w-[760px] text-left text-sm"><thead className="bg-white/[0.06] text-white/80"><tr>{["Booking #", "Date & Time", "Route", "Vehicle", "Total", "Status", ""].map((heading, i) => <th key={i} className="px-4 py-3 font-medium">{heading}</th>)}</tr></thead><tbody>{past.map((b) => <tr key={b.reference} className="border-t border-white/15"><td className="px-4 py-4 font-semibold">{b.reference}</td><td className="px-4 py-4">{displayDate(b.date)}<br />{displayTime(b.time)}</td><td className="px-4 py-4">{b.pickup} → {b.rideType === "hourly" ? `${b.durationHours} hour charter` : b.dropoff}</td><td className="px-4 py-4">{vehicleDetails(b.selectedClassId).name}</td><td className="whitespace-nowrap px-4 py-4">CAD ${b.totalUsd.toFixed(2)}</td><td className="px-4 py-4"><span className={`rounded-full px-3 py-1 text-xs ${b.status === "Completed" ? "bg-green-900 text-green-100" : "bg-red-950 text-red-200"}`}>{b.status}</span></td><td className="px-4 py-4"><button onClick={() => setActiveTab("rides")} aria-label={`View ${b.reference}`} className="rounded bg-white/10 p-1"><ChevronRight className="h-5 w-5" /></button></td></tr>)}</tbody></table>{past.length === 0 && <p className="border-t border-white/15 px-4 py-7 text-center text-sm text-white/60">No past bookings yet.</p>}</div>
+            </>}
+          </div>
+        </main>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-canvas pt-28 pb-24">
@@ -306,6 +383,7 @@ export default function AccountDashboardPage() {
         </div>
 
         {/* Navigation Tabs */}
+        <button type="button" onClick={() => setActiveTab("dashboard")} className="text-sm font-semibold text-accent">← Back to Dashboard</button>
         <div className="flex flex-wrap gap-2 border-b border-line/10 pb-3">
           {[
             {
@@ -343,7 +421,7 @@ export default function AccountDashboardPage() {
         {/* TAB 1: MY PERSONAL RIDES */}
         {activeTab === "rides" && (
           <div className="space-y-6">
-            {bookings.length === 0 ? (
+            {personalBookings.length === 0 ? (
               <div className="rounded-3xl bg-card border border-line/12 p-12 text-center space-y-4">
                 <Car className="w-10 h-10 text-accent mx-auto" />
                 <h2 className="font-serif text-2xl text-ink font-semibold">
@@ -363,7 +441,7 @@ export default function AccountDashboardPage() {
                 </Link>
               </div>
             ) : (
-              bookings.map((b) => {
+              personalBookings.map((b) => {
                 const isCancelled = b.status === "Cancelled";
                 const isCompleted = b.status === "Completed";
                 const vehicle =
@@ -401,7 +479,7 @@ export default function AccountDashboardPage() {
                       <div className="flex items-center gap-4">
                         <button
                           type="button"
-                          onClick={() => setInvoiceBooking(b)}
+                          disabled title="Receipts are unavailable until payment is connected"
                           className="px-3.5 py-2 rounded-xl bg-field hover:bg-line/[0.08] border border-line/15 text-xs font-semibold text-ink flex items-center gap-1.5 transition-colors"
                         >
                           <FileText className="w-3.5 h-3.5 text-accent" />
@@ -558,13 +636,8 @@ export default function AccountDashboardPage() {
                         <div className="flex gap-2">
                           <button
                             type="button"
-                            onClick={() => {
-                              updateBookingSchedule(
-                                b.reference,
-                                editTime,
-                                editNotes
-                              );
-                              setEditingRef(null);
+                            onClick={async () => {
+                              if (await updateBookingSchedule(b.reference, editTime, editNotes)) setEditingRef(null);
                             }}
                             className="px-4 py-2 rounded-xl bg-gold-gradient text-obsidian-950 text-xs font-bold"
                           >
@@ -676,7 +749,7 @@ export default function AccountDashboardPage() {
                             </button>
                             <button
                               type="button"
-                              onClick={() => advanceBookingStatus(b.reference)}
+                              disabled title="Live dispatch is not connected"
                               className="px-3.5 py-2 rounded-xl bg-champagne-500/15 hover:bg-champagne-500/25 border border-champagne-500/35 text-xs font-semibold text-accent flex items-center gap-1.5"
                             >
                               <Sparkles className="w-3.5 h-3.5" />
@@ -688,6 +761,7 @@ export default function AccountDashboardPage() {
                         {!b.ratingScore && !isCancelled && (
                           <button
                             type="button"
+                            disabled title="Rating is not available yet"
                             onClick={() => {
                               setRatingRef(b.reference);
                               setStars(5);
@@ -758,15 +832,14 @@ export default function AccountDashboardPage() {
               />
               <button
                 type="button"
-                onClick={() => {
+                onClick={async () => {
                   if (!placeAddress.trim()) return;
-                  addSavedPlace({
+                  const saved = await addSavedPlace({
                     label: placeLabel,
                     address: placeAddress,
                     coords: placeCoords,
                   });
-                  setPlaceAddress("");
-                  setPlaceCoords(null);
+                  if (saved) { setPlaceAddress(""); setPlaceCoords(null); }
                 }}
                 className="w-full py-3.5 rounded-xl bg-gold-gradient text-obsidian-950 font-bold text-xs uppercase tracking-[0.14em] flex items-center justify-center gap-2"
               >
@@ -835,8 +908,7 @@ export default function AccountDashboardPage() {
                   Personal Details & Default Limousine Cabin
                 </h2>
                 <p className="text-xs text-muted mt-1">
-                  Your saved preferences are automatically sent to your
-                  chauffeur before every pickup across Canada.
+                  Your saved preferences will be included with your future booking requests.
                 </p>
               </div>
               <UserCheck className="w-6 h-6 text-accent" />

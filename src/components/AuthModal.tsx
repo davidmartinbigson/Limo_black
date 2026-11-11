@@ -9,8 +9,6 @@ import {
   Eye,
   EyeOff,
   Loader2,
-  ShieldCheck,
-  Sparkles,
   X,
 } from "lucide-react";
 import { useBooking } from "@/context/BookingContext";
@@ -62,16 +60,6 @@ export default function AuthModal() {
         return;
       }
       router.push("/account");
-    }
-  };
-
-  const handleDemoLogin = async (demoEmail: string, demoPass: string) => {
-    setError("");
-    setLoading(true);
-    const res = await loginAccount(demoEmail, demoPass);
-    setLoading(false);
-    if (res.ok) {
-      router.push(res.user?.role === "admin" ? "/admin" : "/account");
     }
   };
 
@@ -199,10 +187,11 @@ export default function AuthModal() {
 
               <div>
                 <label className="block text-xs text-muted mb-1">
-                  Email Address *
+                  Email Address or Owner Username *
                 </label>
                 <input
-                  type="email"
+                  type={mode === "signin" ? "text" : "email"}
+                  autoComplete="username"
                   required
                   placeholder="you@example.ca"
                   value={email}
@@ -213,13 +202,13 @@ export default function AuthModal() {
 
               <div>
                 <label className="block text-xs text-muted mb-1">
-                  Password {mode === "register" && "(Min. 6 characters)"} *
+                  Password {mode === "register" && "(Min. 8 characters)"} *
                 </label>
                 <div className="relative">
                   <input
                     type={showPass ? "text" : "password"}
                     required
-                    minLength={6}
+                    minLength={mode === "register" ? 8 : undefined}
                     placeholder="••••••••"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
@@ -249,37 +238,6 @@ export default function AuthModal() {
               </button>
             </form>
 
-            <div className="mt-5 pt-4 border-t border-line/10 space-y-2">
-              <div className="grid grid-cols-2 gap-2">
-                <button
-                  type="button"
-                  onClick={() =>
-                    handleDemoLogin(
-                      "d.macleod@baystreetcapital.ca",
-                      "Canada123!"
-                    )
-                  }
-                  className="py-2 px-3 rounded-xl bg-field hover:bg-line/[0.08] border border-champagne-500/30 text-[11px] text-accent font-semibold flex items-center justify-center gap-1.5 transition-colors"
-                >
-                  <Sparkles className="w-3 h-3 shrink-0" />
-                  Demo VIP Client
-                </button>
-                <button
-                  type="button"
-                  onClick={() =>
-                    handleDemoLogin("admin@limoblack.ca", "Admin123!")
-                  }
-                  className="py-2 px-3 rounded-xl bg-field hover:bg-line/[0.08] border border-line/15 text-[11px] text-ink font-semibold flex items-center justify-center gap-1.5 transition-colors"
-                >
-                  <ShieldCheck className="w-3 h-3 text-accent shrink-0" />
-                  Owner Dispatch
-                </button>
-              </div>
-              <p className="text-[11px] text-subtle text-center">
-                Personal ride history, GST/HST receipts, saved addresses &
-                Obsidian points
-              </p>
-            </div>
           </motion.div>
         </motion.div>
       )}

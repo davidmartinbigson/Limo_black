@@ -1,7 +1,7 @@
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import { SESSION_COOKIE_NAME, verifySessionToken } from "@/lib/jwt";
-import { getPostgresUrl, listBookingsForUser } from "@/lib/serverDb";
+import { getPostgresUrl, listBookingsForUser, getUserProfile } from "@/lib/serverDb";
 
 export async function GET() {
   try {
@@ -27,9 +27,11 @@ export async function GET() {
       session.role === "admin"
     );
 
+    const profile = await getUserProfile(session.id);
     return NextResponse.json({
       user: {
         ...session,
+        ...profile,
         tier:
           session.role === "admin"
             ? "Dispatch Administrator"
