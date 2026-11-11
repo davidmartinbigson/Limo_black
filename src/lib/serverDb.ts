@@ -281,3 +281,41 @@ export async function clearLoginAttempts(identifier: string): Promise<void> {
   const { createHash } = await import("crypto"); const key = createHash("sha256").update(identifier.toLowerCase()).digest("hex");
   const sql = await getPgClient(); if (sql) await sql`DELETE FROM limo_auth_limits WHERE key = ${key}`; else getMemStore().authAttempts.delete(key);
 }
+
+// Owner operations use persistent PostgreSQL only; never silently fall back to a fake store.
+async function adminDb() {
+  const sql = await getPgClient();
+  if (!sql) throw new Error('Database is not configured');
+  await sql`CREATE TABLE IF NOT EXISTS limo_drivers (id TEXT PRIMARY KEY, name TEXT NOT NULL, phone TEXT NOT NULL, email TEXT NOT NULL DEFAULT '', vehicle_model TEXT NOT NULL DEFAULT '', plate TEXT NOT NULL DEFAULT '', active BOOLEAN NOT NULL DEFAULT TRUE, created_at TIMESTAMPTZ NOT NULL DEFAULT NOW())`;
+  return sql;
+}
+export async function getAdminData() {
+  const sql = await adminDb();
+  const [bookings, drivers, customers] = await Promise.all([
+    sql`SELECT payload FROM limo_bookings ORDER BY created_at DESC`,
+    sql`SELECT id, name, phone, email, vehicle_model AS "vehicleModel", plate, active, created_at AS "createdAt" FROM limo_drivers ORDER BY created_at DESC`,
+    sql`SELECT u.id, u.name, u.email, u.phone, u.company, u.created_at AS "createdAt", COUNT(b.reference)::int AS "bookingCount" FROM limo_users u LEFT JOIN limo_bookings b ON b.user_email = u.email WHERE u.role = 'customer' GROUP BY u.id ORDER BY u.created_at DESC`
+  ]);
+  return { bookings: bookings.map(row => row.payload), drivers, customers };
+}
+export async function createAdminDriver(input: { name: string; phone: string; email: string; vehicleModel: string; plate: string }) {
+  const sql = await adminDb();
+  const rows = await sql`INSERT INTO limo_drivers (id, name, phone, email, vehicle_model, plate) VALUES (${crypto.randomUUID()}, ${input.name}, ${input.phone}, ${input.email}, ${input.vehicleModel}, ${input.plate}) RETURNING id`;
+  return rows[0];
+}
+export async function changeDriverActive(id: string, active: boolean) {
+  const sql = await adminDb();
+  const rows = await sql`UPDATE limo_drivers SET active = ${active} WHERE id = ${id} RETURNING id`;
+  return rows.length > 0;
+}
+export async function assignAdminDriver(reference: string, driverId: string) {
+  const sql = await adminDb();
+  const rows = await sql`UPDATE limo_bookings b SET payload = jsonb_set(jsonb_set(b.payload, '{chauffeur}', jsonb_build_object('name', d.name, 'phone', d.phone, 'vehicleModel', d.vehicle_model, 'plate', d.plate, 'rating', '', 'languages', '', 'driverId', d.id)), '{status}', to_jsonb('Chauffeur Assigned'::text)) FROM limo_drivers d WHERE b.reference = ${reference} AND d.id = ${driverId} AND d.active = TRUE AND b.payload->>'status' IN ('Confirmed', 'Chauffeur Assigned') RETURNING b.reference`;
+  return rows.length > 0;
+}
+export async function changeAdminBookingStatus(reference: string, status: string) {
+  const sql = await adminDb();
+  // Compare current status in the update itself, avoiding overwriting concurrent changes.
+  const rows = await sql`UPDATE limo_bookings SET payload = jsonb_set(payload, '{status}', to_jsonb(${status}::text)) WHERE reference = ${reference} AND (( ${status} = 'Chauffeur En Route' AND payload->>'status' = 'Chauffeur Assigned') OR (${status} = 'Chauffeur Arrived' AND payload->>'status' = 'Chauffeur En Route') OR (${status} = 'Completed' AND payload->>'status' = 'Chauffeur Arrived') OR (${status} = 'Cancelled' AND payload->>'status' IN ('Confirmed', 'Chauffeur Assigned', 'Chauffeur En Route', 'Chauffeur Arrived'))) RETURNING reference`;
+  return rows.length > 0;
+}
