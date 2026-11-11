@@ -14,9 +14,12 @@ import {
   ChevronDown,
   Clock,
   CreditCard,
+  Copy,
+  Mail,
+  PhoneCall,
+  XCircle,
   Eye,
   EyeOff,
-  FileText,
   Headphones,
   Loader2,
   Lock,
@@ -32,7 +35,6 @@ import {
 import { FleetClassId, GLOBAL_LOCATIONS } from "@/data/limoData";
 import { ConfirmedBooking, useBooking } from "@/context/BookingContext";
 import CanadianAddressInput from "@/components/CanadianAddressInput";
-import TaxInvoiceModal from "@/components/TaxInvoiceModal";
 
 function estimateRouteMetrics(
   pickup: string,
@@ -226,6 +228,7 @@ export default function BookPage() {
     updateDraft,
     updateCabin,
     confirmCurrentBooking,
+    cancelBooking,
     user,
     registerAccount,
     loginAccount,
@@ -254,14 +257,11 @@ export default function BookPage() {
   const [submitting, setSubmitting] = useState(false);
 
   // Step 4 payment method & terms states matching Review & Pay reference
-  const [paymentMethod, setPaymentMethod] = useState<
-    "card" | "paypal" | "gpay"
-  >("card");
-  const [agreedTerms, setAgreedTerms] = useState(true);
+  const [agreedTerms, setAgreedTerms] = useState(false);
 
   // Confirmed reservation state
   const [confirmed, setConfirmed] = useState<ConfirmedBooking | null>(null);
-  const [showInvoice, setShowInvoice] = useState(false);
+  const [copyMessage, setCopyMessage] = useState("");
 
   // Pre-fill passenger contact fields when user logs in
   useEffect(() => {
@@ -394,137 +394,108 @@ export default function BookPage() {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
-  const handleConfirmBooking = (e: React.FormEvent) => {
+  const handleConfirmBooking = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!draft.pickup.trim()) {
-      updateDraft({
-        pickup: "Toronto Pearson International Airport (YYZ)",
-      });
-    }
-    if (draft.rideType === "oneway" && !draft.dropoff.trim()) {
-      updateDraft({
-        dropoff: "Fairmont Royal York Hotel, 100 Front St W, Toronto, ON",
-      });
-    }
-    updateDraft({ selectedClassId: effectiveSelectedId });
-
-    const ownerEmail = user?.email || draft.email || "guest@limoblack.ca";
-    const result = confirmCurrentBooking(
-      selectedPriceCad,
-      routeMetrics.distanceKm,
-      routeMetrics.durationMin,
-      ownerEmail
-    );
-    setConfirmed(result);
-    window.scrollTo({ top: 0, behavior: "smooth" });
+    setAuthError("");
+    if (!user) { setAuthError("Please go back and sign in or create an account to submit your booking. Guest booking is not available yet."); return; }
+    if (!draft.pickup.trim() || (draft.rideType === "oneway" && !draft.dropoff.trim())) { setAuthError("Please enter your pickup and destination in Trip Details."); return; }
+    setSubmitting(true);
+    try {
+      const result = await confirmCurrentBooking(selectedPriceCad, routeMetrics.distanceKm, routeMetrics.durationMin);
+      setConfirmed(result);
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    } catch (error) { setAuthError(error instanceof Error ? error.message : "Unable to submit booking."); }
+    finally { setSubmitting(false); }
   };
 
   // =========================================================================
   // CONFIRMED RESERVATION VIEW
   // =========================================================================
   if (confirmed) {
+    const cancelled = confirmed.status === "Cancelled";
+    const calendarDownload = () => {
+      if (!confirmed.date || !confirmed.time) return;
+      const start = `${confirmed.date.replace(/-/g, "")}T${confirmed.time.replace(/:/g, "").slice(0, 4)}00`;
+      const escapeIcs = (value: string) => value.replace(/\\/g, "\\\\").replace(/\n/g, "\\n").replace(/,/g, "\\,").replace(/;/g, "\\;");
+      const event = ["BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//LimoBlack//Booking//EN", "BEGIN:VEVENT", `UID:${confirmed.reference}@limoblack.ca`, `DTSTAMP:${new Date().toISOString().replace(/[-:]/g, "").replace(/\.\d{3}/, "")}`, `DTSTART:${start}`, `DURATION:PT${confirmed.durationMin || 60}M`, "SUMMARY:LimoBlack ride", `LOCATION:${escapeIcs(confirmed.pickup || pickupSummary)}`, `DESCRIPTION:${escapeIcs(`Reservation ${confirmed.reference} - Destination: ${confirmed.dropoff || dropoffSummary}`)}`, "END:VEVENT", "END:VCALENDAR"].join("\r\n");
+      const url = URL.createObjectURL(new Blob([event], { type: "text/calendar;charset=utf-8" }));
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `${confirmed.reference}.ics`;
+      link.click();
+      URL.revokeObjectURL(url);
+    };
+    const copyReference = async () => {
+      try {
+        await navigator.clipboard.writeText(confirmed.reference);
+        setCopyMessage("Copied!");
+      } catch {
+        setCopyMessage("Unable to copy. Please select the reference instead.");
+      }
+    };
+    const buttonClass = "inline-flex min-h-[54px] items-center justify-center gap-3 rounded-2xl border border-[#181818] px-5 text-sm font-bold transition-colors hover:bg-[#f4f2ed]";
+
     return (
-      <div className="min-h-screen bg-[#FCFCFA] text-[#141416] pt-20 sm:pt-24 pb-20">
-        <div className="max-w-2xl mx-auto px-4 sm:px-6">
-          <div className="rounded-2xl bg-white border border-[#E6E4DC] shadow-[0_8px_30px_rgba(0,0,0,0.04)] p-7 sm:p-10 text-center space-y-6">
-            <div className="w-14 h-14 rounded-full bg-[#FAF6EC] border border-[#C9A65B] flex items-center justify-center mx-auto">
-              <CheckCircle2 className="w-7 h-7 text-[#C59B3F]" />
-            </div>
-
-            <div className="space-y-2">
-              <p className="text-xs font-bold uppercase tracking-[0.2em] text-[#B8923B]">
-                Reservation Confirmed • {confirmed.reference}
-              </p>
-              <h1 className="font-serif text-2xl sm:text-3xl font-bold text-[#111113]">
-                Your chauffeur is reserved.
-              </h1>
-              <p className="text-sm text-[#55555A]">
-                Confirmation sent to{" "}
-                <strong className="text-[#141416]">
-                  {confirmed.ownerEmail}
-                </strong>
-                . Chauffeur{" "}
-                <strong className="text-[#141416]">
-                  {confirmed.chauffeur.name}
-                </strong>{" "}
-                has been assigned to your trip.
-              </p>
-            </div>
-
-            <div className="rounded-xl bg-[#F7F6F2] border border-[#ECEAE2] p-5 text-left space-y-2.5 text-sm">
-              <div className="flex justify-between gap-4">
-                <span className="text-[#66666B]">Vehicle</span>
-                <span className="font-semibold text-[#141416]">
-                  {selectedVehicle.title}
-                </span>
-              </div>
-              <div className="flex justify-between gap-4">
-                <span className="text-[#66666B]">Pickup</span>
-                <span className="font-medium text-[#141416] text-right">
-                  {pickupSummary}
-                </span>
-              </div>
-              <div className="flex justify-between gap-4">
-                <span className="text-[#66666B]">Destination</span>
-                <span className="font-medium text-[#141416] text-right">
-                  {dropoffSummary}
-                </span>
-              </div>
-              <div className="flex justify-between gap-4">
-                <span className="text-[#66666B]">Date &amp; Time</span>
-                <span className="font-medium text-[#141416]">
-                  {formatDisplayDate(confirmed.date)} ·{" "}
-                  {formatDisplayTime(confirmed.time)}
-                </span>
-              </div>
-              <div className="pt-2.5 border-t border-[#E4E2DA] flex justify-between items-baseline">
-                <span className="font-semibold text-[#141416]">
-                  Total Paid (All-Inclusive)
-                </span>
-                <span className="text-lg font-extrabold text-[#111113]">
-                  CAD ${confirmed.totalUsd}
-                </span>
-              </div>
-            </div>
-
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
-              <button
-                type="button"
-                onClick={() => setShowInvoice(true)}
-                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-white border border-[#C9A65B] hover:bg-[#FAF6EC] text-sm font-semibold text-[#141416] transition-colors"
-              >
-                <FileText className="w-4 h-4 text-[#C59B3F]" />
-                GST/HST Tax Receipt
+      <div className="min-h-screen bg-[#fdfdfc] pt-20 text-[#111113]">
+        <section className="relative overflow-hidden bg-[#09090a] text-white">
+          <img src={selectedVehicle.bannerImage} alt="" className="absolute inset-0 h-full w-full object-cover object-right" />
+          <div className="absolute inset-0 bg-gradient-to-r from-[#09090a] via-[#09090a]/90 to-[#09090a]/20" />
+          <div className="relative mx-auto flex max-w-[1440px] items-start gap-5 px-5 py-12 sm:gap-7 sm:px-8 lg:px-10">
+            <CheckCircle2 className="mt-1 h-14 w-14 shrink-0 text-[#d5a339] sm:h-20 sm:w-20" strokeWidth={1.5} />
+            <div>
+              <h1 className="text-3xl font-bold tracking-tight sm:text-5xl">{cancelled ? "Booking Cancelled" : "Booking Request Received!"}</h1>
+              <p className="mt-3 text-base text-white/75 sm:text-xl">{cancelled ? "Your reservation has been cancelled." : "Your booking request has been saved. Dispatch and payment are pending."}</p>
+              <button type="button" onClick={copyReference} className="mt-5 inline-flex items-center gap-3 rounded-2xl border border-[#c99428] bg-black/40 px-5 py-3 text-sm text-[#edc46d] sm:text-base" aria-label="Copy reservation number">
+                Reservation #: <strong className="text-lg text-white">{confirmed.reference}</strong><Copy className="ml-2 h-5 w-5" />
               </button>
-
-              {user ? (
-                <Link
-                  href="/account"
-                  className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-2.5 rounded-xl bg-gradient-to-b from-[#DFBC6A] to-[#C69838] hover:from-[#E5C476] hover:to-[#CE9F3E] text-sm font-bold text-[#111113] transition-all"
-                >
-                  View My Rides
-                  <ArrowRight className="w-4 h-4" />
-                </Link>
-              ) : (
-                <Link
-                  href="/"
-                  className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-2.5 rounded-xl bg-gradient-to-b from-[#DFBC6A] to-[#C69838] hover:from-[#E5C476] hover:to-[#CE9F3E] text-sm font-bold text-[#111113] transition-all"
-                >
-                  Return to Home
-                  <ArrowRight className="w-4 h-4" />
-                </Link>
-              )}
+              <p className="mt-1 text-xs text-white/80" role="status">{copyMessage}</p>
             </div>
           </div>
-        </div>
+        </section>
 
-        {showInvoice && (
-          <TaxInvoiceModal
-            booking={confirmed}
-            companyName={user?.company || companyName}
-            onClose={() => setShowInvoice(false)}
-          />
-        )}
+        <div className="mx-auto max-w-[1440px] px-5 py-7 sm:px-8 lg:px-10">
+          <div className="grid gap-5 lg:grid-cols-3">
+            <section className="rounded-2xl border border-[#e2e2e2] bg-[#fafafa] p-6 sm:p-7">
+              <h2 className="flex items-center gap-4 text-xl font-bold"><Calendar className="h-7 w-7" />Trip Details</h2>
+              <div className="mt-7 space-y-5 text-sm font-medium sm:text-base">
+                <div className="flex gap-5"><MapPin className="h-6 w-6 shrink-0" /><div><p>{formatShortLocation(confirmed.pickup, "Toronto Pearson (YYZ)")}</p><p className="mt-4">{confirmed.rideType === "hourly" ? `${confirmed.durationHours} Hours Hourly Charter` : formatShortLocation(confirmed.dropoff, "Royal York Hotel, Toronto")}</p></div></div>
+                <div className="flex items-center gap-5"><Calendar className="h-6 w-6 shrink-0" />{formatDisplayDate(confirmed.date)}</div>
+                <div className="flex items-center gap-5"><Clock className="h-6 w-6 shrink-0" />{formatDisplayTime(confirmed.time)}</div>
+                <div className="flex items-center gap-5"><Users className="h-6 w-6 shrink-0" />{confirmed.passengersCount || 1} {(confirmed.passengersCount || 1) === 1 ? "Passenger" : "Passengers"}</div>
+              </div>
+            </section>
+            <section className="rounded-2xl border border-[#e2e2e2] bg-[#fafafa] p-6 sm:p-7">
+              <h2 className="flex items-center gap-4 text-xl font-bold"><CarFront className="h-7 w-7" />Your Vehicle</h2>
+              <img src={selectedVehicle.image} alt={selectedVehicle.title} className="mx-auto mt-2 h-36 w-full object-contain mix-blend-multiply" />
+              <div className="mx-auto max-w-[340px]"><h3 className="text-xl font-bold">{selectedVehicle.title}</h3><p className="mt-1 text-sm text-[#454545]">{selectedVehicle.modelSubtitle}</p>
+                <div className="mt-4 flex items-center gap-5 text-sm font-medium"><span className="flex items-center gap-2"><User className="h-6 w-6" />{selectedVehicle.passengersLabel}</span><span className="h-5 border-l border-[#ddd]" /><span className="flex items-center gap-2"><Briefcase className="h-6 w-6" />{selectedVehicle.luggageLabel}</span></div>
+              </div>
+            </section>
+            <section className="rounded-2xl border border-[#e2e2e2] bg-[#fafafa] p-6 sm:p-7">
+              <h2 className="flex items-center gap-4 text-xl font-bold"><CreditCard className="h-7 w-7" />Payment Summary</h2>
+              <div className="mt-8 flex justify-between gap-3 text-base font-medium"><span>Estimated Fare</span><span>CAD ${confirmed.totalUsd.toFixed(2)}</span></div>
+              <div className="mt-4 flex justify-between gap-3 border-t border-[#dedede] pt-4 text-lg font-bold"><span>Estimated Total (CAD)</span><span>CAD ${confirmed.totalUsd.toFixed(2)}</span></div>
+              <div className="mt-8 rounded-xl bg-[#fff5df] px-4 py-4 text-sm font-bold text-[#785400]">Payment not yet processed</div>
+              <p className="mt-3 text-sm text-[#454545]">No payment has been collected and no confirmation email has been sent through this site.</p>
+            </section>
+          </div>
+
+          <div className="mx-auto mt-8 grid max-w-[1240px] gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            <button type="button" onClick={calendarDownload} disabled={!confirmed.date || !confirmed.time || cancelled} className={`${buttonClass} border-[#d19a2d] bg-gradient-to-b from-[#f8c35d] to-[#d99517] hover:from-[#f8cc76] disabled:opacity-50`}><Calendar className="h-5 w-5" />Add to Calendar</button>
+            <button type="button" disabled title="Email confirmations are not available yet" className={`${buttonClass} cursor-not-allowed opacity-50`}><Mail className="h-5 w-5" />Resend Confirmation</button>
+            <Link href={user ? "/account" : "/login"} className={buttonClass}><Pencil className="h-5 w-5" />Modify Booking</Link>
+            <button type="button" disabled={cancelled} onClick={async () => { if (window.confirm("Are you sure you want to cancel this booking?") && await cancelBooking(confirmed.reference)) setConfirmed({ ...confirmed, status: "Cancelled" }); }} className={`${buttonClass} border-[#b32727] text-[#b32727] hover:bg-[#fff5f5] disabled:opacity-50`}><XCircle className="h-5 w-5" />{cancelled ? "Booking Cancelled" : "Cancel Booking"}</button>
+          </div>
+          {!user && <p className="mt-3 text-center text-xs text-[#666]">Sign in to your account to manage your rides.</p>}
+          <p className="mt-5 text-center text-xs text-[#666]">A payment receipt is not available until payment is processed.</p>
+
+          <section className="mt-10 grid gap-7 rounded-2xl bg-[#f8f6f1] px-7 py-8 sm:grid-cols-2 lg:grid-cols-[0.8fr_1fr_1fr_1fr] lg:items-center">
+            <h2 className="text-2xl font-bold">What’s Next?</h2>
+            <div className="flex gap-4"><Mail className="h-8 w-8 shrink-0 text-[#c99220]" /><div><h3 className="font-bold">Save Your Reference</h3><p className="mt-1 text-sm text-[#454545]">Keep your reservation number for your records.</p></div></div>
+            <div className="flex gap-4 lg:border-l lg:border-[#dedbd5] lg:pl-7"><PhoneCall className="h-8 w-8 shrink-0 text-[#c99220]" /><div><h3 className="font-bold">Driver Assignment</h3><p className="mt-1 text-sm text-[#454545]">Check your account for your driver’s details.</p></div></div>
+            <div className="flex gap-4 lg:border-l lg:border-[#dedbd5] lg:pl-7"><MapPin className="h-8 w-8 shrink-0 text-[#c99220]" /><div><h3 className="font-bold">Your Ride</h3><p className="mt-1 text-sm text-[#454545]">View your booking details in your account.</p></div></div>
+          </section>
+        </div>
       </div>
     );
   }
@@ -619,7 +590,7 @@ export default function BookPage() {
       {step === 4 ? (
         <div className="px-6 py-5 border-b border-[#E8E6DF] space-y-3">
           <div className="flex items-center justify-between text-[14px]">
-            <span className="font-bold text-[#141416]">Trip Fare</span>
+            <span className="font-bold text-[#141416]">Estimated Fare</span>
             <span className="font-extrabold text-[#111113]">
               CAD ${selectedPriceCad}
             </span>
@@ -663,7 +634,7 @@ export default function BookPage() {
         <div className="px-1 flex flex-col items-center justify-center gap-1.5">
           <ShieldCheck className="w-5 h-5 text-[#C89B3C] stroke-[1.9]" />
           <span className="text-[11.5px] font-medium text-[#2A2A2E] leading-tight">
-            {step === 4 ? "Secure Payment" : "Secure Booking"}
+            {step === 4 ? "Payment Pending" : "Booking Request"}
           </span>
         </div>
         <div className="px-1 flex flex-col items-center justify-center gap-1.5">
@@ -807,7 +778,7 @@ export default function BookPage() {
           <p className="text-sm sm:text-[15.5px] text-[#4E4E54] mt-1.5">
             {step === 3
               ? "Provide your details to confirm the booking."
-              : "Confirm your trip details and complete your booking securely."}
+              : "Review your trip details and submit a booking request."}
           </p>
         </div>
       ) : (
@@ -1258,7 +1229,7 @@ export default function BookPage() {
                       <div>
                         <label className="block text-[12.5px] font-semibold text-[#1E1E22] mb-1.5">
                           {accountMode === "signup"
-                            ? "Create Password (Min. 6 chars)"
+                            ? "Create Password (Min. 8 chars)"
                             : "Account Password"}{" "}
                           <span className="text-red-500">*</span>
                         </label>
@@ -1419,6 +1390,8 @@ export default function BookPage() {
             {/* ============================================================= */}
             {step === 4 && (
               <form onSubmit={handleConfirmBooking} className="space-y-4">
+                {authError && <p role="alert" className="rounded-xl bg-red-50 p-4 text-sm text-red-700">{authError}</p>}
+                <p className="rounded-xl bg-amber-50 p-4 text-sm text-amber-900">No payment is collected now. This is a booking request; fare and dispatch are not yet confirmed.</p>
                 {/* CARD 1: Trip Details */}
                 <div className="rounded-2xl bg-white border border-[#E6E6E2] shadow-[0_2px_12px_rgba(0,0,0,0.025)] px-6 py-5">
                   <div className="flex items-center justify-between pb-3.5 border-b border-[#F2F2EE]">
@@ -1540,188 +1513,7 @@ export default function BookPage() {
                     </h2>
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-start">
-                    {/* Left: 3 Payment Radio Rows */}
-                    <div className="md:col-span-8 space-y-2.5">
-                      {/* Option 1: Credit / Debit Card */}
-                      <button
-                        type="button"
-                        onClick={() => setPaymentMethod("card")}
-                        className={`w-full text-left rounded-xl px-4 py-3.5 flex items-center justify-between gap-3 transition-all ${
-                          paymentMethod === "card"
-                            ? "bg-[#FAF6EC] border-[1.5px] border-[#CEAA56]"
-                            : "bg-[#FAFAFA] hover:bg-[#F6F5F0] border border-[#EAEAE6]"
-                        }`}
-                      >
-                        <div className="flex items-center gap-3">
-                          <span
-                            className={`w-[18px] h-[18px] rounded-full flex items-center justify-center shrink-0 ${
-                              paymentMethod === "card"
-                                ? "bg-[#D8AF4F]"
-                                : "bg-white border-[1.5px] border-[#B8B8BE]"
-                            }`}
-                          >
-                            {paymentMethod === "card" && (
-                              <span className="w-2 h-2 rounded-full bg-[#111113]" />
-                            )}
-                          </span>
-                          <CreditCard className="w-5 h-5 text-[#141416] stroke-[1.9] shrink-0" />
-                          <span className="text-[14px] font-semibold text-[#111113]">
-                            Credit / Debit Card
-                          </span>
-                        </div>
-
-                        {/* Visa, Mastercard, Amex, Apple Pay Badges */}
-                        <div className="flex items-center gap-2 shrink-0">
-                          <span className="text-[12px] font-extrabold italic tracking-tight text-[#1A1F71]">
-                            VISA
-                          </span>
-                          <svg
-                            viewBox="0 0 28 18"
-                            className="w-6 h-4"
-                            aria-hidden="true"
-                          >
-                            <circle cx="10" cy="9" r="7" fill="#EB001B" />
-                            <circle
-                              cx="18"
-                              cy="9"
-                              r="7"
-                              fill="#F79E1B"
-                              fillOpacity="0.9"
-                            />
-                          </svg>
-                          <span className="px-1.5 py-0.5 rounded-[3px] bg-[#006FCF] text-white text-[9px] font-extrabold tracking-tight leading-none">
-                            AMEX
-                          </span>
-                          <span className="text-[11.5px] font-bold text-[#111113] tracking-tight hidden sm:inline">
-                             Pay
-                          </span>
-                        </div>
-                      </button>
-
-                      {/* Option 2: PayPal */}
-                      <button
-                        type="button"
-                        onClick={() => setPaymentMethod("paypal")}
-                        className={`w-full text-left rounded-xl px-4 py-3.5 flex items-center gap-3 transition-all ${
-                          paymentMethod === "paypal"
-                            ? "bg-[#FAF6EC] border-[1.5px] border-[#CEAA56]"
-                            : "bg-[#FAFAFA] hover:bg-[#F6F5F0] border border-[#EAEAE6]"
-                        }`}
-                      >
-                        <span
-                          className={`w-[18px] h-[18px] rounded-full flex items-center justify-center shrink-0 ${
-                            paymentMethod === "paypal"
-                              ? "bg-[#D8AF4F]"
-                              : "bg-white border-[1.5px] border-[#B8B8BE]"
-                          }`}
-                        >
-                          {paymentMethod === "paypal" && (
-                            <span className="w-2 h-2 rounded-full bg-[#111113]" />
-                          )}
-                        </span>
-
-                        <svg
-                          viewBox="0 0 20 22"
-                          className="w-4 h-4 shrink-0"
-                          aria-hidden="true"
-                        >
-                          <path
-                            d="M6.2 2h6.1c3.1 0 5 1.5 4.6 4.4-.5 3.3-2.7 4.9-6 4.9H8.6L7.4 19H3.8L6.2 2z"
-                            fill="#003087"
-                          />
-                          <path
-                            d="M8.5 6.2h5.2c2.5 0 4 1.3 3.6 3.8-.4 2.8-2.3 4.2-5.1 4.2h-2l-1 6.8H6.1l2.4-14.8z"
-                            fill="#009CDE"
-                            fillOpacity="0.85"
-                          />
-                        </svg>
-
-                        <span className="text-[14px] font-medium text-[#141416]">
-                          PayPal
-                        </span>
-                      </button>
-
-                      {/* Option 3: Google Pay */}
-                      <button
-                        type="button"
-                        onClick={() => setPaymentMethod("gpay")}
-                        className={`w-full text-left rounded-xl px-4 py-3.5 flex items-center gap-3 transition-all ${
-                          paymentMethod === "gpay"
-                            ? "bg-[#FAF6EC] border-[1.5px] border-[#CEAA56]"
-                            : "bg-[#FAFAFA] hover:bg-[#F6F5F0] border border-[#EAEAE6]"
-                        }`}
-                      >
-                        <span
-                          className={`w-[18px] h-[18px] rounded-full flex items-center justify-center shrink-0 ${
-                            paymentMethod === "gpay"
-                              ? "bg-[#D8AF4F]"
-                              : "bg-white border-[1.5px] border-[#B8B8BE]"
-                          }`}
-                        >
-                          {paymentMethod === "gpay" && (
-                            <span className="w-2 h-2 rounded-full bg-[#111113]" />
-                          )}
-                        </span>
-
-                        <span className="inline-flex items-center gap-1 font-bold text-[13px] text-[#202124]">
-                          <svg
-                            viewBox="0 0 24 24"
-                            className="w-4 h-4 shrink-0"
-                            aria-hidden="true"
-                          >
-                            <path
-                              fill="#4285F4"
-                              d="M23.5 12.3c0-.8-.1-1.6-.2-2.3H12v4.5h6.5c-.3 1.5-1.1 2.8-2.4 3.6v3h3.9c2.3-2.1 3.5-5.2 3.5-8.8z"
-                            />
-                            <path
-                              fill="#34A853"
-                              d="M12 24c3.2 0 6-1.1 8-2.9l-3.9-3c-1.1.7-2.5 1.2-4.1 1.2-3.1 0-5.8-2.1-6.7-5H1.3v3.1C3.3 21.4 7.4 24 12 24z"
-                            />
-                            <path
-                              fill="#FBBC05"
-                              d="M5.3 14.3c-.2-.7-.4-1.5-.4-2.3s.2-1.6.4-2.3V6.6H1.3C.5 8.2 0 10.1 0 12s.5 3.8 1.3 5.4l4-3.1z"
-                            />
-                            <path
-                              fill="#EA4335"
-                              d="M12 4.8c1.8 0 3.3.6 4.6 1.8l3.4-3.4C17.9 1.2 15.2 0 12 0 7.4 0 3.3 2.6 1.3 6.6l4 3.1c.9-2.9 3.6-4.9 6.7-4.9z"
-                            />
-                          </svg>
-                          <span>Pay</span>
-                        </span>
-
-                        <span className="text-[14px] font-medium text-[#141416]">
-                          Google Pay
-                        </span>
-                      </button>
-                    </div>
-
-                    {/* Right: Secure Payment & PCI DSS Badge */}
-                    <div className="md:col-span-4 space-y-4 pt-1">
-                      <div>
-                        <div className="flex items-center gap-2 text-[13.5px] font-bold text-[#111113]">
-                          <Lock className="w-4 h-4 text-[#141416] stroke-[2]" />
-                          <span>Secure Payment</span>
-                        </div>
-                        <p className="text-[12px] text-[#5A5A62] leading-relaxed mt-1.5">
-                          Your payment information is encrypted and processed
-                          securely.
-                        </p>
-                      </div>
-
-                      <div className="flex items-center gap-2.5 pt-2">
-                        <ShieldCheck className="w-7 h-7 text-[#6E6E77] stroke-[1.6] shrink-0" />
-                        <div className="leading-tight">
-                          <span className="block text-[12px] font-bold text-[#222226]">
-                            PCI DSS
-                          </span>
-                          <span className="block text-[11.5px] text-[#5A5A62]">
-                            Compliant
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
+                  <p className="text-sm leading-relaxed text-[#555]">Online payment is not available yet. No card or payment details are collected.</p>
 
                   {/* Terms & Cancellation Agreement Checkbox */}
                   <label className="mt-5 inline-flex items-center gap-2.5 cursor-pointer select-none">
@@ -1772,11 +1564,11 @@ export default function BookPage() {
 
                     <button
                       type="submit"
-                      disabled={!agreedTerms}
+                      disabled={!agreedTerms || submitting}
                       className="inline-flex items-center justify-center gap-2.5 px-9 py-3.5 rounded-xl bg-gradient-to-b from-[#DFBC6A] to-[#C69838] hover:from-[#E6C577] hover:to-[#CF9F3E] text-[15px] font-bold text-[#111113] shadow-[0_4px_14px_rgba(198,152,56,0.28)] transition-all disabled:opacity-50"
                     >
                       <Lock className="w-4 h-4 text-[#111113] stroke-[2.3]" />
-                      Confirm &amp; Pay CAD ${selectedPriceCad}
+                      {submitting ? "Submitting..." : "Submit Booking Request"}
                     </button>
                   </div>
                 </div>

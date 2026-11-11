@@ -23,6 +23,8 @@ export interface StoredBookingRow {
 interface MemoryStore {
   users: Map<string, StoredUser>;
   bookings: Map<string, StoredBookingRow>;
+  profiles: Map<string, Record<string, unknown>>;
+  authAttempts: Map<string, { count: number; until: number }>;
   seeded: boolean;
 }
 
@@ -36,38 +38,12 @@ function getMemStore(): MemoryStore {
     globalThis.__limoBlackMemStore = {
       users: new Map(),
       bookings: new Map(),
+      profiles: new Map(),
+      authAttempts: new Map(),
       seeded: false,
     };
   }
-  const store = globalThis.__limoBlackMemStore;
-  if (!store.seeded) {
-    store.seeded = true;
-    const vipHash = bcrypt.hashSync("Canada123!", 8);
-    const adminHash = bcrypt.hashSync("Admin123!", 8);
-
-    store.users.set("d.macleod@baystreetcapital.ca", {
-      id: "usr-vip-01",
-      name: "David MacLeod",
-      email: "d.macleod@baystreetcapital.ca",
-      phone: "+1 (416) 555-0194",
-      passwordHash: vipHash,
-      role: "customer",
-      company: "Bay Street Capital Partners",
-      createdAt: "2025-06-15T12:00:00Z",
-    });
-
-    store.users.set("admin@limoblack.ca", {
-      id: "usr-admin-01",
-      name: "Limo Black Dispatch Admin",
-      email: "admin@limoblack.ca",
-      phone: "+1 (888) 555-5466",
-      passwordHash: adminHash,
-      role: "admin",
-      company: "Limo Black Canada HQ",
-      createdAt: "2025-01-01T00:00:00Z",
-    });
-  }
-  return store;
+  return globalThis.__limoBlackMemStore;
 }
 
 export function getPostgresUrl(): string | null {
@@ -83,7 +59,10 @@ let pgSchemaReady = false;
 
 async function getPgClient() {
   const url = getPostgresUrl();
-  if (!url) return null;
+  if (!url) {
+    if (process.env.NODE_ENV === "production") throw new Error("Database is not configured");
+    return null;
+  }
   const sql = neon(url);
   if (!pgSchemaReady) {
     await sql`
@@ -106,6 +85,8 @@ async function getPgClient() {
         created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
       );
     `;
+    await sql`CREATE TABLE IF NOT EXISTS limo_profiles (user_id TEXT PRIMARY KEY REFERENCES limo_users(id) ON DELETE CASCADE, payload JSONB NOT NULL DEFAULT '{}'::jsonb, updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW())`;
+    await sql`CREATE TABLE IF NOT EXISTS limo_auth_limits (key TEXT PRIMARY KEY, attempts INTEGER NOT NULL, expires_at TIMESTAMPTZ NOT NULL)`;
     pgSchemaReady = true;
   }
   return sql;
@@ -148,12 +129,10 @@ export async function createUserAccount(input: {
   company?: string;
 }): Promise<StoredUser> {
   const email = input.email.trim().toLowerCase();
-  const id = `usr-${Date.now().toString(36)}-${Math.random()
-    .toString(36)
-    .slice(2, 6)}`;
+  const id = crypto.randomUUID();
   const passwordHash = await bcrypt.hash(input.password, 10);
-  const role: "customer" | "admin" =
-    email === "admin@limoblack.ca" ? "admin" : "customer";
+  // Public signup must never grant administrative privileges.
+  const role: "customer" | "admin" = "customer";
   const createdAt = new Date().toISOString();
 
   const user: StoredUser = {
@@ -188,15 +167,18 @@ export async function saveBookingRecord(
   const email = userEmail.trim().toLowerCase();
   const sql = await getPgClient();
   if (sql) {
-    await sql`
+    const rows = await sql`
       INSERT INTO limo_bookings (reference, user_email, payload)
       VALUES (${reference}, ${email}, ${JSON.stringify(payload)}::jsonb)
-      ON CONFLICT (reference)
-      DO UPDATE SET payload = EXCLUDED.payload;
+      ON CONFLICT (reference) DO NOTHING
+      RETURNING reference;
     `;
+    if (!rows.length) throw new Error("Booking cannot be updated");
     return;
   }
 
+  const existing = getMemStore().bookings.get(reference);
+  if (existing) throw new Error("Booking already exists");
   getMemStore().bookings.set(reference, {
     reference,
     userEmail: email,
@@ -223,4 +205,79 @@ export async function listBookingsForUser(
     ? all
     : all.filter((b) => b.userEmail === email);
   return filtered.reverse().map((b) => b.payload);
+}
+
+// Updates only the authenticated owner's active booking; never replaces its owner or fare.
+export async function cancelOwnedBooking(reference: string, email: string): Promise<Record<string, unknown> | null> {
+  const sql = await getPgClient();
+  const owner = email.trim().toLowerCase();
+  if (sql) {
+    const rows = await sql`UPDATE limo_bookings SET payload = jsonb_set(payload, '{status}', '"Cancelled"'::jsonb)
+      WHERE reference = ${reference} AND user_email = ${owner}
+      AND payload->>'status' NOT IN ('Cancelled', 'Completed') RETURNING payload`;
+    return rows.length ? rows[0].payload as Record<string, unknown> : null;
+  }
+  const record = getMemStore().bookings.get(reference);
+  if (!record || record.userEmail !== owner || ["Cancelled", "Completed"].includes(String(record.payload.status))) return null;
+  record.payload = { ...record.payload, status: "Cancelled" };
+  return record.payload;
+}
+
+export async function getUserProfile(id: string): Promise<Record<string, unknown>> {
+  const sql = await getPgClient();
+  if (sql) { const rows = await sql`SELECT payload FROM limo_profiles WHERE user_id = ${id}`; return rows.length ? rows[0].payload as Record<string, unknown> : {}; }
+  return getMemStore().profiles.get(id) || {};
+}
+export async function setUserProfile(id: string, profile: Record<string, unknown>): Promise<void> {
+  const sql = await getPgClient();
+  if (sql) { await sql`INSERT INTO limo_profiles (user_id, payload) VALUES (${id}, ${JSON.stringify(profile)}::jsonb) ON CONFLICT (user_id) DO UPDATE SET payload = EXCLUDED.payload, updated_at = NOW()`; return; }
+  getMemStore().profiles.set(id, profile);
+}
+
+export async function rescheduleOwnedBooking(reference: string, email: string, time: string, notes: string): Promise<Record<string, unknown> | null> {
+  const sql = await getPgClient();
+  const owner = email.trim().toLowerCase();
+  if (sql) {
+    const rows = await sql`UPDATE limo_bookings SET payload = jsonb_set(jsonb_set(payload, '{time}', to_jsonb(${time}::text)), '{cabin,notes}', to_jsonb(${notes}::text))
+      WHERE reference = ${reference} AND user_email = ${owner} AND payload->>'status' = 'Confirmed' AND jsonb_typeof(payload->'cabin') = 'object' RETURNING payload`;
+    return rows.length ? rows[0].payload as Record<string, unknown> : null;
+  }
+  const record = getMemStore().bookings.get(reference);
+  if (!record || record.userEmail !== owner || record.payload.status !== "Confirmed" || !record.payload.cabin || typeof record.payload.cabin !== "object") return null;
+  record.payload = { ...record.payload, time, cabin: { ...(record.payload.cabin as Record<string, unknown>), notes } };
+  return record.payload;
+}
+
+// Initial owner is created only after a secret supplied through server configuration is verified.
+export async function bootstrapOwner(password: string): Promise<StoredUser | null> {
+  const bootstrap = process.env.OWNER_BOOTSTRAP_PASSWORD;
+  if (!bootstrap || bootstrap.length < 12 || Buffer.byteLength(bootstrap, "utf8") > 72) return null;
+  const { timingSafeEqual } = await import("crypto");
+  const a = Buffer.from(password); const b = Buffer.from(bootstrap);
+  if (a.length !== b.length || !timingSafeEqual(a, b)) return null;
+  const email = "owner@limoblack.invalid";
+  if (await findUserByEmail(email)) return null;
+  const sql = await getPgClient();
+  if (!sql) return null;
+  const id = crypto.randomUUID();
+  const hash = await bcrypt.hash(password, 12);
+  const rows = await sql`INSERT INTO limo_users (id, name, email, phone, password_hash, role) VALUES (${id}, 'Owner', ${email}, '', ${hash}, 'admin') ON CONFLICT (email) DO NOTHING RETURNING id`;
+  return rows.length ? findUserByEmail(email) : null;
+}
+
+export async function consumeLoginAttempt(identifier: string): Promise<boolean> {
+  const { createHash } = await import("crypto");
+  const key = createHash("sha256").update(identifier.toLowerCase()).digest("hex");
+  const sql = await getPgClient();
+  if (sql) {
+    const rows = await sql`INSERT INTO limo_auth_limits (key, attempts, expires_at) VALUES (${key}, 1, NOW() + INTERVAL '15 minutes') ON CONFLICT (key) DO UPDATE SET attempts = CASE WHEN limo_auth_limits.expires_at < NOW() THEN 1 ELSE limo_auth_limits.attempts + 1 END, expires_at = CASE WHEN limo_auth_limits.expires_at < NOW() THEN NOW() + INTERVAL '15 minutes' ELSE limo_auth_limits.expires_at END RETURNING attempts`;
+    return Number(rows[0].attempts) <= 10;
+  }
+  const store = getMemStore().authAttempts; let current = store.get(key);
+  if (!current || current.until < Date.now()) current = { count: 0, until: Date.now() + 900000 };
+  current.count++; store.set(key, current); return current.count <= 10;
+}
+export async function clearLoginAttempts(identifier: string): Promise<void> {
+  const { createHash } = await import("crypto"); const key = createHash("sha256").update(identifier.toLowerCase()).digest("hex");
+  const sql = await getPgClient(); if (sql) await sql`DELETE FROM limo_auth_limits WHERE key = ${key}`; else getMemStore().authAttempts.delete(key);
 }

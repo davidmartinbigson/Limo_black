@@ -10,10 +10,8 @@ export interface SessionPayload {
 }
 
 const getSecret = () => {
-  const raw =
-    process.env.JWT_SECRET ||
-    process.env.AUTH_SECRET ||
-    "limo-black-canada-vip-session-secret-key-2026";
+  const raw = process.env.JWT_SECRET || process.env.AUTH_SECRET;
+  if (!raw || raw.length < 32) throw new Error("A strong session secret is required");
   return new TextEncoder().encode(raw);
 };
 
