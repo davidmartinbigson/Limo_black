@@ -1,7 +1,8 @@
 import { cookies, headers } from 'next/headers';
 import { NextResponse } from 'next/server';
 import { SESSION_COOKIE_NAME, verifySessionToken } from '@/lib/jwt';
-import { findUserByEmail, getAdminData, createAdminDriver, changeDriverActive, assignAdminDriver, changeAdminBookingStatus } from '@/lib/serverDb';
+import { parseDriverInput } from '@/lib/driverAuth';
+import { findUserByEmail, getAdminData, createDriverAccount, setDriverCredentials, approveDriver, changeDriverActive, assignAdminDriver, changeAdminBookingStatus } from '@/lib/serverDb';
 
 async function authorize() {
   const token = (await cookies()).get(SESSION_COOKIE_NAME)?.value;
@@ -29,9 +30,15 @@ export async function POST(req: Request) {
     const b = await req.json();
     const clean = (v: unknown, max: number) => typeof v === 'string' && v.trim().length <= max ? v.trim() : null;
     if (b.action === 'createDriver') {
-      const name = clean(b.name, 120), phone = clean(b.phone, 40), email = clean(b.email, 254), vehicleModel = clean(b.vehicleModel, 120), plate = clean(b.plate, 30);
-      if (!name || !phone || email === null || vehicleModel === null || plate === null || (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))) return NextResponse.json({ error: 'Enter a name, phone number and valid driver details.' }, { status: 400 });
-      await createAdminDriver({ name, phone, email, vehicleModel, plate });
+      const input = parseDriverInput(b);
+      if (!input) return NextResponse.json({ error: 'Provide a name, phone, valid email and a password of 12–72 bytes.' }, { status: 400 });
+      await createDriverAccount(input, true);
+    } else if (b.action === 'approveDriver' && typeof b.id === 'string' && b.id.length <= 80) {
+      if (!await approveDriver(b.id)) return NextResponse.json({ error: 'Pending driver not found.' }, { status: 404 });
+    } else if (b.action === 'driverCredentials' && typeof b.id === 'string' && b.id.length <= 80) {
+      const email = clean(b.email, 254)?.toLowerCase(), password = typeof b.password === 'string' ? b.password : '';
+      if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || password.length < 12 || Buffer.byteLength(password, 'utf8') > 72) return NextResponse.json({ error: 'Enter a valid email and password of 12–72 bytes.' }, { status: 400 });
+      if (!await setDriverCredentials(b.id, email, password)) return NextResponse.json({ error: 'Driver not found or awaiting approval.' }, { status: 404 });
     } else if (b.action === 'driverActive' && typeof b.id === 'string' && b.id.length <= 80 && typeof b.active === 'boolean') {
       if (!await changeDriverActive(b.id, b.active)) return NextResponse.json({ error: 'Driver not found.' }, { status: 404 });
     } else if (b.action === 'assign' && typeof b.reference === 'string' && b.reference.length <= 80 && typeof b.driverId === 'string' && b.driverId.length <= 80) {
@@ -40,5 +47,5 @@ export async function POST(req: Request) {
       if (!await changeAdminBookingStatus(b.reference, b.status)) return NextResponse.json({ error: 'This status change is not available. Refresh and try again.' }, { status: 409 });
     } else return NextResponse.json({ error: 'Invalid request.' }, { status: 400 });
     return NextResponse.json({ ok: true });
-  } catch { return NextResponse.json({ error: 'Unable to save changes.' }, { status: 503 }); }
+  } catch (error) { if (error && typeof error === 'object' && 'code' in error && error.code === '23505') return NextResponse.json({ error: 'That driver email is already in use.' }, { status: 409 }); return NextResponse.json({ error: 'Unable to save changes.' }, { status: 503 }); }
 }
