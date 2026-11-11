@@ -117,6 +117,7 @@ export default function LoginPage() {
             Create an Account
           </Link>
         </p>
+        <p className="text-center text-xs text-muted">Driver? <Link href="/driver/login" className="text-accent underline">Driver sign in</Link> or <Link href="/driver/signup" className="text-accent underline">apply here</Link>.</p>
       </div>
     </div>
   );

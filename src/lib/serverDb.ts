@@ -287,25 +287,54 @@ async function adminDb() {
   const sql = await getPgClient();
   if (!sql) throw new Error('Database is not configured');
   await sql`CREATE TABLE IF NOT EXISTS limo_drivers (id TEXT PRIMARY KEY, name TEXT NOT NULL, phone TEXT NOT NULL, email TEXT NOT NULL DEFAULT '', vehicle_model TEXT NOT NULL DEFAULT '', plate TEXT NOT NULL DEFAULT '', active BOOLEAN NOT NULL DEFAULT TRUE, created_at TIMESTAMPTZ NOT NULL DEFAULT NOW())`;
+  await sql`CREATE TABLE IF NOT EXISTS limo_driver_auth (driver_id TEXT PRIMARY KEY REFERENCES limo_drivers(id) ON DELETE CASCADE, email TEXT NOT NULL UNIQUE, password_hash TEXT NOT NULL, approved BOOLEAN NOT NULL DEFAULT FALSE, token_version INTEGER NOT NULL DEFAULT 1)`;
   return sql;
 }
 export async function getAdminData() {
   const sql = await adminDb();
   const [bookings, drivers, customers] = await Promise.all([
     sql`SELECT payload FROM limo_bookings ORDER BY created_at DESC`,
-    sql`SELECT id, name, phone, email, vehicle_model AS "vehicleModel", plate, active, created_at AS "createdAt" FROM limo_drivers ORDER BY created_at DESC`,
+    sql`SELECT d.id, d.name, d.phone, COALESCE(a.email, d.email) AS email, d.vehicle_model AS "vehicleModel", d.plate, d.active, d.created_at AS "createdAt", a.approved, (a.driver_id IS NOT NULL) AS "hasLogin" FROM limo_drivers d LEFT JOIN limo_driver_auth a ON a.driver_id = d.id ORDER BY d.created_at DESC`,
     sql`SELECT u.id, u.name, u.email, u.phone, u.company, u.created_at AS "createdAt", COUNT(b.reference)::int AS "bookingCount" FROM limo_users u LEFT JOIN limo_bookings b ON b.user_email = u.email WHERE u.role = 'customer' GROUP BY u.id ORDER BY u.created_at DESC`
   ]);
   return { bookings: bookings.map(row => row.payload), drivers, customers };
 }
-export async function createAdminDriver(input: { name: string; phone: string; email: string; vehicleModel: string; plate: string }) {
+export async function createDriverAccount(input: { name: string; phone: string; email: string; vehicleModel: string; plate: string; password: string }, approved: boolean) {
   const sql = await adminDb();
-  const rows = await sql`INSERT INTO limo_drivers (id, name, phone, email, vehicle_model, plate) VALUES (${crypto.randomUUID()}, ${input.name}, ${input.phone}, ${input.email}, ${input.vehicleModel}, ${input.plate}) RETURNING id`;
-  return rows[0];
+  const hash = await bcrypt.hash(input.password, 12);
+  const id = crypto.randomUUID();
+  // A single statement ensures a duplicate login cannot leave an orphaned driver.
+  await sql`WITH new_driver AS (INSERT INTO limo_drivers (id, name, phone, email, vehicle_model, plate, active) VALUES (${id}, ${input.name}, ${input.phone}, ${input.email}, ${input.vehicleModel}, ${input.plate}, ${approved}) RETURNING id) INSERT INTO limo_driver_auth (driver_id, email, password_hash, approved) SELECT id, ${input.email}, ${hash}, ${approved} FROM new_driver`;
+}
+export async function setDriverCredentials(id: string, email: string, password: string) {
+  const sql = await adminDb(); const hash = await bcrypt.hash(password, 12);
+  const rows = await sql`INSERT INTO limo_driver_auth (driver_id, email, password_hash, approved) SELECT d.id, ${email}, ${hash}, TRUE FROM limo_drivers d WHERE d.id = ${id} AND NOT EXISTS (SELECT 1 FROM limo_driver_auth a WHERE a.driver_id = d.id AND a.approved = FALSE) ON CONFLICT (driver_id) DO UPDATE SET email = EXCLUDED.email, password_hash = EXCLUDED.password_hash, token_version = limo_driver_auth.token_version + 1 RETURNING driver_id`;
+  return rows.length > 0;
+}
+export async function approveDriver(id: string) {
+  const sql = await adminDb();
+  const rows = await sql`WITH approved AS (UPDATE limo_driver_auth SET approved = TRUE, token_version = token_version + 1 WHERE driver_id = ${id} AND approved = FALSE RETURNING driver_id) UPDATE limo_drivers SET active = TRUE WHERE id IN (SELECT driver_id FROM approved) RETURNING id`;
+  return rows.length > 0;
+}
+export async function findDriverLogin(email: string) {
+  const sql = await adminDb();
+  const rows = await sql`SELECT d.id, d.name, d.phone, d.active, a.email, a.password_hash AS "passwordHash", a.approved, a.token_version AS "tokenVersion" FROM limo_driver_auth a JOIN limo_drivers d ON d.id = a.driver_id WHERE a.email = ${email} LIMIT 1`;
+  return rows[0] || null;
+}
+export async function getDriverSession(id: string, version: number) {
+  const sql = await adminDb();
+  const rows = await sql`SELECT d.id, d.name, d.phone, a.email, a.token_version AS "tokenVersion" FROM limo_drivers d JOIN limo_driver_auth a ON a.driver_id = d.id WHERE d.id = ${id} AND d.active = TRUE AND a.approved = TRUE AND a.token_version = ${version}`;
+  return rows[0] || null;
+}
+export async function listDriverBookings(id: string, version: number) {
+  const sql = await adminDb();
+  const rows = await sql`SELECT b.payload FROM limo_bookings b JOIN limo_drivers d ON d.id = b.payload->'chauffeur'->>'driverId' JOIN limo_driver_auth a ON a.driver_id = d.id WHERE d.id = ${id} AND d.active = TRUE AND a.approved = TRUE AND a.token_version = ${version} ORDER BY b.created_at DESC`;
+  // Return only fields required to fulfil assigned rides, not customer accounts or payment data.
+  return rows.map(({ payload: p }) => ({ reference: p.reference, date: p.date, time: p.time, pickup: p.pickup, dropoff: p.dropoff, extraStops: p.extraStops, rideType: p.rideType, durationHours: p.durationHours, passengersCount: p.passengersCount, luggageCount: p.luggageCount, firstName: p.firstName, lastName: p.lastName, phone: p.phone, flightNumber: p.flightNumber, status: p.status, selectedClassId: p.selectedClassId, cabin: p.cabin }));
 }
 export async function changeDriverActive(id: string, active: boolean) {
   const sql = await adminDb();
-  const rows = await sql`UPDATE limo_drivers SET active = ${active} WHERE id = ${id} RETURNING id`;
+  const rows = await sql`WITH revoked AS (UPDATE limo_driver_auth SET token_version = token_version + 1 WHERE driver_id = ${id} AND ${active} = FALSE RETURNING driver_id) UPDATE limo_drivers SET active = ${active} WHERE id = ${id} AND (${active} = FALSE OR NOT EXISTS (SELECT 1 FROM limo_driver_auth a WHERE a.driver_id = ${id} AND a.approved = FALSE)) RETURNING id`;
   return rows.length > 0;
 }
 export async function assignAdminDriver(reference: string, driverId: string) {

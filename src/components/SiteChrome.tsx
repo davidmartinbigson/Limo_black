@@ -7,6 +7,7 @@ import ConciergeChat from "@/components/ConciergeChat";
 import AuthModal from "@/components/AuthModal";
 
 export default function SiteChrome({ children }: { children: React.ReactNode }) {
-  const admin = usePathname().startsWith("/admin");
+  const path = usePathname();
+  const admin = path.startsWith("/admin") || path.startsWith("/driver");
   return <>{!admin && <Navbar />}<AuthModal /><main className="flex-1">{children}</main>{!admin && <><Footer /><ConciergeChat /></>}</>;
 }
