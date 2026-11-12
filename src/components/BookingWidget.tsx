@@ -11,6 +11,7 @@ import {
 import { useBooking } from "@/context/BookingContext";
 import CanadianAddressInput from "@/components/CanadianAddressInput";
 import BookingDatePicker from "@/components/BookingDatePicker";
+import BookingTimePicker from "@/components/BookingTimePicker";
 
 interface BookingWidgetProps {
   compact?: boolean;
@@ -178,18 +179,7 @@ export default function BookingWidget({
 
           {/* Time */}
           <div className="w-full lg:w-[155px] shrink-0">
-            <label className="block text-xs font-medium text-white/90 mb-1.5">
-              Time
-            </label>
-            <div className="relative flex items-center rounded-xl bg-[#1E1F24] border border-white/12 focus-within:border-[#D4AF61] px-3.5 py-3">
-              <Clock className="w-4 h-4 text-[#D4AF61] shrink-0 mr-2" />
-              <input
-                type="time"
-                value={draft.time}
-                onChange={(e) => updateDraft({ time: e.target.value })}
-                className="w-full bg-transparent text-xs sm:text-sm text-white focus:outline-none [color-scheme:dark]"
-              />
-            </div>
+            <BookingTimePicker value={draft.time} onChange={(time) => updateDraft({ time })} />
           </div>
 
           {/* Search rides CTA */}
