@@ -71,3 +71,25 @@
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
+
+/* Booking calendar: scoped to the dark reservation widget. */
+.booking-calendar .rdp-root {
+  --rdp-accent-color: #d9b45d;
+  --rdp-day-width: 37px;
+  --rdp-day-height: 37px;
+  --rdp-day_button-width: 35px;
+  --rdp-day_button-height: 35px;
+  --rdp-day_button-border-radius: 10px;
+  --rdp-selected-border: 0;
+  --rdp-outside-opacity: .3;
+  --rdp-weekday-opacity: .55;
+  color: #f5f5f5;
+  font-size: 13px;
+}
+.booking-calendar .rdp-months { justify-content: center; }
+.booking-calendar .rdp-month_caption { align-items: center; font-size: 15px; }
+.booking-calendar .rdp-weekday { font-size: 10px; font-weight: 600; text-transform: uppercase; }
+.booking-calendar .rdp-day_button:hover { background: rgba(212,175,97,.16); }
+.booking-calendar .rdp-day_button:focus-visible, .booking-calendar button:focus-visible { outline: 2px solid #e6c575; outline-offset: 2px; }
+.booking-calendar .rdp-selected .rdp-day_button { background: #d9b45d; color: #0b0b0d; font-weight: 700; }
+.booking-calendar .rdp-button_previous:hover, .booking-calendar .rdp-button_next:hover { background: rgba(255,255,255,.07); border-radius: 8px; }
