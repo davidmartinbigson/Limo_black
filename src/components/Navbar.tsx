@@ -20,7 +20,7 @@ const SERVICE_LIST = Object.values(SERVICES_DATA);
 
 export default function Navbar() {
   const pathname = usePathname();
-  const { user, setAuthModalOpen, signOut, bookings } = useBooking();
+  const { user, signOut, bookings } = useBooking();
 
   const [scrolled, setScrolled] = useState(false);
   const [servicesOpen, setServicesOpen] = useState(false);
@@ -62,7 +62,7 @@ export default function Navbar() {
         </Link>
 
         {/* Center: Clean 4-Link Navigation Matching Reference */}
-        <nav className="hidden xl:flex items-center gap-5 2xl:gap-8">
+        <nav className="hidden 2xl:flex items-center gap-5 2xl:gap-8">
           {/* Services Dropdown */}
           <div
             className="relative"
@@ -179,7 +179,7 @@ export default function Navbar() {
         </nav>
 
         {/* Right: Gold-Bordered Sign In Button Matching Reference */}
-        <div className="hidden xl:flex items-center gap-2 shrink-0">
+        <div className="hidden 2xl:flex items-center gap-2 shrink-0">
           {user ? (
             <div className="flex items-center gap-2 px-3.5 py-2 rounded-xl border border-[#C9A55C]/60 bg-white/[0.03] text-white">
               <Link
@@ -199,21 +199,17 @@ export default function Navbar() {
               </button>
             </div>
           ) : (
-            <button
-              type="button"
-              onClick={() => setAuthModalOpen(true)}
-              className="flex items-center gap-2 px-4 py-2 rounded-xl border border-[#C9A55C]/65 hover:border-[#DFBE6F] bg-white/[0.02] hover:bg-[#C9A55C]/10 text-sm font-medium text-white transition-all whitespace-nowrap"
-            >
-              <User className="w-4 h-4 text-[#DFBE6F]" />
-              <span>Sign In</span>
-            </button>
+            <div className="flex items-center gap-2">
+              <Link href="/login" className="rounded-xl border border-white/20 px-3 py-2 text-xs font-semibold text-white hover:border-[#DFBE6F] whitespace-nowrap">Customer Login</Link>
+              <Link href="/signup" className="rounded-xl border border-white/20 px-3 py-2 text-xs font-semibold text-white hover:border-[#DFBE6F] whitespace-nowrap">Customer Sign Up</Link>
+            </div>
           )}
           <Link href="/driver/login" className="rounded-xl border border-white/20 px-3 py-2 text-xs font-semibold text-white hover:border-[#DFBE6F] hover:text-[#DFBE6F] whitespace-nowrap">Driver Login</Link>
           <Link href="/driver/signup" className="rounded-xl border border-[#C9A55C]/65 px-3 py-2 text-xs font-semibold text-[#DFBE6F] hover:bg-[#C9A55C]/10 whitespace-nowrap">Driver Sign Up</Link>
         </div>
 
         {/* Mobile Hamburger */}
-        <div className="flex xl:hidden items-center gap-2">
+        <div className="flex 2xl:hidden items-center gap-2">
           <button
             type="button"
             aria-label="Toggle navigation menu"
@@ -236,7 +232,7 @@ export default function Navbar() {
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: "auto" }}
             exit={{ opacity: 0, height: 0 }}
-            className="xl:hidden bg-[#0B0B0D] text-white border-b border-white/10 overflow-hidden"
+            className="2xl:hidden bg-[#0B0B0D] text-white border-b border-white/10 overflow-hidden"
           >
             <div className="px-4 py-6 space-y-4 max-h-[82vh] overflow-y-auto">
               <div className="space-y-1">
@@ -291,21 +287,14 @@ export default function Navbar() {
                     Sign Out ({user.email})
                   </button>
                 ) : (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setMobileOpen(false);
-                      setAuthModalOpen(true);
-                    }}
-                    className="w-full py-3 rounded-xl border border-[#C9A55C]/65 text-sm font-semibold text-white flex items-center justify-center gap-2"
-                  >
-                    <User className="w-4 h-4 text-[#DFBE6F]" />
-                    Sign In
-                  </button>
+                  <div className="grid grid-cols-2 gap-2">
+                    <Link href="/login" onClick={() => setMobileOpen(false)} className="rounded-xl border border-white/20 px-3 py-3 text-center text-sm font-semibold text-white">Customer Login</Link>
+                    <Link href="/signup" onClick={() => setMobileOpen(false)} className="rounded-xl border border-white/20 px-3 py-3 text-center text-sm font-semibold text-white">Customer Sign Up</Link>
+                  </div>
                 )}
                 <div className="mt-3 grid grid-cols-2 gap-2">
-                  <Link href="/driver/login" className="rounded-xl border border-white/20 px-3 py-3 text-center text-sm font-semibold text-white hover:border-[#DFBE6F]">Driver Login</Link>
-                  <Link href="/driver/signup" className="rounded-xl border border-[#C9A55C]/65 px-3 py-3 text-center text-sm font-semibold text-[#DFBE6F] hover:bg-[#C9A55C]/10">Driver Sign Up</Link>
+                  <Link href="/driver/login" onClick={() => setMobileOpen(false)} className="rounded-xl border border-white/20 px-3 py-3 text-center text-sm font-semibold text-white hover:border-[#DFBE6F]">Driver Login</Link>
+                  <Link href="/driver/signup" onClick={() => setMobileOpen(false)} className="rounded-xl border border-[#C9A55C]/65 px-3 py-3 text-center text-sm font-semibold text-[#DFBE6F] hover:bg-[#C9A55C]/10">Driver Sign Up</Link>
                 </div>
               </div>
             </div>

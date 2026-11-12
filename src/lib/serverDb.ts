@@ -359,3 +359,32 @@ export async function findOwnedBooking(reference: string, email: string): Promis
   const record = getMemStore().bookings.get(reference);
   return record?.userEmail === owner ? record.payload : null;
 }
+
+// Only the latest location is kept. Rows expire after 90 seconds without an update.
+async function trackingDb() {
+  const sql = await adminDb();
+  await sql`CREATE TABLE IF NOT EXISTS limo_live_locations (driver_id TEXT PRIMARY KEY REFERENCES limo_drivers(id) ON DELETE CASCADE, reference TEXT NOT NULL REFERENCES limo_bookings(reference) ON DELETE CASCADE, session_id TEXT NOT NULL, latitude DOUBLE PRECISION NOT NULL, longitude DOUBLE PRECISION NOT NULL, accuracy DOUBLE PRECISION NOT NULL, updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW())`;
+  await sql`DELETE FROM limo_live_locations WHERE updated_at < NOW() - INTERVAL '90 seconds'`;
+  return sql;
+}
+export async function writeTracking(id: string, version: number, reference: string, sessionId: string, latitude: number, longitude: number, accuracy: number, start: boolean) {
+  const sql = await trackingDb();
+  if (start) {
+    const rows = await sql`INSERT INTO limo_live_locations (driver_id, reference, session_id, latitude, longitude, accuracy, updated_at)
+      SELECT d.id, b.reference, ${sessionId}, ${latitude}, ${longitude}, ${accuracy}, NOW() FROM limo_bookings b JOIN limo_drivers d ON d.id = b.payload->'chauffeur'->>'driverId' JOIN limo_driver_auth a ON a.driver_id = d.id
+      WHERE b.reference = ${reference} AND d.id = ${id} AND d.active AND a.approved AND a.token_version = ${version} AND b.payload->>'status' IN ('Chauffeur Assigned', 'Chauffeur En Route', 'Chauffeur Arrived')
+      ON CONFLICT (driver_id) DO UPDATE SET reference = EXCLUDED.reference, session_id = EXCLUDED.session_id, latitude = EXCLUDED.latitude, longitude = EXCLUDED.longitude, accuracy = EXCLUDED.accuracy, updated_at = NOW() RETURNING driver_id`;
+    return rows.length > 0;
+  }
+  const rows = await sql`UPDATE limo_live_locations l SET latitude = ${latitude}, longitude = ${longitude}, accuracy = ${accuracy}, updated_at = NOW() FROM limo_bookings b, limo_drivers d, limo_driver_auth a WHERE l.driver_id = ${id} AND l.reference = ${reference} AND l.session_id = ${sessionId} AND l.updated_at > NOW() - INTERVAL '90 seconds' AND b.reference = l.reference AND b.payload->'chauffeur'->>'driverId' = l.driver_id AND b.payload->>'status' IN ('Chauffeur Assigned', 'Chauffeur En Route', 'Chauffeur Arrived') AND d.id = l.driver_id AND d.active AND a.driver_id = d.id AND a.approved AND a.token_version = ${version} RETURNING l.driver_id`;
+  return rows.length > 0;
+}
+export async function stopTracking(id: string, reference: string, sessionId: string) {
+  const sql = await trackingDb();
+  await sql`DELETE FROM limo_live_locations WHERE driver_id = ${id} AND reference = ${reference} AND session_id = ${sessionId}`;
+}
+export async function readTracking(reference: string, email: string, admin: boolean) {
+  const sql = await trackingDb();
+  const rows = await sql`SELECT l.latitude, l.longitude, l.accuracy, l.updated_at AS "updatedAt" FROM limo_live_locations l JOIN limo_bookings b ON b.reference = l.reference JOIN limo_drivers d ON d.id = l.driver_id JOIN limo_driver_auth a ON a.driver_id = d.id WHERE b.reference = ${reference} AND (${admin} OR b.user_email = ${email.toLowerCase()}) AND b.payload->'chauffeur'->>'driverId' = l.driver_id AND b.payload->>'status' IN ('Chauffeur Assigned', 'Chauffeur En Route', 'Chauffeur Arrived') AND d.active AND a.approved AND l.updated_at > NOW() - INTERVAL '90 seconds'`;
+  return rows[0] || null;
+}
