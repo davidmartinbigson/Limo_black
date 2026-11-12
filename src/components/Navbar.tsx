@@ -62,7 +62,7 @@ export default function Navbar() {
         </Link>
 
         {/* Center: Clean 4-Link Navigation Matching Reference */}
-        <nav className="hidden lg:flex items-center gap-8 xl:gap-9">
+        <nav className="hidden xl:flex items-center gap-5 2xl:gap-8">
           {/* Services Dropdown */}
           <div
             className="relative"
@@ -179,7 +179,7 @@ export default function Navbar() {
         </nav>
 
         {/* Right: Gold-Bordered Sign In Button Matching Reference */}
-        <div className="hidden lg:flex items-center gap-3 shrink-0">
+        <div className="hidden xl:flex items-center gap-2 shrink-0">
           {user ? (
             <div className="flex items-center gap-2 px-3.5 py-2 rounded-xl border border-[#C9A55C]/60 bg-white/[0.03] text-white">
               <Link
@@ -208,10 +208,12 @@ export default function Navbar() {
               <span>Sign In</span>
             </button>
           )}
+          <Link href="/driver/login" className="rounded-xl border border-white/20 px-3 py-2 text-xs font-semibold text-white hover:border-[#DFBE6F] hover:text-[#DFBE6F] whitespace-nowrap">Driver Login</Link>
+          <Link href="/driver/signup" className="rounded-xl border border-[#C9A55C]/65 px-3 py-2 text-xs font-semibold text-[#DFBE6F] hover:bg-[#C9A55C]/10 whitespace-nowrap">Driver Sign Up</Link>
         </div>
 
         {/* Mobile Hamburger */}
-        <div className="flex lg:hidden items-center gap-2">
+        <div className="flex xl:hidden items-center gap-2">
           <button
             type="button"
             aria-label="Toggle navigation menu"
@@ -234,7 +236,7 @@ export default function Navbar() {
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: "auto" }}
             exit={{ opacity: 0, height: 0 }}
-            className="lg:hidden bg-[#0B0B0D] text-white border-b border-white/10 overflow-hidden"
+            className="xl:hidden bg-[#0B0B0D] text-white border-b border-white/10 overflow-hidden"
           >
             <div className="px-4 py-6 space-y-4 max-h-[82vh] overflow-y-auto">
               <div className="space-y-1">
@@ -301,6 +303,10 @@ export default function Navbar() {
                     Sign In
                   </button>
                 )}
+                <div className="mt-3 grid grid-cols-2 gap-2">
+                  <Link href="/driver/login" className="rounded-xl border border-white/20 px-3 py-3 text-center text-sm font-semibold text-white hover:border-[#DFBE6F]">Driver Login</Link>
+                  <Link href="/driver/signup" className="rounded-xl border border-[#C9A55C]/65 px-3 py-3 text-center text-sm font-semibold text-[#DFBE6F] hover:bg-[#C9A55C]/10">Driver Sign Up</Link>
+                </div>
               </div>
             </div>
           </motion.div>
