@@ -6,7 +6,6 @@ import { usePathname } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
 import {
   ChevronDown,
-  LogOut,
   Menu,
   ShieldCheck,
   User,
@@ -25,6 +24,7 @@ export default function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const [servicesOpen, setServicesOpen] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [accountOpen, setAccountOpen] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 12);
@@ -35,7 +35,15 @@ export default function Navbar() {
   useEffect(() => {
     setMobileOpen(false);
     setServicesOpen(false);
+    setAccountOpen(false);
   }, [pathname]);
+
+  useEffect(() => {
+    const close = (event: MouseEvent) => { if (!(event.target as Element).closest("[data-account-menu]")) setAccountOpen(false); };
+    const escape = (event: KeyboardEvent) => { if (event.key === "Escape") setAccountOpen(false); };
+    document.addEventListener("click", close); document.addEventListener("keydown", escape);
+    return () => { document.removeEventListener("click", close); document.removeEventListener("keydown", escape); };
+  }, []);
 
   const activeBookingsCount = bookings.filter(
     (b) => b.status !== "Cancelled"
@@ -62,7 +70,7 @@ export default function Navbar() {
         </Link>
 
         {/* Center: Clean 4-Link Navigation Matching Reference */}
-        <nav className="hidden 2xl:flex items-center gap-5 2xl:gap-8">
+        <nav className="hidden xl:flex items-center gap-5 2xl:gap-8">
           {/* Services Dropdown */}
           <div
             className="relative"
@@ -179,24 +187,21 @@ export default function Navbar() {
         </nav>
 
         {/* Right: Gold-Bordered Sign In Button Matching Reference */}
-        <div className="hidden 2xl:flex items-center gap-2 shrink-0">
+        <div className="hidden xl:flex items-center gap-2 shrink-0">
           {user ? (
-            <div className="flex items-center gap-2 px-3.5 py-2 rounded-xl border border-[#C9A55C]/60 bg-white/[0.03] text-white">
-              <Link
-                href={user.role === "admin" ? "/admin" : "/account"}
-                className="flex items-center gap-2 text-xs sm:text-sm font-medium hover:text-[#DFBE6F] max-w-[130px] truncate"
-              >
-                <User className="w-4 h-4 text-[#DFBE6F] shrink-0" />
-                <span className="truncate">{user.name.split(" ")[0]}</span>
-              </Link>
-              <button
-                type="button"
-                onClick={() => signOut()}
-                title="Sign out"
-                className="p-1 rounded-lg hover:bg-white/10 text-white/70 hover:text-white transition-colors"
-              >
-                <LogOut className="w-3.5 h-3.5" />
+            <div className="relative" data-account-menu>
+              <button type="button" onClick={() => setAccountOpen(!accountOpen)} aria-expanded={accountOpen} aria-controls="account-menu" className="flex items-center gap-2 rounded-xl border border-[#C9A55C]/60 bg-white/[0.03] px-4 py-2 text-sm text-white hover:border-[#DFBE6F]">
+                <User className="h-4 w-4 text-[#DFBE6F]" /><span className="max-w-[120px] truncate">{user.name.split(" ")[0]}</span><ChevronDown className="h-4 w-4" />
               </button>
+              {accountOpen && <div id="account-menu" className="absolute right-0 top-full mt-2 w-56 rounded-xl border border-[#C9A55C]/30 bg-[#141518] p-2 shadow-2xl">
+                {user.role === "admin" ? <Link href="/admin" onClick={() => setAccountOpen(false)} className="block rounded-lg px-3 py-2.5 text-sm text-white hover:bg-white/10">Owner Dashboard</Link> : <>
+                  <a href="/account" className="block rounded-lg px-3 py-2.5 text-sm text-white hover:bg-white/10">Dashboard</a>
+                  <a href="/account?tab=rides" className="block rounded-lg px-3 py-2.5 text-sm text-white hover:bg-white/10">My Bookings</a>
+                  <a href="/account?tab=tracking" className="block rounded-lg px-3 py-2.5 text-sm text-[#DFBE6F] hover:bg-white/10">Live Tracking</a>
+                  <a href="/account?tab=profile" className="block rounded-lg px-3 py-2.5 text-sm text-white hover:bg-white/10">Profile Settings</a>
+                </>}
+                <button type="button" onClick={() => { setAccountOpen(false); void signOut(); }} className="w-full rounded-lg border-t border-white/10 px-3 py-2.5 text-left text-sm text-white/70 hover:bg-white/10">Sign Out</button>
+              </div>}
             </div>
           ) : (
             <div className="flex items-center gap-2">
@@ -204,12 +209,12 @@ export default function Navbar() {
               <Link href="/signup" className="rounded-xl border border-white/20 px-3 py-2 text-xs font-semibold text-white hover:border-[#DFBE6F] whitespace-nowrap">Customer Sign Up</Link>
             </div>
           )}
-          <Link href="/driver/login" className="rounded-xl border border-white/20 px-3 py-2 text-xs font-semibold text-white hover:border-[#DFBE6F] hover:text-[#DFBE6F] whitespace-nowrap">Driver Login</Link>
-          <Link href="/driver/signup" className="rounded-xl border border-[#C9A55C]/65 px-3 py-2 text-xs font-semibold text-[#DFBE6F] hover:bg-[#C9A55C]/10 whitespace-nowrap">Driver Sign Up</Link>
+          {!user && <><Link href="/driver/login" className="rounded-xl border border-white/20 px-3 py-2 text-xs font-semibold text-white hover:border-[#DFBE6F] hover:text-[#DFBE6F] whitespace-nowrap">Driver Login</Link>
+          <Link href="/driver/signup" className="rounded-xl border border-[#C9A55C]/65 px-3 py-2 text-xs font-semibold text-[#DFBE6F] hover:bg-[#C9A55C]/10 whitespace-nowrap">Driver Sign Up</Link></>}
         </div>
 
         {/* Mobile Hamburger */}
-        <div className="flex 2xl:hidden items-center gap-2">
+        <div className="flex xl:hidden items-center gap-2">
           <button
             type="button"
             aria-label="Toggle navigation menu"
@@ -232,7 +237,7 @@ export default function Navbar() {
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: "auto" }}
             exit={{ opacity: 0, height: 0 }}
-            className="2xl:hidden bg-[#0B0B0D] text-white border-b border-white/10 overflow-hidden"
+            className="xl:hidden bg-[#0B0B0D] text-white border-b border-white/10 overflow-hidden"
           >
             <div className="px-4 py-6 space-y-4 max-h-[82vh] overflow-y-auto">
               <div className="space-y-1">
@@ -277,6 +282,11 @@ export default function Navbar() {
                 </Link>
               </div>
 
+              {user && user.role !== "admin" && <div className="border-t border-white/10 pt-3 space-y-1">
+                <a href="/account?tab=rides" className="block rounded-lg px-3 py-2 text-sm text-white">My Bookings</a>
+                <a href="/account?tab=tracking" className="block rounded-lg px-3 py-2 text-sm text-[#DFBE6F]">Live Tracking</a>
+                <a href="/account?tab=profile" className="block rounded-lg px-3 py-2 text-sm text-white">Profile Settings</a>
+              </div>}
               <div className="border-t border-white/10 pt-4">
                 {user ? (
                   <button
@@ -292,10 +302,10 @@ export default function Navbar() {
                     <Link href="/signup" onClick={() => setMobileOpen(false)} className="rounded-xl border border-white/20 px-3 py-3 text-center text-sm font-semibold text-white">Customer Sign Up</Link>
                   </div>
                 )}
-                <div className="mt-3 grid grid-cols-2 gap-2">
+                {!user && <div className="mt-3 grid grid-cols-2 gap-2">
                   <Link href="/driver/login" onClick={() => setMobileOpen(false)} className="rounded-xl border border-white/20 px-3 py-3 text-center text-sm font-semibold text-white hover:border-[#DFBE6F]">Driver Login</Link>
                   <Link href="/driver/signup" onClick={() => setMobileOpen(false)} className="rounded-xl border border-[#C9A55C]/65 px-3 py-3 text-center text-sm font-semibold text-[#DFBE6F] hover:bg-[#C9A55C]/10">Driver Sign Up</Link>
-                </div>
+                </div>}
               </div>
             </div>
           </motion.div>

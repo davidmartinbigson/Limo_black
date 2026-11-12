@@ -53,7 +53,6 @@ export default function AccountDashboardPage() {
   const {
     user,
     bookings,
-    loyaltyPoints,
     formatPrice,
     signOut,
     updateUserProfile,
@@ -67,12 +66,19 @@ export default function AccountDashboardPage() {
     rateBooking,
   } = useBooking();
 
-  const [activeTab, setActiveTab] = useState<"dashboard" | "rides" | "places" | "profile" | "payments">(
+  const [activeTab, setActiveTab] = useState<"dashboard" | "rides" | "places" | "profile" | "payments" | "tracking">(
     "dashboard"
   );
   const [invoiceBooking, setInvoiceBooking] = useState<ConfirmedBooking | null>(
     null
   );
+
+  const selectTab = (tab: "dashboard" | "rides" | "places" | "profile" | "payments" | "tracking") => {
+    setActiveTab(tab);
+    const url = new URL(window.location.href);
+    if (tab === "dashboard") url.searchParams.delete("tab"); else url.searchParams.set("tab", tab);
+    window.history.replaceState(window.history.state, "", url);
+  };
 
   // Edit schedule state
   const [editingRef, setEditingRef] = useState<string | null>(null);
@@ -111,6 +117,11 @@ export default function AccountDashboardPage() {
   const [profileSaved, setProfileSaved] = useState(false);
 
   useEffect(() => {
+    const tab = new URLSearchParams(window.location.search).get("tab");
+    if (tab === "rides" || tab === "places" || tab === "profile" || tab === "payments" || tab === "tracking") setActiveTab(tab);
+  }, []);
+
+  useEffect(() => {
     if (!user) return;
     setProfName(user.name); setProfPhone(user.phone); setProfCompany(user.company || "");
     setPrefTemp(user.defaultCabin?.temperature || "21°C Balanced"); setPrefDrink(user.defaultCabin?.refreshment || "Still Artisan Water"); setPrefConv(user.defaultCabin?.conversation || "Discreet Silence"); setPrefLang(user.preferredLanguage || "English");
@@ -126,7 +137,7 @@ export default function AccountDashboardPage() {
 
   if (!user) {
     return (
-      <div className="min-h-screen bg-canvas pt-32 pb-24 px-4 flex items-center justify-center">
+      <div className="dark min-h-screen bg-canvas pt-32 pb-24 px-4 flex items-center justify-center">
         <div className="max-w-lg w-full rounded-3xl bg-card border border-line/12 p-8 sm:p-10 text-center space-y-6 shadow-luxury">
           <div className="flex justify-center">
             <BrandLogo size="md" showCanadaBadge />
@@ -135,9 +146,7 @@ export default function AccountDashboardPage() {
             Sign In to View Your Personal Account
           </h1>
           <p className="text-sm text-muted leading-relaxed">
-            Access your private limousine bookings, live chauffeur GPS dispatch,
-            saved Canadian addresses, Obsidian Loyalty Points, and official CRA
-            GST/HST receipts.
+            Access your bookings, saved locations, and live tracking when your assigned driver shares their location.
           </p>
           <div className="flex flex-col sm:flex-row justify-center gap-3 pt-2">
             <Link
@@ -157,15 +166,6 @@ export default function AccountDashboardPage() {
       </div>
     );
   }
-
-  const totalSpent = bookings
-    .filter((b) => b.status !== "Cancelled")
-    .reduce((acc, b) => acc + b.totalUsd, 0);
-  const nextTierPoints = 15000;
-  const progressPct = Math.min(
-    100,
-    Math.round(((loyaltyPoints || 500) / nextTierPoints) * 100)
-  );
 
   const handleRebook = (b: ConfirmedBooking) => {
     const parts = user.name.trim().split(" ");
@@ -241,34 +241,37 @@ export default function AccountDashboardPage() {
     setEditingRef(b.reference);
     setEditTime(b.time);
     setEditNotes(b.cabin?.notes || "");
-    setActiveTab("rides");
+    selectTab("rides");
   };
 
-  if (activeTab === "dashboard" || activeTab === "payments") {
+  const accountSidebar = <aside className="border-b border-white/10 bg-[#0b0c0d] p-5 lg:min-h-[calc(100vh-74px)] lg:w-[280px] lg:shrink-0 lg:border-b-0 lg:border-l lg:px-5 lg:py-10">
+    <div className="mb-6 flex items-center gap-4 px-2"><div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-gradient-to-b from-[#ffce62] to-[#d7961d] text-lg font-semibold text-black">{initials}</div><div className="min-w-0"><p className="truncate font-bold text-white">{user.name}</p><p className="truncate text-sm text-white/70">{user.email}</p></div></div>
+    <nav aria-label="Account navigation" className="grid grid-cols-2 gap-1 sm:grid-cols-3 lg:grid-cols-1">
+      {([{id:"dashboard", label:"Dashboard", icon:Home}, {id:"rides", label:"My Bookings", icon:Calendar}, {id:"tracking", label:"Live Tracking", icon:Navigation}, {id:"places", label:"Saved Locations", icon:MapPin}, {id:"payments", label:"Payment Methods", icon:CreditCard}, {id:"profile", label:"Profile Settings", icon:User}] as const).map(item => <button key={item.id} type="button" onClick={() => selectTab(item.id)} className={`flex items-center gap-4 rounded-lg px-4 py-3 text-left text-sm font-semibold ${activeTab === item.id ? "bg-[#664b18] text-[#ffdb78]" : "text-white hover:bg-white/10"}`}><item.icon className="h-5 w-5 shrink-0" />{item.label}</button>)}
+      <button type="button" onClick={async () => { await signOut(); router.push("/"); }} className="flex items-center gap-4 rounded-lg px-4 py-3 text-left text-sm font-semibold text-white hover:bg-white/10 lg:mt-3 lg:border-t lg:border-white/20"><LogOut className="h-5 w-5" />Log Out</button>
+    </nav>
+  </aside>;
+  const activeRides = personalBookings.filter(b => !["Cancelled", "Completed"].includes(b.status));
+
+  if (activeTab === "dashboard" || activeTab === "payments" || activeTab === "tracking") {
     const stageIndex = upcoming ? ({ "Confirmed": 0, "Chauffeur Assigned": 1, "Chauffeur En Route": 2, "Chauffeur Arrived": 2, "Completed": 3, "Cancelled": -1 }[upcoming.status] ?? 0) : 0;
     const dashboardButton = "flex min-h-[55px] items-center justify-center gap-3 rounded-xl border border-white/25 bg-[#101113] px-4 text-sm font-semibold text-white hover:border-[#e6b341] transition-colors";
     return (
-      <div className="min-h-screen bg-[#08090a] pt-16 text-white sm:pt-[74px] lg:flex">
-        <aside className="border-b border-white/10 bg-[#0b0c0d] p-5 lg:min-h-[calc(100vh-74px)] lg:w-[280px] lg:shrink-0 lg:border-b-0 lg:border-r lg:px-5 lg:py-10">
-          <div className="mb-8 flex items-center gap-4 px-2"><div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-gradient-to-b from-[#ffce62] to-[#d7961d] text-lg font-semibold text-white">{initials}</div><div className="min-w-0"><p className="truncate font-bold">{user.name}</p><p className="truncate text-sm text-white/75">{user.email}</p></div></div>
-          <nav aria-label="Account navigation" className="grid grid-cols-2 gap-1 sm:grid-cols-3 lg:grid-cols-1">
-            {([{id:"dashboard", label:"Dashboard", icon:Home}, {id:"rides", label:"My Bookings", icon:Calendar}, {id:"places", label:"Saved Locations", icon:MapPin}, {id:"payments", label:"Payment Methods", icon:CreditCard}, {id:"profile", label:"Profile Settings", icon:User}] as const).map((item) => <button key={item.id} type="button" onClick={() => setActiveTab(item.id)} className={`flex items-center gap-4 rounded-lg px-4 py-3 text-left text-sm font-semibold ${activeTab === item.id ? "bg-[#664b18] text-[#ffdb78]" : "text-white hover:bg-white/10"}`}><item.icon className="h-5 w-5 shrink-0" />{item.label}</button>)}
-            <button type="button" onClick={async () => { await signOut(); router.push("/"); }} className="flex items-center gap-4 rounded-lg px-4 py-3 text-left text-sm font-semibold text-white hover:bg-white/10 lg:mt-3 lg:border-t lg:border-white/20"><LogOut className="h-5 w-5" />Log Out</button>
-          </nav>
-        </aside>
+      <div className="dark min-h-screen bg-[#08090a] pt-16 text-white sm:pt-[74px] lg:flex lg:flex-row-reverse">
+        {accountSidebar}
         <main className="min-w-0 flex-1">
           <div className="relative overflow-hidden px-5 py-10 sm:px-9"><img src="/images/checkout-banner-sedan.jpg" alt="" className="absolute inset-0 h-full w-full object-cover object-right opacity-60" /><div className="absolute inset-0 bg-gradient-to-r from-[#08090a] via-[#08090a]/90 to-transparent" /><div className="relative"><h1 className="text-3xl font-bold tracking-tight sm:text-4xl">Welcome back, {user.name.split(" ")[0]}</h1><p className="mt-2 text-sm text-white/80 sm:text-base">Manage your bookings, track your rides and update your preferences.</p><p className="mt-2 text-xs text-white/60">Live location is available when your assigned driver starts sharing.</p></div></div>
           <div className="px-5 pb-16 sm:px-9">
-            <div className="grid grid-cols-2 gap-3 xl:grid-cols-4"><Link href="/book" className={`${dashboardButton} border-[#e8b13d] bg-gradient-to-b from-[#ffce60] to-[#d99a21] !text-black`}><Car className="h-6 w-6" />Book a Ride</Link><button onClick={() => setActiveTab("rides")} className={dashboardButton}><Calendar className="h-6 w-6" />My Bookings</button><button onClick={() => setActiveTab("places")} className={dashboardButton}><Heart className="h-6 w-6" />Saved Locations</button><button onClick={() => setActiveTab("payments")} className={dashboardButton}><CreditCard className="h-6 w-6" />Payment Methods</button></div>
-            {activeTab === "payments" ? <section className="mt-8 rounded-2xl border border-white/20 bg-[#111214] p-7"><h2 className="text-xl font-bold">Payment Methods</h2><p className="mt-3 text-sm text-white/70">Payment methods will be available when payment processing is connected.</p></section> : <>
-            <div className="mt-8 flex flex-wrap items-center justify-between gap-3"><h2 className="text-xl font-bold sm:text-2xl">Your Upcoming Booking</h2><button onClick={() => setActiveTab("rides")} className="flex items-center gap-2 text-sm font-semibold text-[#edc451]">View All Bookings <ArrowRight className="h-5 w-5" /></button></div>
+            <div className="grid grid-cols-2 gap-3 xl:grid-cols-4"><Link href="/book" className={`${dashboardButton} border-[#e8b13d] bg-gradient-to-b from-[#ffce60] to-[#d99a21] !text-black`}><Car className="h-6 w-6" />Book a Ride</Link><button onClick={() => selectTab("rides")} className={dashboardButton}><Calendar className="h-6 w-6" />My Bookings</button><button onClick={() => selectTab("places")} className={dashboardButton}><Heart className="h-6 w-6" />Saved Locations</button><button onClick={() => selectTab("payments")} className={dashboardButton}><CreditCard className="h-6 w-6" />Payment Methods</button></div>
+            {activeTab === "tracking" ? <section className="mt-8 rounded-2xl border border-white/20 bg-[#111214] p-6"><h2 className="text-xl font-bold">Live Tracking</h2><p className="mt-2 text-sm text-white/70">See your driver’s latest location when they start sharing it.</p>{activeRides.length === 0 ? <div className="mt-5 rounded-xl border border-white/10 bg-black/20 p-6 text-center"><p className="font-semibold">Currently no active ride</p><p className="mt-2 text-sm text-white/60">Your tracking options will appear here when you have a booking.</p><Link href="/book" className="mt-4 inline-block text-sm font-semibold text-[#edc451]">Book a ride →</Link></div> : activeRides.map(b => <div key={b.reference} className="mt-5"><p className="text-sm font-semibold">{b.reference} · {displayDate(b.date)}</p><LiveTracking reference={b.reference} /></div>)}</section> : activeTab === "payments" ? <section className="mt-8 rounded-2xl border border-white/20 bg-[#111214] p-7"><h2 className="text-xl font-bold">Payment Methods</h2><p className="mt-3 text-sm text-white/70">Payment methods will be available when payment processing is connected.</p></section> : <>
+            <div className="mt-8 flex flex-wrap items-center justify-between gap-3"><h2 className="text-xl font-bold sm:text-2xl">Your Upcoming Booking</h2><button onClick={() => selectTab("rides")} className="flex items-center gap-2 text-sm font-semibold text-[#edc451]">View All Bookings <ArrowRight className="h-5 w-5" /></button></div>
             {upcoming ? <section className="mt-4 rounded-2xl border border-white/25 bg-gradient-to-br from-[#151619] to-[#0b0c0d] p-5">
               <div className="grid gap-5 xl:grid-cols-[220px_1fr]"><img src={vehicleDetails(upcoming.selectedClassId).image} alt={vehicleDetails(upcoming.selectedClassId).name} className="h-32 w-full rounded-lg object-cover" /><div><div className="flex flex-wrap justify-between gap-5"><div><h3 className="text-xl font-bold">{vehicleDetails(upcoming.selectedClassId).name}</h3><p className="mt-1 text-sm text-white/75">Booking #: <strong className="text-white">{upcoming.reference}</strong> <button type="button" aria-label="Copy booking reference" onClick={() => { void navigator.clipboard?.writeText(upcoming.reference); }} className="ml-2 align-middle text-[#f4c748]"><Copy className="h-4 w-4" /></button></p></div><div className="flex flex-wrap gap-3 text-center text-xs">{["Request Received", "Driver Assigned", "On the Way", "Ride Completed"].map((label, i) => <div key={label} className="w-20"><div className={`mx-auto mb-2 flex h-7 w-7 items-center justify-center rounded-full border-2 ${i <= stageIndex ? "border-[#ecc04c] bg-[#eeb53c] text-black" : "border-white/50 text-white/60"}`}>{i < stageIndex ? "✓" : i + 1}</div>{label}</div>)}</div></div>
               <div className="mt-5 flex flex-wrap gap-x-6 gap-y-3 border-t border-white/15 pt-4 text-sm"><span className="flex items-center gap-2"><Calendar className="h-5 w-5" />{displayDate(upcoming.date)} · {displayTime(upcoming.time)}</span><span className="flex items-center gap-2"><MapPin className="h-5 w-5" />{upcoming.pickup || "Pickup not set"} <ArrowRight className="h-4 w-4" /> {upcoming.rideType === "hourly" ? `${upcoming.durationHours} hour charter` : upcoming.dropoff || "Destination not set"}</span><span className="flex items-center gap-2"><User className="h-5 w-5" />{upcoming.passengersCount || 1} Passenger{(upcoming.passengersCount || 1) === 1 ? "" : "s"}</span></div></div></div>
               <div className="mt-5 grid gap-4 rounded-xl border border-white/20 bg-white/[0.02] p-4 sm:grid-cols-3 sm:items-center"><div><p className="text-xs text-white/65">Your Driver</p><p className="font-semibold">{upcoming.chauffeur?.name || "Not assigned yet"}</p>{upcoming.chauffeur?.rating && <p className="mt-1 text-sm text-[#edc451]">★ {upcoming.chauffeur.rating}</p>}</div><div><p className="text-xs text-white/65">Vehicle</p><p className="text-sm font-semibold">{upcoming.chauffeur?.vehicleModel || vehicleDetails(upcoming.selectedClassId).name}</p></div><button type="button" disabled title="Driver contact will be available when dispatch is connected" className={`${dashboardButton} cursor-not-allowed opacity-50`}><Phone className="h-5 w-5 text-[#edc451]" />Contact Driver</button></div>
-              <div className="mt-4 grid gap-3 sm:grid-cols-3"><button onClick={() => setActiveTab("rides")} className={`${dashboardButton} !min-h-[46px] !border-[#d8ad3b] !text-[#edc451]`}><FileText className="h-5 w-5" />View Details</button><button onClick={() => goToEdit(upcoming)} className={`${dashboardButton} !min-h-[46px]`}><Edit3 className="h-5 w-5" />Modify Booking</button><button onClick={() => { if (window.confirm("Are you sure you want to cancel this booking?")) cancelBooking(upcoming.reference); }} className={`${dashboardButton} !min-h-[46px]`}><XCircle className="h-5 w-5" />Cancel Booking</button></div>
+              <div className="mt-4 grid gap-3 sm:grid-cols-3"><button onClick={() => selectTab("rides")} className={`${dashboardButton} !min-h-[46px] !border-[#d8ad3b] !text-[#edc451]`}><FileText className="h-5 w-5" />View Details</button><button onClick={() => goToEdit(upcoming)} className={`${dashboardButton} !min-h-[46px]`}><Edit3 className="h-5 w-5" />Modify Booking</button><button onClick={() => { if (window.confirm("Are you sure you want to cancel this booking?")) cancelBooking(upcoming.reference); }} className={`${dashboardButton} !min-h-[46px]`}><XCircle className="h-5 w-5" />Cancel Booking</button></div>
             </section> : <div className="mt-4 rounded-2xl border border-white/20 bg-[#111214] p-8 text-center"><p className="font-semibold">No upcoming bookings</p><p className="mt-2 text-sm text-white/60">Your upcoming rides will appear here.</p><Link href="/book" className="mt-4 inline-block text-sm font-bold text-[#edc451]">Book a Ride →</Link></div>}
-            <h2 className="mt-8 text-xl font-bold sm:text-2xl">Live Tracking</h2><p className="mt-2 text-sm text-white/60">Choose a ride to see its driver’s latest location when sharing is active.</p>{personalBookings.filter(b => !["Cancelled", "Completed"].includes(b.status)).map(b => <div key={b.reference}><p className="mt-4 text-sm font-semibold">{b.reference} · {displayDate(b.date)}</p><LiveTracking reference={b.reference} /></div>)}<h2 className="mt-8 text-xl font-bold sm:text-2xl">Past Bookings</h2><div className="mt-4 overflow-x-auto rounded-xl border border-white/25"><table className="w-full min-w-[760px] text-left text-sm"><thead className="bg-white/[0.06] text-white/80"><tr>{["Booking #", "Date & Time", "Route", "Vehicle", "Total", "Status", ""].map((heading, i) => <th key={i} className="px-4 py-3 font-medium">{heading}</th>)}</tr></thead><tbody>{past.map((b) => <tr key={b.reference} className="border-t border-white/15"><td className="px-4 py-4 font-semibold">{b.reference}</td><td className="px-4 py-4">{displayDate(b.date)}<br />{displayTime(b.time)}</td><td className="px-4 py-4">{b.pickup} → {b.rideType === "hourly" ? `${b.durationHours} hour charter` : b.dropoff}</td><td className="px-4 py-4">{vehicleDetails(b.selectedClassId).name}</td><td className="whitespace-nowrap px-4 py-4">CAD ${b.totalUsd.toFixed(2)}</td><td className="px-4 py-4"><span className={`rounded-full px-3 py-1 text-xs ${b.status === "Completed" ? "bg-green-900 text-green-100" : "bg-red-950 text-red-200"}`}>{b.status}</span></td><td className="px-4 py-4"><button onClick={() => setActiveTab("rides")} aria-label={`View ${b.reference}`} className="rounded bg-white/10 p-1"><ChevronRight className="h-5 w-5" /></button></td></tr>)}</tbody></table>{past.length === 0 && <p className="border-t border-white/15 px-4 py-7 text-center text-sm text-white/60">No past bookings yet.</p>}</div>
+            <button onClick={() => selectTab("tracking")} className="mt-6 rounded-xl border border-[#d8ad3b] px-5 py-3 text-sm font-semibold text-[#edc451]">View Live Tracking</button><h2 className="mt-8 text-xl font-bold sm:text-2xl">Past Bookings</h2><div className="mt-4 overflow-x-auto rounded-xl border border-white/25"><table className="w-full min-w-[760px] text-left text-sm"><thead className="bg-white/[0.06] text-white/80"><tr>{["Booking #", "Date & Time", "Route", "Vehicle", "Total", "Status", ""].map((heading, i) => <th key={i} className="px-4 py-3 font-medium">{heading}</th>)}</tr></thead><tbody>{past.map((b) => <tr key={b.reference} className="border-t border-white/15"><td className="px-4 py-4 font-semibold">{b.reference}</td><td className="px-4 py-4">{displayDate(b.date)}<br />{displayTime(b.time)}</td><td className="px-4 py-4">{b.pickup} → {b.rideType === "hourly" ? `${b.durationHours} hour charter` : b.dropoff}</td><td className="px-4 py-4">{vehicleDetails(b.selectedClassId).name}</td><td className="whitespace-nowrap px-4 py-4">CAD ${b.totalUsd.toFixed(2)}</td><td className="px-4 py-4"><span className={`rounded-full px-3 py-1 text-xs ${b.status === "Completed" ? "bg-green-900 text-green-100" : "bg-red-950 text-red-200"}`}>{b.status}</span></td><td className="px-4 py-4"><button onClick={() => selectTab("rides")} aria-label={`View ${b.reference}`} className="rounded bg-white/10 p-1"><ChevronRight className="h-5 w-5" /></button></td></tr>)}</tbody></table>{past.length === 0 && <p className="border-t border-white/15 px-4 py-7 text-center text-sm text-white/60">No past bookings yet.</p>}</div>
             </>}
           </div>
         </main>
@@ -277,148 +280,10 @@ export default function AccountDashboardPage() {
   }
 
   return (
-    <div className="min-h-screen bg-canvas pt-28 pb-24">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
-        {/* VIP Personal Header Card */}
-        <div className="rounded-3xl bg-card border border-champagne-500/30 p-6 sm:p-8 shadow-luxury relative overflow-hidden">
-          <div className="absolute -top-24 -right-24 w-72 h-72 rounded-full bg-champagne-500/12 blur-3xl pointer-events-none" />
-
-          <div className="relative flex flex-col lg:flex-row lg:items-center justify-between gap-6">
-            <div className="flex items-start sm:items-center gap-4">
-              <div className="w-16 h-16 rounded-2xl bg-gold-gradient text-obsidian-950 font-serif text-2xl font-bold flex items-center justify-center shrink-0 shadow-gold-glow">
-                {user.name
-                  .split(" ")
-                  .map((n) => n[0])
-                  .join("")
-                  .slice(0, 2)
-                  .toUpperCase()}
-              </div>
-              <div className="space-y-1">
-                <div className="flex flex-wrap items-center gap-2">
-                  <span className="px-2.5 py-0.5 rounded-full bg-champagne-500/15 border border-champagne-500/35 text-[10px] uppercase tracking-[0.2em] text-accent font-bold">
-                    {user.tier}
-                  </span>
-                  {user.company && (
-                    <span className="inline-flex items-center gap-1 text-xs text-muted">
-                      <Building2 className="w-3.5 h-3.5 text-accent" />
-                      {user.company}
-                    </span>
-                  )}
-                </div>
-                <h1 className="font-serif text-2xl sm:text-4xl text-ink font-semibold">
-                  Welcome, {user.name}
-                </h1>
-                <p className="text-xs sm:text-sm text-muted">
-                  {user.email} • {user.phone}
-                </p>
-              </div>
-            </div>
-
-            <div className="flex flex-wrap items-center gap-3">
-              <Link
-                href="/book"
-                className="px-5 py-3 rounded-full bg-gold-gradient text-obsidian-950 font-bold text-xs uppercase tracking-[0.14em] shadow-gold-glow hover:brightness-110 transition-all"
-              >
-                + Book New Limousine
-              </Link>
-              <button
-                type="button"
-                onClick={async () => {
-                  await signOut();
-                  router.push("/");
-                }}
-                className="px-4 py-3 rounded-full bg-field border border-line/15 text-xs font-semibold text-muted hover:text-rose-500 transition-colors flex items-center gap-1.5"
-              >
-                <LogOut className="w-3.5 h-3.5" /> Sign Out
-              </button>
-            </div>
-          </div>
-
-          {/* Personal Account Metrics + Obsidian Loyalty Bar */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-7 pt-6 border-t border-line/10">
-            <div className="p-4 rounded-2xl bg-field border border-line/10">
-              <p className="text-[11px] uppercase tracking-wider text-subtle font-semibold">
-                My Personal Rides
-              </p>
-              <p className="font-serif text-3xl text-ink font-bold mt-1">
-                {bookings.length}
-              </p>
-              <p className="text-xs text-muted mt-0.5">
-                Private to {user.email}
-              </p>
-            </div>
-
-            <div className="p-4 rounded-2xl bg-field border border-line/10">
-              <p className="text-[11px] uppercase tracking-wider text-subtle font-semibold">
-                Total Chauffeur Spend
-              </p>
-              <p className="font-serif text-3xl text-accent font-bold mt-1">
-                {formatPrice(totalSpent)}
-              </p>
-              <p className="text-xs text-muted mt-0.5">
-                CRA GST/HST Invoices Ready
-              </p>
-            </div>
-
-            <div className="p-4 rounded-2xl bg-field border border-champagne-500/25">
-              <div className="flex items-center justify-between">
-                <p className="text-[11px] uppercase tracking-wider text-accent font-semibold flex items-center gap-1">
-                  <Award className="w-3.5 h-3.5" /> Obsidian Loyalty Points
-                </p>
-                <span className="font-mono text-sm font-bold text-ink">
-                  {loyaltyPoints.toLocaleString()} pts
-                </span>
-              </div>
-              <div className="w-full h-2 rounded-full bg-line/10 overflow-hidden mt-3">
-                <div
-                  className="h-full bg-gold-gradient rounded-full transition-all"
-                  style={{ width: `${progressPct}%` }}
-                />
-              </div>
-              <p className="text-[11px] text-muted mt-1.5">
-                Earn 10 pts per CA$1 • Complimentary First-Class upgrade at
-                15,000 pts
-              </p>
-            </div>
-          </div>
-        </div>
-
-        {/* Navigation Tabs */}
-        <button type="button" onClick={() => setActiveTab("dashboard")} className="text-sm font-semibold text-accent">← Back to Dashboard</button>
-        <div className="flex flex-wrap gap-2 border-b border-line/10 pb-3">
-          {[
-            {
-              id: "rides" as const,
-              label: `My Chauffeur Rides (${bookings.length})`,
-              icon: Car,
-            },
-            {
-              id: "places" as const,
-              label: `Saved Canadian Addresses (${user.savedPlaces?.length || 0})`,
-              icon: Bookmark,
-            },
-            {
-              id: "profile" as const,
-              label: "Personal Details & Cabin Profile",
-              icon: Sliders,
-            },
-          ].map((tab) => (
-            <button
-              key={tab.id}
-              type="button"
-              onClick={() => setActiveTab(tab.id)}
-              className={`px-5 py-2.5 rounded-full text-xs font-semibold flex items-center gap-2 transition-all ${
-                activeTab === tab.id
-                  ? "bg-champagne-500 text-obsidian-950 shadow-gold-glow"
-                  : "bg-card border border-line/12 text-muted hover:text-ink"
-              }`}
-            >
-              <tab.icon className="w-3.5 h-3.5" />
-              {tab.label}
-            </button>
-          ))}
-        </div>
-
+    <div className="dark min-h-screen bg-canvas pt-16 text-ink sm:pt-[74px] lg:flex lg:flex-row-reverse">
+      {accountSidebar}
+      <main className="min-w-0 flex-1 px-4 py-8 sm:px-8 lg:px-10">
+        <div className="mx-auto max-w-5xl space-y-8">
         {/* TAB 1: MY PERSONAL RIDES */}
         {activeTab === "rides" && (
           <div className="space-y-6">
@@ -431,8 +296,7 @@ export default function AccountDashboardPage() {
                 <p className="text-sm text-muted max-w-md mx-auto">
                   Reserve your first chauffeured limousine across Toronto,
                   Vancouver, Montréal, Calgary, Ottawa, or Whistler. Every ride
-                  you book appears right here with live GPS status and GST/HST
-                  receipts.
+                  you book appears right here. Tracking is available when your assigned driver shares their location.
                 </p>
                 <Link
                   href="/book"
@@ -1063,8 +927,8 @@ export default function AccountDashboardPage() {
             </button>
           </form>
         )}
-      </div>
-
+        </div>
+      </main>
       <TaxInvoiceModal
         booking={invoiceBooking}
         companyName={user.company}
