@@ -348,3 +348,14 @@ export async function changeAdminBookingStatus(reference: string, status: string
   const rows = await sql`UPDATE limo_bookings SET payload = jsonb_set(payload, '{status}', to_jsonb(${status}::text)) WHERE reference = ${reference} AND (( ${status} = 'Chauffeur En Route' AND payload->>'status' = 'Chauffeur Assigned') OR (${status} = 'Chauffeur Arrived' AND payload->>'status' = 'Chauffeur En Route') OR (${status} = 'Completed' AND payload->>'status' = 'Chauffeur Arrived') OR (${status} = 'Cancelled' AND payload->>'status' IN ('Confirmed', 'Chauffeur Assigned', 'Chauffeur En Route', 'Chauffeur Arrived'))) RETURNING reference`;
   return rows.length > 0;
 }
+
+export async function findOwnedBooking(reference: string, email: string): Promise<Record<string, unknown> | null> {
+  const sql = await getPgClient();
+  const owner = email.trim().toLowerCase();
+  if (sql) {
+    const rows = await sql`SELECT payload FROM limo_bookings WHERE reference = ${reference} AND user_email = ${owner} LIMIT 1`;
+    return rows.length ? rows[0].payload as Record<string, unknown> : null;
+  }
+  const record = getMemStore().bookings.get(reference);
+  return record?.userEmail === owner ? record.payload : null;
+}

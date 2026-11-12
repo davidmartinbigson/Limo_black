@@ -127,7 +127,7 @@ interface BookingContextValue {
     distanceKm: number,
     durationMin: number,
     explicitOwnerEmail?: string
-  ) => Promise<ConfirmedBooking>;
+  ) => Promise<{ booking: ConfirmedBooking; emailStatus: "accepted" | "unavailable" | "failed" }>;
   cancelBooking: (reference: string) => Promise<boolean>;
   advanceBookingStatus: (reference: string) => void;
   updateBookingSchedule: (
@@ -426,14 +426,14 @@ export function BookingProvider({ children }: { children: React.ReactNode }) {
   const addSavedPlace = async (place: Omit<SavedPlace, "id">): Promise<boolean> => user ? updateUserProfile({ savedPlaces: [...user.savedPlaces, { ...place, id: crypto.randomUUID() }] }) : false;
   const removeSavedPlace = async (id: string): Promise<boolean> => user ? updateUserProfile({ savedPlaces: user.savedPlaces.filter((p) => p.id !== id) }) : false;
 
-  const confirmCurrentBooking = async (totalCad: number, distanceKm: number, durationMin: number): Promise<ConfirmedBooking> => {
+  const confirmCurrentBooking = async (totalCad: number, distanceKm: number, durationMin: number): Promise<{ booking: ConfirmedBooking; emailStatus: "accepted" | "unavailable" | "failed" }> => {
     if (!user) throw new Error("Please sign in or create an account to submit a booking.");
     const response = await fetch("/api/bookings", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ booking: { ...draft, totalUsd: totalCad, distanceKm, durationMin } }) });
     const data = await response.json();
     if (!response.ok || !data.booking) throw new Error(data.error || "Unable to submit booking.");
     const booking = data.booking as ConfirmedBooking;
     setAllBookings((prev) => [booking, ...prev]);
-    return booking;
+    return { booking, emailStatus: data.emailStatus === "accepted" || data.emailStatus === "unavailable" ? data.emailStatus : "failed" };
   };
   const cancelBooking = async (reference: string): Promise<boolean> => {
     try {

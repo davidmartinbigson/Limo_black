@@ -262,6 +262,9 @@ export default function BookPage() {
   // Confirmed reservation state
   const [confirmed, setConfirmed] = useState<ConfirmedBooking | null>(null);
   const [copyMessage, setCopyMessage] = useState("");
+  const [emailStatus, setEmailStatus] = useState<"accepted" | "unavailable" | "failed">("unavailable");
+  const [emailBusy, setEmailBusy] = useState(false);
+  const [emailMessage, setEmailMessage] = useState("");
 
   // Pre-fill passenger contact fields when user logs in
   useEffect(() => {
@@ -402,7 +405,8 @@ export default function BookPage() {
     setSubmitting(true);
     try {
       const result = await confirmCurrentBooking(selectedPriceCad, routeMetrics.distanceKm, routeMetrics.durationMin);
-      setConfirmed(result);
+      setConfirmed(result.booking);
+      setEmailStatus(result.emailStatus);
       window.scrollTo({ top: 0, behavior: "smooth" });
     } catch (error) { setAuthError(error instanceof Error ? error.message : "Unable to submit booking."); }
     finally { setSubmitting(false); }
@@ -476,16 +480,17 @@ export default function BookPage() {
               <div className="mt-8 flex justify-between gap-3 text-base font-medium"><span>Estimated Fare</span><span>CAD ${confirmed.totalUsd.toFixed(2)}</span></div>
               <div className="mt-4 flex justify-between gap-3 border-t border-[#dedede] pt-4 text-lg font-bold"><span>Estimated Total (CAD)</span><span>CAD ${confirmed.totalUsd.toFixed(2)}</span></div>
               <div className="mt-8 rounded-xl bg-[#fff5df] px-4 py-4 text-sm font-bold text-[#785400]">Payment not yet processed</div>
-              <p className="mt-3 text-sm text-[#454545]">No payment has been collected and no confirmation email has been sent through this site.</p>
+              <p className="mt-3 text-sm text-[#454545]">No payment has been collected. {emailStatus === "accepted" ? "Email was accepted by the mail provider; delivery to your inbox is not guaranteed." : emailStatus === "unavailable" ? "Email is not configured yet." : "The request was saved, but email could not be sent."}</p>
             </section>
           </div>
 
           <div className="mx-auto mt-8 grid max-w-[1240px] gap-3 sm:grid-cols-2 lg:grid-cols-4">
             <button type="button" onClick={calendarDownload} disabled={!confirmed.date || !confirmed.time || cancelled} className={`${buttonClass} border-[#d19a2d] bg-gradient-to-b from-[#f8c35d] to-[#d99517] hover:from-[#f8cc76] disabled:opacity-50`}><Calendar className="h-5 w-5" />Add to Calendar</button>
-            <button type="button" disabled title="Email confirmations are not available yet" className={`${buttonClass} cursor-not-allowed opacity-50`}><Mail className="h-5 w-5" />Resend Confirmation</button>
+            <button type="button" disabled={cancelled || emailBusy} onClick={async () => { setEmailBusy(true); setEmailMessage(""); try { const response = await fetch("/api/bookings/email", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ reference: confirmed.reference }) }); const data = await response.json(); if (!response.ok) throw new Error(data.error || "Unable to send email."); setEmailStatus("accepted"); setEmailMessage("Email accepted by the mail provider. Check your inbox and spam folder."); } catch (error) { setEmailMessage(error instanceof Error ? error.message : "Unable to send email."); } finally { setEmailBusy(false); } }} className={`${buttonClass} disabled:opacity-50`}><Mail className="h-5 w-5" />{emailBusy ? "Sending…" : "Resend Confirmation"}</button>
             <Link href={user ? "/account" : "/login"} className={buttonClass}><Pencil className="h-5 w-5" />Modify Booking</Link>
             <button type="button" disabled={cancelled} onClick={async () => { if (window.confirm("Are you sure you want to cancel this booking?") && await cancelBooking(confirmed.reference)) setConfirmed({ ...confirmed, status: "Cancelled" }); }} className={`${buttonClass} border-[#b32727] text-[#b32727] hover:bg-[#fff5f5] disabled:opacity-50`}><XCircle className="h-5 w-5" />{cancelled ? "Booking Cancelled" : "Cancel Booking"}</button>
           </div>
+          {emailMessage && <p role="status" className="mt-3 text-center text-sm text-[#555]">{emailMessage}</p>}
           {!user && <p className="mt-3 text-center text-xs text-[#666]">Sign in to your account to manage your rides.</p>}
           <p className="mt-5 text-center text-xs text-[#666]">A payment receipt is not available until payment is processed.</p>
 
