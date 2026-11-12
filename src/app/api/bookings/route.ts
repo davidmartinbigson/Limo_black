@@ -1,8 +1,9 @@
-import { cookies } from "next/headers";
+import { cookies, headers } from "next/headers";
 import { NextResponse } from "next/server";
 import { randomBytes } from "crypto";
+import { sendBookingRequestEmail } from "@/lib/mail";
 import { SESSION_COOKIE_NAME, verifySessionToken } from "@/lib/jwt";
-import { cancelOwnedBooking, listBookingsForUser, saveBookingRecord, rescheduleOwnedBooking } from "@/lib/serverDb";
+import { cancelOwnedBooking, listBookingsForUser, saveBookingRecord, rescheduleOwnedBooking, consumeLoginAttempt } from "@/lib/serverDb";
 
 async function getSession() {
   const token = (await cookies()).get(SESSION_COOKIE_NAME)?.value;
@@ -27,7 +28,14 @@ export async function POST(req: Request) {
     const reference = `LB-${randomBytes(8).toString("hex").toUpperCase()}`;
     const booking = { ...b, reference, ownerEmail: session.email, createdAt: new Date().toISOString(), status: "Confirmed", chauffeur: { name: "", rating: "", languages: "", phone: "", vehicleModel: "", plate: "" }, subtotalBeforeTaxCad: undefined, hstTaxCad: undefined };
     await saveBookingRecord(reference, session.email, booking);
-    return NextResponse.json({ booking }, { status: 201 });
+    // Saving and sending are separate: SMTP failure must never undo a saved booking.
+    let emailStatus: 'accepted' | 'unavailable' | 'failed' = 'failed';
+    try {
+      const h = await headers();
+      const ip = (h.get('x-real-ip') || h.get('x-forwarded-for')?.split(',')[0] || 'unknown').slice(0, 100);
+      if (await consumeLoginAttempt(`booking-email-user:${session.id}`) && await consumeLoginAttempt(`booking-email-ip:${ip}`)) emailStatus = await sendBookingRequestEmail(session.email, booking);
+    } catch { emailStatus = 'failed'; }
+    return NextResponse.json({ booking, emailStatus }, { status: 201 });
   } catch { return NextResponse.json({ error: "Unable to save your booking. Please try again." }, { status: 503 }); }
 }
 export async function PATCH(req: Request) {
