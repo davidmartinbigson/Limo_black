@@ -6,11 +6,11 @@ import {
   ArrowLeftRight,
   ArrowRight,
   ArrowUpRight,
-  Calendar,
   Clock,
 } from "lucide-react";
 import { useBooking } from "@/context/BookingContext";
 import CanadianAddressInput from "@/components/CanadianAddressInput";
+import BookingDatePicker from "@/components/BookingDatePicker";
 
 interface BookingWidgetProps {
   compact?: boolean;
@@ -173,18 +173,7 @@ export default function BookingWidget({
 
           {/* Date */}
           <div className="w-full lg:w-[175px] shrink-0">
-            <label className="block text-xs font-medium text-white/90 mb-1.5">
-              Date
-            </label>
-            <div className="relative flex items-center rounded-xl bg-[#1E1F24] border border-white/12 focus-within:border-[#D4AF61] px-3.5 py-3">
-              <Calendar className="w-4 h-4 text-[#D4AF61] shrink-0 mr-2" />
-              <input
-                type="date"
-                value={draft.date}
-                onChange={(e) => updateDraft({ date: e.target.value })}
-                className="w-full bg-transparent text-xs sm:text-sm text-white focus:outline-none [color-scheme:dark]"
-              />
-            </div>
+            <BookingDatePicker value={draft.date} onChange={(date) => updateDraft({ date })} />
           </div>
 
           {/* Time */}

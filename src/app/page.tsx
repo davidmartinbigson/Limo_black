@@ -136,12 +136,12 @@ export default function HomePage() {
         {/* Hero Image Banner */}
         <div className="relative min-h-[460px] sm:min-h-[540px] lg:min-h-[590px] flex items-center overflow-hidden">
           <img
-            src="/images/hero-toronto-hotel.jpg"
-            alt="LimoBlack Chauffeur Service in Toronto & the GTA"
-            className="absolute inset-0 w-full h-full object-cover object-center"
+            src="/images/hero-toronto-night.jpg"
+            alt="Black chauffeur sedan overlooking the Toronto skyline at night"
+            className="absolute inset-0 w-full h-full object-cover object-[68%_center] sm:object-center"
           />
           {/* Subtle dark vignette on left & bottom so text and overlapping booking bar blend seamlessly */}
-          <div className="absolute inset-0 bg-gradient-to-r from-[#0B0B0D]/85 via-[#0B0B0D]/35 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-r from-[#0B0B0D]/90 via-[#0B0B0D]/30 to-transparent" />
           <div className="absolute inset-0 bg-gradient-to-t from-[#0B0B0D] via-transparent to-[#0B0B0D]/25" />
 
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 w-full pb-20 sm:pb-24 pt-10">
