@@ -1,5 +1,6 @@
 "use client";
 
+import { CONTACT_EMAIL, CONTACT_PHONE } from "@/lib/contact";
 import React from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Crown, Printer, ShieldCheck, X } from "lucide-react";
@@ -190,7 +191,7 @@ export default function TaxInvoiceModal({
               <ShieldCheck className="w-3.5 h-3.5 text-emerald-500" /> Official
               CRA Corporate Expense Tax Receipt
             </span>
-            <span>support@limoblack.ca • +1 (888) 546-6255</span>
+            <span>{CONTACT_EMAIL} • {CONTACT_PHONE}</span>
           </div>
         </motion.div>
       </motion.div>

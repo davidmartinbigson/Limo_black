@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
 import { Crown, MessageCircle, Phone, Send, Sparkles, X } from "lucide-react";
+import { CONTACT_PHONE, CONTACT_PHONE_HREF } from "@/lib/contact";
 
 interface ChatMessage {
   sender: "concierge" | "guest";
@@ -50,7 +51,7 @@ function getConciergeReply(q: string): string {
   ) {
     return "100% of our Canadian fleet is Winter-Certified with 4MATIC/AWD and severe-snow tires. You can also select a Thule Ski/Snowboard Carrier in Step 2 when booking Sea-to-Sky Whistler, Banff, or Mont-Tremblant transfers.";
   }
-  return "Thank you for contacting Limo Black Canada 24/7 VIP Dispatch! You can get an instant guaranteed CAD fare using our live Canadian address search, sign into your personal account at /account, or call our Toronto & Vancouver desk anytime at +1 (888) 546-6255.";
+  return `Thank you for contacting Limo Black Canada. You can submit a booking request online, sign into your account at /account, or call us at ${CONTACT_PHONE}.`;
 }
 
 export default function ConciergeChat() {
@@ -183,10 +184,10 @@ export default function ConciergeChat() {
 
             <div className="px-4 py-2 bg-field border-t border-line/10 flex items-center justify-between text-[11px] text-muted">
               <a
-                href="tel:+18885466255"
+                href={CONTACT_PHONE_HREF}
                 className="inline-flex items-center gap-1 hover:text-accent font-medium"
               >
-                <Phone className="w-3 h-3 text-accent" /> +1 (888) 546-6255
+                <Phone className="w-3 h-3 text-accent" /> {CONTACT_PHONE}
               </a>
               <Link
                 href="/book"
