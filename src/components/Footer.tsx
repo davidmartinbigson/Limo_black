@@ -3,9 +3,10 @@
 import React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Mail, MapPin, User } from "lucide-react";
+import { Mail, MapPin, Phone, User } from "lucide-react";
 import { useBooking } from "@/context/BookingContext";
 import BrandLogo from "@/components/BrandLogo";
+import { CONTACT_EMAIL, CONTACT_EMAIL_HREF, CONTACT_PHONE, CONTACT_PHONE_HREF } from "@/lib/contact";
 
 export default function Footer() {
   const pathname = usePathname();
@@ -183,12 +184,17 @@ export default function Footer() {
               <span>Toronto, ON, Canada</span>
             </div>
 
+            <a href={CONTACT_PHONE_HREF} className="flex items-center gap-3 hover:text-[#DFBE6F] transition-colors">
+              <Phone className="w-4 h-4 text-[#DFBE6F] shrink-0" />
+              <span>{CONTACT_PHONE}</span>
+            </a>
+
             <a
-              href="mailto:support@limoblack.ca"
+              href={CONTACT_EMAIL_HREF}
               className="flex items-center gap-3 hover:text-[#DFBE6F] transition-colors"
             >
               <Mail className="w-4 h-4 text-[#DFBE6F] shrink-0" />
-              <span>support@limoblack.ca</span>
+              <span>{CONTACT_EMAIL}</span>
             </a>
 
             {user ? (
